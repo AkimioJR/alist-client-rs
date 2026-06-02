@@ -41,20 +41,21 @@ fn authentication_builders_configure_client_token_state() {
     assert_eq!(client.token().as_deref(), Some("token-1"));
     assert_eq!(
         client.authentication(),
-        Some(&Authentication::Token("token-1".to_string()))
+        Some(Authentication::Token("token-1".to_string()))
     );
 
     let client = Client::with_authentication(
         "https://alist.example",
-        Authentication::username_password("admin", "password"),
+        Authentication::username_password("admin", "password", None::<String>),
     )
     .unwrap();
     assert_eq!(client.token(), None);
     assert_eq!(
         client.authentication(),
-        Some(&Authentication::UsernamePassword {
+        Some(Authentication::UsernamePassword {
             username: "admin".to_string(),
             password: "password".to_string(),
+            otp_code: None,
         })
     );
 }
@@ -65,7 +66,7 @@ async fn username_password_authentication_refreshes_expired_token() {
     let base_url = spawn_refresh_server(Arc::clone(&requests)).await;
     let client = Client::with_authentication(
         base_url,
-        Authentication::username_password("admin", "password"),
+        Authentication::username_password("admin", "password", None::<String>),
     )
     .unwrap();
 

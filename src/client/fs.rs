@@ -11,55 +11,56 @@ use reqwest::Method;
 impl Client {
     /// List a directory with `/api/fs/list`.
     pub async fn fs_list(&self, req: FsListReq) -> Result<FsListResp> {
-        self.request_json(Method::POST, "/fs/list", Some(&req))
+        self.request(Method::POST, "/fs/list", Some(&req), false)
             .await
     }
 
     /// Get object metadata with `/api/fs/get`.
     pub async fn fs_get(&self, req: FsGetReq) -> Result<FsGetResp> {
-        self.request_json(Method::POST, "/fs/get", Some(&req)).await
+        self.request(Method::POST, "/fs/get", Some(&req), false)
+            .await
     }
 
     /// List child directories with `/api/fs/dirs`.
     pub async fn fs_dirs(&self, req: DirsReq) -> Result<Vec<DirResp>> {
-        self.request_json(Method::POST, "/fs/dirs", Some(&req))
+        self.request(Method::POST, "/fs/dirs", Some(&req), false)
             .await
     }
 
     /// Search files with `/api/fs/search`.
     pub async fn fs_search(&self, req: SearchReq) -> Result<PageResp<SearchResp>> {
-        self.request_json(Method::POST, "/fs/search", Some(&req))
+        self.request(Method::POST, "/fs/search", Some(&req), false)
             .await
     }
 
     /// Create a directory with `/api/fs/mkdir`.
     pub async fn mkdir(&self, path: impl Into<String>) -> Result<()> {
         let req = MkdirReq { path: path.into() };
-        self.request_unit(Method::POST, "/fs/mkdir", Some(&req))
+        self.request(Method::POST, "/fs/mkdir", Some(&req), false)
             .await
     }
 
     /// Rename an object with `/api/fs/rename`.
     pub async fn rename(&self, req: RenameReq) -> Result<()> {
-        self.request_unit(Method::POST, "/fs/rename", Some(&req))
+        self.request(Method::POST, "/fs/rename", Some(&req), false)
             .await
     }
 
     /// Move objects with `/api/fs/move`.
     pub async fn move_items(&self, req: MoveCopyReq) -> Result<()> {
-        self.request_unit(Method::POST, "/fs/move", Some(&req))
+        self.request(Method::POST, "/fs/move", Some(&req), false)
             .await
     }
 
     /// Copy objects with `/api/fs/copy`.
     pub async fn copy_items(&self, req: MoveCopyReq) -> Result<Option<TasksResp>> {
-        self.request_json_nullable(Method::POST, "/fs/copy", Some(&req))
+        self.request(Method::POST, "/fs/copy", Some(&req), false)
             .await
     }
 
     /// Remove objects with `/api/fs/remove`.
     pub async fn remove(&self, req: RemoveReq) -> Result<()> {
-        self.request_unit(Method::POST, "/fs/remove", Some(&req))
+        self.request(Method::POST, "/fs/remove", Some(&req), false)
             .await
     }
 
@@ -68,7 +69,12 @@ impl Client {
         let req = RemoveEmptyDirectoryReq {
             src_dir: src_dir.into(),
         };
-        self.request_unit(Method::POST, "/fs/remove_empty_directory", Some(&req))
-            .await
+        self.request(
+            Method::POST,
+            "/fs/remove_empty_directory",
+            Some(&req),
+            false,
+        )
+        .await
     }
 }

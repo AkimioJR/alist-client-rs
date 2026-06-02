@@ -7,7 +7,7 @@ mod public;
 mod upload;
 
 use crate::error::{ApiStatusCode, ClientError, InternalErrorKind, Result};
-use crate::models::{ApiResponse, LoginReq, LoginResp};
+use crate::models::{ApiResponse, LoginReq};
 use reqwest::{Method, Url};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -55,7 +55,7 @@ pub struct Client {
     base_url: Url,
     http: reqwest::Client,
     token: RwLock<Option<String>>,
-    authentication: Option<Authentication>,
+    authentication: RwLock<Option<Authentication>>,
 }
 
 impl Client {
@@ -71,7 +71,7 @@ impl Client {
             base_url,
             http: reqwest::Client::new(),
             token: RwLock::new(None),
-            authentication: None,
+            authentication: RwLock::new(None),
         })
     }
 
@@ -85,14 +85,22 @@ impl Client {
         Ok(client)
     }
 
+    /// Create a client with token authentication.
+    pub fn with_token(base_url: impl AsRef<str>, token: impl Into<String>) -> Result<Self> {
+        Self::with_authentication(base_url, Authentication::token(token))
+    }
+
     /// Return the current token, if any.
     pub(crate) fn token(&self) -> Option<String> {
         self.token.read().ok().and_then(|token| token.clone())
     }
 
     /// Return the configured refresh authentication, if any.
-    pub fn authentication(&self) -> Option<&Authentication> {
-        self.authentication.as_ref()
+    pub(crate) fn authentication(&self) -> Option<Authentication> {
+        self.authentication
+            .read()
+            .ok()
+            .and_then(|authentication| authentication.clone())
     }
 
     /// Set authentication material used to refresh the current token.
@@ -100,12 +108,16 @@ impl Client {
         if let Authentication::Token(token) = &authentication {
             self.replace_token(Some(token.clone()));
         }
-        self.authentication = Some(authentication);
+        if let Ok(mut current) = self.authentication.write() {
+            *current = Some(authentication);
+        }
     }
 
     /// Clear refresh authentication without clearing the current token.
     pub fn clear_authentication(&mut self) {
-        self.authentication = None;
+        if let Ok(mut current) = self.authentication.write() {
+            *current = None;
+        }
     }
 
     /// Return the base site URL.
@@ -119,6 +131,11 @@ impl Client {
         Ok(self.base_url.join(&format!("api/{path}"))?)
     }
 
+    // 发送 API 请求的核心方法，处理认证、错误检查和响应解析
+    // - `method`: HTTP 方法（GET、POST 等）
+    // - `path`: API 路径（如 `/fs/list`）
+    // - `body`: 可选的请求体，必须可序列化为 JSON
+    // - `is_retry`: 内部标志，指示这是否是由于认证失败而进行的重试，以避免无限重试循环
     async fn request<B: Serialize + ?Sized, T: DeserializeOwned>(
         &self,
         method: Method,
@@ -126,13 +143,58 @@ impl Client {
         body: Option<&B>,
         is_retry: bool,
     ) -> Result<T> {
+        let mut is_retry = is_retry;
+
+        loop {
+            let url = self.api_url(path)?;
+            let mut builder = self.http.request(method.clone(), url);
+            builder = self.apply_auth(builder);
+            if let Some(body) = body {
+                builder = builder.json(body);
+            }
+            let response = builder.send().await?;
+
+            match self.decode_response_value(response).await {
+                Ok(value) => return Ok(serde_json::from_value(value)?),
+                Err(err) if !is_retry && self.should_refresh_auth(&err) => {
+                    self.refresh_token().await?;
+                    is_retry = true;
+                }
+                Err(err) => return Err(err),
+            }
+        }
+    }
+
+    async fn request_without_refresh<B: Serialize + ?Sized, T: DeserializeOwned>(
+        &self,
+        method: Method,
+        path: &str,
+        body: Option<&B>,
+    ) -> Result<T> {
         let url = self.api_url(path)?;
-        let mut builder = self.http.request(method.clone(), url);
+        let mut builder = self.http.request(method, url);
         builder = self.apply_auth(builder);
         if let Some(body) = body {
             builder = builder.json(body);
         }
         let response = builder.send().await?;
+        let value = self.decode_response_value(response).await?;
+        Ok(serde_json::from_value(value)?)
+    }
+
+    async fn decode_response_nullable<T: DeserializeOwned>(
+        &self,
+        response: reqwest::Response,
+    ) -> Result<Option<T>> {
+        let value = self.decode_response_value(response).await?;
+        if value.is_null() {
+            Ok(None)
+        } else {
+            Ok(Some(serde_json::from_value(value)?))
+        }
+    }
+
+    async fn decode_response_value(&self, response: reqwest::Response) -> Result<Value> {
         let status = response.status();
         let resp_body = response.text().await?;
         if !status.is_success() {
@@ -143,21 +205,6 @@ impl Client {
         }
         let envelope: ApiResponse<Value> = serde_json::from_str(&resp_body)?;
         let code = ApiStatusCode::from_code(envelope.code);
-
-        // 未授权或权限不足时，如果尚未重试过且配置了账号密码认证，则尝试刷新令牌后重试一次。
-        let should_refresh_token =
-            matches!(code, ApiStatusCode::Unauthorized | ApiStatusCode::Forbidden)
-                && !is_retry
-                && matches!(
-                    self.authentication,
-                    Some(Authentication::UsernamePassword { .. })
-                );
-
-        if should_refresh_token {
-            self.refresh_token().await?;
-            return self.request(method, path, body, true).await;
-        }
-
         if !code.is_success() {
             return Err(ClientError::Api {
                 code,
@@ -167,8 +214,7 @@ impl Client {
             });
         }
 
-        let data: T = serde_json::from_str(&resp_body)?;
-        Ok(data)
+        Ok(envelope.data)
     }
 
     fn apply_auth(&self, builder: reqwest::RequestBuilder) -> reqwest::RequestBuilder {
@@ -180,7 +226,7 @@ impl Client {
     }
 
     async fn refresh_token(&self) -> Result<()> {
-        match self.authentication.as_ref() {
+        match self.authentication() {
             Some(Authentication::UsernamePassword {
                 username,
                 password,
@@ -196,6 +242,27 @@ impl Client {
                 Ok(())
             }
             _ => Ok(()),
+        }
+    }
+
+    fn should_refresh_auth(&self, err: &ClientError) -> bool {
+        if !matches!(
+            self.authentication(),
+            Some(Authentication::UsernamePassword { .. })
+        ) {
+            return false;
+        }
+
+        match err {
+            ClientError::Api {
+                code: ApiStatusCode::Unauthorized | ApiStatusCode::Forbidden,
+                ..
+            } => true,
+            ClientError::HttpStatus { status, .. } => {
+                *status == reqwest::StatusCode::UNAUTHORIZED
+                    || *status == reqwest::StatusCode::FORBIDDEN
+            }
+            _ => false,
         }
     }
 
