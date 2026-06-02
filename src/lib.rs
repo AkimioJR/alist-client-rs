@@ -1,10 +1,13 @@
 //! Async Rust client for the AList v3 API.
 //!
 //! This crate models AList's JSON envelopes and core file-system endpoints.
-//! API data models are grouped by OpenAPI tag.
+//! API data models are grouped by OpenAPI tag, while high-level async methods
+//! live on [`Client`].
 
+pub mod client;
 pub mod error;
 pub mod models;
 
+pub use client::{Client, UploadPut};
 pub use error::{ApiStatusCode, ClientError, InternalErrorKind, Result};
 pub use models::*;
