@@ -119,110 +119,45 @@ impl Client {
         Ok(self.base_url.join(&format!("api/{path}"))?)
     }
 
-    async fn request_unit<B: Serialize + ?Sized>(
+    async fn request<B: Serialize + ?Sized, T: DeserializeOwned>(
         &self,
         method: Method,
         path: &str,
         body: Option<&B>,
-    ) -> Result<()> {
-        let _: Option<Value> = self.request_json_nullable(method, path, body).await?;
-        Ok(())
-    }
-
-    async fn request_json<B: Serialize + ?Sized, T: DeserializeOwned>(
-        &self,
-        method: Method,
-        path: &str,
-        body: Option<&B>,
+        is_retry: bool,
     ) -> Result<T> {
-        let value = self.request_value(method, path, body, true).await?;
-        Ok(serde_json::from_value(value)?)
-    }
-
-    async fn request_json_nullable<B: Serialize + ?Sized, T: DeserializeOwned>(
-        &self,
-        method: Method,
-        path: &str,
-        body: Option<&B>,
-    ) -> Result<Option<T>> {
-        let value = self.request_value(method, path, body, true).await?;
-        if value.is_null() {
-            Ok(None)
-        } else {
-            Ok(Some(serde_json::from_value(value)?))
-        }
-    }
-
-    async fn request_json_without_refresh<B: Serialize + ?Sized, T: DeserializeOwned>(
-        &self,
-        method: Method,
-        path: &str,
-        body: Option<&B>,
-    ) -> Result<T> {
-        let response = self.send_json(method, path, body).await?;
-        self.decode_response(response).await
-    }
-
-    async fn request_value<B: Serialize + ?Sized>(
-        &self,
-        method: Method,
-        path: &str,
-        body: Option<&B>,
-        retry_auth: bool,
-    ) -> Result<Value> {
-        let response = self.send_json(method.clone(), path, body).await?;
-        match self.decode_response_value(response).await {
-            Ok(value) => Ok(value),
-            Err(err) if retry_auth && self.should_refresh_auth(&err) => {
-                self.refresh_token().await?;
-                let response = self.send_json(method, path, body).await?;
-                self.decode_response_value(response).await
-            }
-            Err(err) => Err(err),
-        }
-    }
-
-    async fn send_json<B: Serialize + ?Sized>(
-        &self,
-        method: Method,
-        path: &str,
-        body: Option<&B>,
-    ) -> Result<reqwest::Response> {
         let url = self.api_url(path)?;
-        let mut builder = self.http.request(method, url);
+        let mut builder = self.http.request(method.clone(), url);
         builder = self.apply_auth(builder);
         if let Some(body) = body {
             builder = builder.json(body);
         }
-        Ok(builder.send().await?)
-    }
-
-    async fn decode_response_nullable<T: DeserializeOwned>(
-        &self,
-        response: reqwest::Response,
-    ) -> Result<Option<T>> {
-        let value = self.decode_response_value(response).await?;
-        if value.is_null() {
-            Ok(None)
-        } else {
-            Ok(Some(serde_json::from_value(value)?))
-        }
-    }
-
-    async fn decode_response<T: DeserializeOwned>(&self, response: reqwest::Response) -> Result<T> {
-        let value = self.decode_response_value(response).await?;
-        Ok(serde_json::from_value(value)?)
-    }
-
-    async fn decode_response_value(&self, response: reqwest::Response) -> Result<Value> {
+        let response = builder.send().await?;
         let status = response.status();
-        let text = response.text().await?;
+        let resp_body = response.text().await?;
         if !status.is_success() {
-            return Err(ClientError::HttpStatus { status, body: text });
+            return Err(ClientError::HttpStatus {
+                status,
+                body: resp_body,
+            });
+        }
+        let envelope: ApiResponse<Value> = serde_json::from_str(&resp_body)?;
+        let code = ApiStatusCode::from_code(envelope.code);
+
+        // 未授权或权限不足时，如果尚未重试过且配置了账号密码认证，则尝试刷新令牌后重试一次。
+        let should_refresh_token =
+            matches!(code, ApiStatusCode::Unauthorized | ApiStatusCode::Forbidden)
+                && !is_retry
+                && matches!(
+                    self.authentication,
+                    Some(Authentication::UsernamePassword { .. })
+                );
+
+        if should_refresh_token {
+            self.refresh_token().await?;
+            return self.request(method, path, body, true).await;
         }
 
-        let envelope: ApiResponse<Value> = serde_json::from_str(&text)?;
-        let code = ApiStatusCode::from_code(envelope.code);
         if !code.is_success() {
             return Err(ClientError::Api {
                 code,
@@ -231,7 +166,9 @@ impl Client {
                 data: envelope.data,
             });
         }
-        Ok(envelope.data)
+
+        let data: T = serde_json::from_str(&resp_body)?;
+        Ok(data)
     }
 
     fn apply_auth(&self, builder: reqwest::RequestBuilder) -> reqwest::RequestBuilder {
@@ -258,25 +195,7 @@ impl Client {
                 self.replace_token(Some(resp.token));
                 Ok(())
             }
-            Some(Authentication::Token(token)) => {
-                self.replace_token(Some(token.clone()));
-                Ok(())
-            }
-            None => Ok(()),
-        }
-    }
-
-    fn should_refresh_auth(&self, err: &ClientError) -> bool {
-        if self.authentication.is_none() {
-            return false;
-        }
-
-        match err {
-            ClientError::Api {
-                code: ApiStatusCode::Unauthorized | ApiStatusCode::Forbidden,
-                ..
-            } => true,
-            _ => false,
+            _ => Ok(()),
         }
     }
 
