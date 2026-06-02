@@ -4,8 +4,8 @@ use crate::error::{ApiStatusCode, ClientError, InternalErrorKind, Result};
 use crate::models::*;
 use bytes::Bytes;
 use reqwest::{Method, Url};
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::path::{Path, PathBuf};
 
@@ -82,7 +82,9 @@ impl Client {
 
     /// Log in with a complete login payload, including optional 2FA code.
     pub async fn login_with(&mut self, req: LoginReq) -> Result<LoginResp> {
-        let resp: LoginResp = self.request_json(Method::POST, "/auth/login", Some(&req)).await?;
+        let resp: LoginResp = self
+            .request_json(Method::POST, "/auth/login", Some(&req))
+            .await?;
         self.set_token(resp.token.clone());
         Ok(resp)
     }
@@ -98,7 +100,8 @@ impl Client {
 
     /// Fetch current user info from `/api/me`.
     pub async fn me(&self) -> Result<MeResp> {
-        self.request_json::<(), MeResp>(Method::GET, "/me", None).await
+        self.request_json::<(), MeResp>(Method::GET, "/me", None)
+            .await
     }
 
     /// Fetch public site settings from `/api/public/settings`.
@@ -109,7 +112,8 @@ impl Client {
 
     /// List a directory with `/api/fs/list`.
     pub async fn fs_list(&self, req: FsListReq) -> Result<FsListResp> {
-        self.request_json(Method::POST, "/fs/list", Some(&req)).await
+        self.request_json(Method::POST, "/fs/list", Some(&req))
+            .await
     }
 
     /// Get object metadata with `/api/fs/get`.
@@ -119,38 +123,45 @@ impl Client {
 
     /// List child directories with `/api/fs/dirs`.
     pub async fn fs_dirs(&self, req: DirsReq) -> Result<Vec<DirResp>> {
-        self.request_json(Method::POST, "/fs/dirs", Some(&req)).await
+        self.request_json(Method::POST, "/fs/dirs", Some(&req))
+            .await
     }
 
     /// Search files with `/api/fs/search`.
     pub async fn fs_search(&self, req: SearchReq) -> Result<PageResp<SearchResp>> {
-        self.request_json(Method::POST, "/fs/search", Some(&req)).await
+        self.request_json(Method::POST, "/fs/search", Some(&req))
+            .await
     }
 
     /// Create a directory with `/api/fs/mkdir`.
     pub async fn mkdir(&self, path: impl Into<String>) -> Result<()> {
         let req = MkdirReq { path: path.into() };
-        self.request_unit(Method::POST, "/fs/mkdir", Some(&req)).await
+        self.request_unit(Method::POST, "/fs/mkdir", Some(&req))
+            .await
     }
 
     /// Rename an object with `/api/fs/rename`.
     pub async fn rename(&self, req: RenameReq) -> Result<()> {
-        self.request_unit(Method::POST, "/fs/rename", Some(&req)).await
+        self.request_unit(Method::POST, "/fs/rename", Some(&req))
+            .await
     }
 
     /// Move objects with `/api/fs/move`.
     pub async fn move_items(&self, req: MoveCopyReq) -> Result<()> {
-        self.request_unit(Method::POST, "/fs/move", Some(&req)).await
+        self.request_unit(Method::POST, "/fs/move", Some(&req))
+            .await
     }
 
     /// Copy objects with `/api/fs/copy`.
     pub async fn copy_items(&self, req: MoveCopyReq) -> Result<Option<TasksResp>> {
-        self.request_json_nullable(Method::POST, "/fs/copy", Some(&req)).await
+        self.request_json_nullable(Method::POST, "/fs/copy", Some(&req))
+            .await
     }
 
     /// Remove objects with `/api/fs/remove`.
     pub async fn remove(&self, req: RemoveReq) -> Result<()> {
-        self.request_unit(Method::POST, "/fs/remove", Some(&req)).await
+        self.request_unit(Method::POST, "/fs/remove", Some(&req))
+            .await
     }
 
     /// Remove empty directories recursively with `/api/fs/remove_empty_directory`.
@@ -164,12 +175,14 @@ impl Client {
 
     /// Read archive metadata with `/api/fs/archive/meta`.
     pub async fn archive_meta(&self, req: ArchiveMetaReq) -> Result<ArchiveMetaResp> {
-        self.request_json(Method::POST, "/fs/archive/meta", Some(&req)).await
+        self.request_json(Method::POST, "/fs/archive/meta", Some(&req))
+            .await
     }
 
     /// List an inner archive directory with `/api/fs/archive/list`.
     pub async fn archive_list(&self, req: ArchiveListReq) -> Result<ArchiveListResp> {
-        self.request_json(Method::POST, "/fs/archive/list", Some(&req)).await
+        self.request_json(Method::POST, "/fs/archive/list", Some(&req))
+            .await
     }
 
     /// Decompress archive content with `/api/fs/archive/decompress`.
@@ -183,7 +196,10 @@ impl Client {
         let url = self.api_url("/fs/put")?;
         let mut builder = self.http.put(url).body(upload.body);
         builder = self.apply_auth(builder);
-        builder = builder.header("File-Path", urlencoding::encode(&upload.file_path).into_owned());
+        builder = builder.header(
+            "File-Path",
+            urlencoding::encode(&upload.file_path).into_owned(),
+        );
         builder = builder.header("Password", upload.password);
         builder = builder.header("Overwrite", upload.overwrite.to_string());
         builder = builder.header("As-Task", upload.as_task.to_string());
@@ -236,7 +252,12 @@ impl Client {
         self.decode_response(response).await
     }
 
-    async fn request_json_nullable<B, T>(&self, method: Method, path: &str, body: Option<&B>) -> Result<Option<T>>
+    async fn request_json_nullable<B, T>(
+        &self,
+        method: Method,
+        path: &str,
+        body: Option<&B>,
+    ) -> Result<Option<T>>
     where
         B: Serialize + ?Sized,
         T: DeserializeOwned,
@@ -245,7 +266,12 @@ impl Client {
         self.decode_response_nullable(response).await
     }
 
-    async fn send_json<B>(&self, method: Method, path: &str, body: Option<&B>) -> Result<reqwest::Response>
+    async fn send_json<B>(
+        &self,
+        method: Method,
+        path: &str,
+        body: Option<&B>,
+    ) -> Result<reqwest::Response>
     where
         B: Serialize + ?Sized,
     {
@@ -380,12 +406,7 @@ impl UploadPut {
     }
 
     /// Set optional hash headers.
-    pub fn hashes<M, S, H>(
-        mut self,
-        md5: Option<M>,
-        sha1: Option<S>,
-        sha256: Option<H>,
-    ) -> Self
+    pub fn hashes<M, S, H>(mut self, md5: Option<M>, sha1: Option<S>, sha256: Option<H>) -> Self
     where
         M: Into<String>,
         S: Into<String>,
