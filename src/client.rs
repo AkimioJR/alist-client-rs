@@ -12,7 +12,7 @@ use reqwest::{Method, Url};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
-use std::sync::{Arc, RwLock};
+use std::sync::RwLock;
 
 pub use upload::UploadPut;
 
@@ -20,17 +20,26 @@ pub use upload::UploadPut;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Authentication {
     /// Login with username and password when the current token is missing or expired.
-    UsernamePassword { username: String, password: String },
+    UsernamePassword {
+        username: String,
+        password: String,
+        otp_code: Option<String>,
+    },
     /// Re-apply this token when the current token is missing or rejected.
     Token(String),
 }
 
 impl Authentication {
     /// Create username/password authentication.
-    pub fn username_password(username: impl Into<String>, password: impl Into<String>) -> Self {
+    pub fn username_password(
+        username: impl Into<String>,
+        password: impl Into<String>,
+        otp_code: impl Into<Option<String>>,
+    ) -> Self {
         Self::UsernamePassword {
             username: username.into(),
             password: password.into(),
+            otp_code: otp_code.into(),
         }
     }
 
@@ -41,11 +50,11 @@ impl Authentication {
 }
 
 /// Async AList API client.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Client {
     base_url: Url,
     http: reqwest::Client,
-    token: Arc<RwLock<Option<String>>>,
+    token: RwLock<Option<String>>,
     authentication: Option<Authentication>,
 }
 
@@ -61,7 +70,7 @@ impl Client {
         Ok(Self {
             base_url,
             http: reqwest::Client::new(),
-            token: Arc::new(RwLock::new(None)),
+            token: RwLock::new(None),
             authentication: None,
         })
     }
@@ -235,16 +244,17 @@ impl Client {
 
     async fn refresh_token(&self) -> Result<()> {
         match self.authentication.as_ref() {
-            Some(Authentication::UsernamePassword { username, password }) => {
+            Some(Authentication::UsernamePassword {
+                username,
+                password,
+                otp_code,
+            }) => {
                 let req = LoginReq {
                     username: username.clone(),
                     password: password.clone(),
-                    otp_code: None,
+                    otp_code: otp_code.clone(),
                 };
-                let response = self
-                    .send_json(Method::POST, "/auth/login", Some(&req))
-                    .await?;
-                let resp: LoginResp = self.decode_response(response).await?;
+                let resp = self.login_with(req).await?;
                 self.replace_token(Some(resp.token));
                 Ok(())
             }
@@ -266,10 +276,6 @@ impl Client {
                 code: ApiStatusCode::Unauthorized | ApiStatusCode::Forbidden,
                 ..
             } => true,
-            ClientError::HttpStatus { status, .. } => {
-                *status == reqwest::StatusCode::UNAUTHORIZED
-                    || *status == reqwest::StatusCode::FORBIDDEN
-            }
             _ => false,
         }
     }
