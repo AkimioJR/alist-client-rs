@@ -18,8 +18,8 @@ pub use upload::UploadPut;
 /// Async AList API client.
 #[derive(Debug, Clone)]
 pub struct Client {
-    pub(super) base_url: Url,
-    pub(super) http: reqwest::Client,
+    base_url: Url,
+    http: reqwest::Client,
     token: Option<String>,
 }
 
@@ -72,56 +72,42 @@ impl Client {
         Ok(self.base_url.join(&format!("api/{path}"))?)
     }
 
-    pub(super) async fn request_unit<B>(
+    async fn request_unit<B: Serialize + ?Sized>(
         &self,
         method: Method,
         path: &str,
         body: Option<&B>,
-    ) -> Result<()>
-    where
-        B: Serialize + ?Sized,
-    {
+    ) -> Result<()> {
         let _: Option<Value> = self.request_json_nullable(method, path, body).await?;
         Ok(())
     }
 
-    pub(super) async fn request_json<B, T>(
+    async fn request_json<B: Serialize + ?Sized, T: DeserializeOwned>(
         &self,
         method: Method,
         path: &str,
         body: Option<&B>,
-    ) -> Result<T>
-    where
-        B: Serialize + ?Sized,
-        T: DeserializeOwned,
-    {
+    ) -> Result<T> {
         let response = self.send_json(method, path, body).await?;
         self.decode_response(response).await
     }
 
-    pub(super) async fn request_json_nullable<B, T>(
+    async fn request_json_nullable<B: Serialize + ?Sized, T: DeserializeOwned>(
         &self,
         method: Method,
         path: &str,
         body: Option<&B>,
-    ) -> Result<Option<T>>
-    where
-        B: Serialize + ?Sized,
-        T: DeserializeOwned,
-    {
+    ) -> Result<Option<T>> {
         let response = self.send_json(method, path, body).await?;
         self.decode_response_nullable(response).await
     }
 
-    pub(super) async fn send_json<B>(
+    async fn send_json<B: Serialize + ?Sized>(
         &self,
         method: Method,
         path: &str,
         body: Option<&B>,
-    ) -> Result<reqwest::Response>
-    where
-        B: Serialize + ?Sized,
-    {
+    ) -> Result<reqwest::Response> {
         let url = self.api_url(path)?;
         let mut builder = self.http.request(method, url);
         builder = self.apply_auth(builder);
@@ -131,21 +117,15 @@ impl Client {
         Ok(builder.send().await?)
     }
 
-    pub(super) async fn decode_response<T>(&self, response: reqwest::Response) -> Result<T>
-    where
-        T: DeserializeOwned,
-    {
+    async fn decode_response<T: DeserializeOwned>(&self, response: reqwest::Response) -> Result<T> {
         let value = self.decode_response_value(response).await?;
         Ok(serde_json::from_value(value)?)
     }
 
-    pub(super) async fn decode_response_nullable<T>(
+    async fn decode_response_nullable<T: DeserializeOwned>(
         &self,
         response: reqwest::Response,
-    ) -> Result<Option<T>>
-    where
-        T: DeserializeOwned,
-    {
+    ) -> Result<Option<T>> {
         let value = self.decode_response_value(response).await?;
         if value.is_null() {
             Ok(None)
@@ -174,7 +154,7 @@ impl Client {
         Ok(envelope.data)
     }
 
-    pub(super) fn apply_auth(&self, builder: reqwest::RequestBuilder) -> reqwest::RequestBuilder {
+    fn apply_auth(&self, builder: reqwest::RequestBuilder) -> reqwest::RequestBuilder {
         if let Some(token) = &self.token {
             builder.header("Authorization", token)
         } else {
