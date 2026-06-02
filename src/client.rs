@@ -66,15 +66,6 @@ impl Client {
         })
     }
 
-    /// Create a client with an existing AList token.
-    pub fn with_token(base_url: impl AsRef<str>, token: impl Into<String>) -> Result<Self> {
-        let token = token.into();
-        let mut client = Self::new(base_url)?;
-        client.set_token(token.clone());
-        client.set_authentication(Authentication::Token(token));
-        Ok(client)
-    }
-
     /// Create a client with refreshable authentication credentials.
     pub fn with_authentication(
         base_url: impl AsRef<str>,
@@ -86,18 +77,8 @@ impl Client {
     }
 
     /// Return the current token, if any.
-    pub fn token(&self) -> Option<String> {
+    pub(crate) fn token(&self) -> Option<String> {
         self.token.read().ok().and_then(|token| token.clone())
-    }
-
-    /// Set or replace the token used in the `Authorization` header.
-    pub fn set_token(&mut self, token: impl Into<String>) {
-        self.replace_token(Some(token.into()));
-    }
-
-    /// Clear the current authorization token.
-    pub fn clear_token(&mut self) {
-        self.replace_token(None);
     }
 
     /// Return the configured refresh authentication, if any.
