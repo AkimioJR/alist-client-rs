@@ -9,35 +9,47 @@ use std::path::{Path, PathBuf};
 impl Client {
     /// Upload bytes through `/api/fs/put`.
     pub async fn upload_put(&self, upload: UploadPut) -> Result<Option<UploadResp>> {
+        let response = self.send_upload_put(&upload).await?;
+        match self.decode_response_nullable(response).await {
+            Ok(resp) => Ok(resp),
+            Err(err) if self.should_refresh_auth(&err) => {
+                self.refresh_token().await?;
+                let response = self.send_upload_put(&upload).await?;
+                self.decode_response_nullable(response).await
+            }
+            Err(err) => Err(err),
+        }
+    }
+
+    async fn send_upload_put(&self, upload: &UploadPut) -> Result<reqwest::Response> {
         let url = self.api_url("/fs/put")?;
-        let mut builder = self.http.put(url).body(upload.body);
+        let mut builder = self.http.put(url).body(upload.body.clone());
         builder = self.apply_auth(builder);
         builder = builder.header(
             "File-Path",
             urlencoding::encode(&upload.file_path).into_owned(),
         );
-        builder = builder.header("Password", upload.password);
+        builder = builder.header("Password", upload.password.clone());
         builder = builder.header("Overwrite", upload.overwrite.to_string());
         builder = builder.header("As-Task", upload.as_task.to_string());
 
-        if let Some(content_type) = upload.content_type {
+        if let Some(content_type) = &upload.content_type {
             builder = builder.header("Content-Type", content_type);
         }
         if let Some(last_modified) = upload.last_modified_millis {
             builder = builder.header("Last-Modified", last_modified.to_string());
         }
-        if let Some(md5) = upload.md5 {
+        if let Some(md5) = &upload.md5 {
             builder = builder.header("X-File-Md5", md5);
         }
-        if let Some(sha1) = upload.sha1 {
+        if let Some(sha1) = &upload.sha1 {
             builder = builder.header("X-File-Sha1", sha1);
         }
-        if let Some(sha256) = upload.sha256 {
+        if let Some(sha256) = &upload.sha256 {
             builder = builder.header("X-File-Sha256", sha256);
         }
 
-        let response = builder.send().await?;
-        self.decode_response_nullable(response).await
+        Ok(builder.send().await?)
     }
 
     /// Upload a local file by reading it asynchronously into memory.
