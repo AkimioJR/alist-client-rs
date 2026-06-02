@@ -98,4 +98,49 @@ mod tests {
         assert_eq!(err.message, "permission denied");
         assert!(err.data.is_null());
     }
+
+    #[test]
+    fn openapi_null_response_examples_match_envelope_model() {
+        let success: ApiResponse<Option<Value>> = serde_json::from_value(serde_json::json!({
+            "code": 200,
+            "message": "success",
+            "data": null
+        }))
+        .unwrap();
+        assert_eq!(success.code, 200);
+        assert!(success.data.is_none());
+
+        let forbidden: ApiResponse<Option<Value>> = serde_json::from_value(serde_json::json!({
+            "code": 403,
+            "message": "registration is disabled",
+            "data": null
+        }))
+        .unwrap();
+        assert_eq!(forbidden.code, 403);
+        assert_eq!(forbidden.message, "registration is disabled");
+        assert!(forbidden.data.is_none());
+    }
+
+    #[test]
+    fn openapi_upload_task_examples_match_models() {
+        let resp: ApiResponse<UploadResp> = serde_json::from_value(serde_json::json!({
+            "code": 200,
+            "message": "success",
+            "data": {
+                "task": {
+                    "id": "sdH2LbjyWRk",
+                    "name": "upload animated_zoom.gif to [/data](/alist)",
+                    "state": 0,
+                    "status": "uploading",
+                    "progress": 0,
+                    "error": ""
+                }
+            }
+        }))
+        .unwrap();
+
+        assert_eq!(resp.data.task.id, "sdH2LbjyWRk");
+        assert_eq!(resp.data.task.status, "uploading");
+        assert_eq!(resp.data.task.progress, 0);
+    }
 }

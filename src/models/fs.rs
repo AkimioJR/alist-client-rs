@@ -276,7 +276,7 @@ pub struct TasksResp {
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;
-    use crate::models::common::ApiResponse;
+    use crate::models::common::{ApiResponse, PageResp};
     use serde_json::{Map, Value};
 
     pub(crate) fn object_json() -> Value {
@@ -338,5 +338,177 @@ pub(crate) mod tests {
         assert_eq!(resp.data.content.len(), 1);
         assert_eq!(resp.data.provider, "Local");
         assert!(resp.data.write);
+    }
+
+    #[test]
+    fn openapi_fs_get_examples_match_models() {
+        let req = FsGetReq {
+            path: "/t".to_string(),
+            password: String::new(),
+            page: Some(1),
+            per_page: Some(0),
+            refresh: Some(false),
+        };
+        assert_eq!(
+            serde_json::to_value(&req).unwrap(),
+            serde_json::json!({
+                "path": "/t",
+                "password": "",
+                "page": 1,
+                "per_page": 0,
+                "refresh": false
+            })
+        );
+
+        let resp: ApiResponse<FsGetResp> = serde_json::from_value(serde_json::json!({
+            "code": 200,
+            "message": "success",
+            "data": {
+                "name": "Alist V3.md",
+                "size": 2618,
+                "is_dir": false,
+                "modified": "2024-05-17T16:05:36.4651534+08:00",
+                "created": "2024-05-17T16:05:29.2001008+08:00",
+                "sign": "",
+                "thumb": "",
+                "type": 4,
+                "hashinfo": "null",
+                "hash_info": null,
+                "raw_url": "http://127.0.0.1:5244/p/local/Alist%20V3.md",
+                "readme": "",
+                "header": "",
+                "provider": "Local",
+                "related": null
+            }
+        }))
+        .unwrap();
+
+        assert_eq!(resp.data.object.name, "Alist V3.md");
+        assert_eq!(resp.data.object.obj_type, 4);
+        assert_eq!(
+            resp.data.raw_url,
+            "http://127.0.0.1:5244/p/local/Alist%20V3.md"
+        );
+        assert_eq!(resp.data.related, None);
+    }
+
+    #[test]
+    fn openapi_dirs_examples_match_models() {
+        let req = DirsReq {
+            path: "/t".to_string(),
+            password: String::new(),
+            force_root: false,
+        };
+        assert_eq!(
+            serde_json::to_value(&req).unwrap(),
+            serde_json::json!({
+                "path": "/t",
+                "password": "",
+                "force_root": false
+            })
+        );
+
+        let resp: ApiResponse<Vec<DirResp>> = serde_json::from_value(serde_json::json!({
+            "code": 200,
+            "message": "success",
+            "data": [{
+                "name": "a",
+                "modified": "2023-07-19T09:48:13.695585868+08:00"
+            }]
+        }))
+        .unwrap();
+
+        assert_eq!(resp.data.len(), 1);
+        assert_eq!(resp.data[0].name, "a");
+    }
+
+    #[test]
+    fn openapi_search_examples_match_models() {
+        let req = SearchReq {
+            parent: "/local".to_string(),
+            keywords: "test".to_string(),
+            scope: 0,
+            page: 1,
+            per_page: 1,
+            password: String::new(),
+        };
+        assert_eq!(
+            serde_json::to_value(&req).unwrap(),
+            serde_json::json!({
+                "parent": "/local",
+                "keywords": "test",
+                "scope": 0,
+                "page": 1,
+                "per_page": 1,
+                "password": ""
+            })
+        );
+
+        let resp: ApiResponse<PageResp<SearchResp>> = serde_json::from_value(serde_json::json!({
+            "code": 200,
+            "message": "success",
+            "data": {
+                "content": [{
+                    "parent": "/m",
+                    "name": "4305da1e",
+                    "is_dir": false,
+                    "size": 393090,
+                    "type": 0
+                }],
+                "total": 1
+            }
+        }))
+        .unwrap();
+
+        assert_eq!(resp.data.total, 1);
+        assert_eq!(resp.data.content[0].name, "4305da1e");
+        assert_eq!(resp.data.content[0].obj_type, 0);
+    }
+
+    #[test]
+    fn openapi_mutation_request_examples_match_models() {
+        let mkdir = MkdirReq {
+            path: "/tt".to_string(),
+        };
+        assert_eq!(
+            serde_json::to_value(&mkdir).unwrap(),
+            serde_json::json!({ "path": "/tt" })
+        );
+
+        let rename = RenameReq {
+            name: "test3".to_string(),
+            path: "/阿里云盘/test2".to_string(),
+            overwrite: false,
+        };
+        assert_eq!(
+            serde_json::to_value(&rename).unwrap(),
+            serde_json::json!({
+                "path": "/阿里云盘/test2",
+                "name": "test3",
+                "overwrite": false
+            })
+        );
+    }
+
+    #[test]
+    fn openapi_offline_download_task_example_matches_model() {
+        let resp: ApiResponse<TasksResp> = serde_json::from_value(serde_json::json!({
+            "code": 200,
+            "message": "success",
+            "data": {
+                "tasks": [{
+                    "id": "jwy7BrfZRzbI2xWg7-y",
+                    "name": "download https://www.baidu.com/img/20d6cf.png to (/local)",
+                    "state": 0,
+                    "status": "",
+                    "progress": 0,
+                    "error": ""
+                }]
+            }
+        }))
+        .unwrap();
+
+        assert_eq!(resp.data.tasks.len(), 1);
+        assert_eq!(resp.data.tasks[0].id, "jwy7BrfZRzbI2xWg7-y");
     }
 }

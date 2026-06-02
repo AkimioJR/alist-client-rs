@@ -94,3 +94,104 @@ pub struct UserResp {
 
 /// Alias matching the `/api/me` endpoint name used by the client API.
 pub type MeResp = UserResp;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::common::ApiResponse;
+
+    #[test]
+    fn openapi_login_examples_match_models() {
+        let req = LoginReq {
+            username: "{{alist_username}}".to_string(),
+            password: "{{alist_password}}".to_string(),
+            otp_code: None,
+        };
+        assert_eq!(
+            serde_json::to_value(&req).unwrap(),
+            serde_json::json!({
+                "username": "{{alist_username}}",
+                "password": "{{alist_password}}"
+            })
+        );
+
+        let resp: ApiResponse<LoginResp> = serde_json::from_value(serde_json::json!({
+            "code": 200,
+            "message": "success",
+            "data": { "token": "abcd" }
+        }))
+        .unwrap();
+        assert_eq!(resp.data.token, "abcd");
+        assert_eq!(resp.data.device_key, None);
+    }
+
+    #[test]
+    fn openapi_register_example_matches_model() {
+        let req = RegisterReq {
+            username: "string".to_string(),
+            password: "string".to_string(),
+        };
+        assert_eq!(
+            serde_json::to_value(&req).unwrap(),
+            serde_json::json!({
+                "username": "string",
+                "password": "string"
+            })
+        );
+    }
+
+    #[test]
+    fn openapi_two_factor_examples_match_models() {
+        let generated: ApiResponse<Generate2FaResp> = serde_json::from_value(serde_json::json!({
+            "code": 200,
+            "message": "success",
+            "data": {
+                "qr": "data:image/png;base64,iVBORw0KGgoAAAANSUhE",
+                "secret": "RPQZG4MDS3"
+            }
+        }))
+        .unwrap();
+        assert_eq!(generated.data.secret, "RPQZG4MDS3");
+
+        let verify = Verify2FaReq {
+            code: "123456".to_string(),
+            secret: generated.data.secret,
+        };
+        assert_eq!(
+            serde_json::to_value(&verify).unwrap(),
+            serde_json::json!({
+                "code": "123456",
+                "secret": "RPQZG4MDS3"
+            })
+        );
+    }
+
+    #[test]
+    fn openapi_me_example_matches_model() {
+        let resp: ApiResponse<MeResp> = serde_json::from_value(serde_json::json!({
+            "code": 200,
+            "message": "success",
+            "data": {
+                "id": 2,
+                "username": "admin",
+                "password": "",
+                "base_path": "/",
+                "role": [2],
+                "disabled": false,
+                "permission": 65535,
+                "sso_id": "",
+                "otp": false,
+                "role_names": ["admin"],
+                "permissions": [{ "path": "/", "permission": 65535 }]
+            }
+        }))
+        .unwrap();
+
+        assert_eq!(resp.data.id, 2);
+        assert_eq!(resp.data.username, "admin");
+        assert_eq!(resp.data.password.as_deref(), Some(""));
+        assert_eq!(resp.data.role, vec![2]);
+        assert_eq!(resp.data.role_names, vec!["admin"]);
+        assert_eq!(resp.data.permissions[0].permission, 65535);
+    }
+}
