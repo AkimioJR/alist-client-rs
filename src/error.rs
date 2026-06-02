@@ -255,3 +255,104 @@ pub enum ClientError {
         data: Value,
     },
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn api_status_code_maps_known_and_unknown_codes() {
+        assert_eq!(ApiStatusCode::from_code(200), ApiStatusCode::Ok);
+        assert_eq!(ApiStatusCode::from_code(202), ApiStatusCode::Accepted);
+        assert_eq!(ApiStatusCode::from_code(400), ApiStatusCode::BadRequest);
+        assert_eq!(ApiStatusCode::from_code(401), ApiStatusCode::Unauthorized);
+        assert_eq!(ApiStatusCode::from_code(402), ApiStatusCode::TwoFactor);
+        assert_eq!(ApiStatusCode::from_code(403), ApiStatusCode::Forbidden);
+        assert_eq!(ApiStatusCode::from_code(404), ApiStatusCode::NotFound);
+        assert_eq!(
+            ApiStatusCode::from_code(405),
+            ApiStatusCode::MethodNotAllowed
+        );
+        assert_eq!(
+            ApiStatusCode::from_code(429),
+            ApiStatusCode::TooManyRequests
+        );
+        assert_eq!(
+            ApiStatusCode::from_code(500),
+            ApiStatusCode::InternalServerError
+        );
+        assert_eq!(ApiStatusCode::from_code(599), ApiStatusCode::Unknown(599));
+        assert_eq!(ApiStatusCode::Forbidden.as_i32(), 403);
+    }
+
+    #[test]
+    fn internal_error_kind_covers_alist_internal_errs_messages() {
+        let cases = [
+            ("not implement", InternalErrorKind::NotImplement),
+            ("not support", InternalErrorKind::NotSupport),
+            (
+                "access using relative path is not allowed",
+                InternalErrorKind::RelativePath,
+            ),
+            (
+                "can't move files between two storages, try to copy",
+                InternalErrorKind::MoveBetweenTwoStorages,
+            ),
+            (
+                "upload not supported",
+                InternalErrorKind::UploadNotSupported,
+            ),
+            ("meta not found", InternalErrorKind::MetaNotFound),
+            ("storage not found", InternalErrorKind::StorageNotFound),
+            (
+                "upload/download stream incomplete, possible network issue",
+                InternalErrorKind::StreamIncomplete,
+            ),
+            ("StreamPeekFail", InternalErrorKind::StreamPeekFail),
+            (
+                "unknown archive format",
+                InternalErrorKind::UnknownArchiveFormat,
+            ),
+            (
+                "wrong archive password",
+                InternalErrorKind::WrongArchivePassword,
+            ),
+            (
+                "driver extraction not supported",
+                InternalErrorKind::DriverExtractNotSupported,
+            ),
+            ("object not found", InternalErrorKind::ObjectNotFound),
+            ("not a folder", InternalErrorKind::NotFolder),
+            ("not a file", InternalErrorKind::NotFile),
+            ("username is empty", InternalErrorKind::EmptyUsername),
+            ("password is empty", InternalErrorKind::EmptyPassword),
+            ("password is incorrect", InternalErrorKind::WrongPassword),
+            (
+                "cannot delete admin or guest",
+                InternalErrorKind::DeleteAdminOrGuest,
+            ),
+            (
+                "search not available",
+                InternalErrorKind::SearchNotAvailable,
+            ),
+            (
+                "build index is running, please try later",
+                InternalErrorKind::BuildIndexIsRunning,
+            ),
+            ("permission denied", InternalErrorKind::PermissionDenied),
+            ("invalid file name", InternalErrorKind::InvalidName),
+            ("empty token", InternalErrorKind::EmptyToken),
+            ("link is dir", InternalErrorKind::LinkIsDir),
+            (
+                "cannot modify admin role",
+                InternalErrorKind::ErrChangeDefaultRole,
+            ),
+            ("too many active devices", InternalErrorKind::TooManyDevices),
+            ("session inactive", InternalErrorKind::SessionInactive),
+        ];
+
+        for (message, expected) in cases {
+            assert_eq!(InternalErrorKind::from_message(message), Some(expected));
+        }
+    }
+}

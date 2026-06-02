@@ -99,3 +99,40 @@ pub struct ArchiveDecompressReq {
     /// Whether to put extracted files into a new directory.
     pub put_into_new_dir: bool,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::common::ApiResponse;
+    use crate::models::fs::tests::object_with;
+    use serde_json::{Map, Value};
+
+    #[test]
+    fn archive_meta_resp_deserializes_recursive_tree() {
+        let child = object_with(Map::from_iter([(
+            "children".to_string(),
+            Value::Array(Vec::new()),
+        )]));
+        let root = object_with(Map::from_iter([(
+            "children".to_string(),
+            Value::Array(vec![child]),
+        )]));
+        let resp: ApiResponse<ArchiveMetaResp> = serde_json::from_value(serde_json::json!({
+            "code": 200,
+            "message": "success",
+            "data": {
+                "comment": "archive comment",
+                "encrypted": false,
+                "content": [root],
+                "sort": { "order_by": "name" },
+                "raw_url": "https://example.test/ad/demo.zip",
+                "sign": "archive-sign"
+            }
+        }))
+        .unwrap();
+
+        assert_eq!(resp.data.comment, "archive comment");
+        assert_eq!(resp.data.content[0].children.len(), 1);
+        assert_eq!(resp.data.sign.as_deref(), Some("archive-sign"));
+    }
+}

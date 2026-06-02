@@ -272,3 +272,71 @@ pub struct TasksResp {
     /// Created tasks.
     pub tasks: Vec<TaskInfo>,
 }
+
+#[cfg(test)]
+pub(crate) mod tests {
+    use super::*;
+    use crate::models::common::ApiResponse;
+    use serde_json::{Map, Value};
+
+    pub(crate) fn object_json() -> Value {
+        serde_json::json!({
+            "id": "obj-id",
+            "path": "/movies/demo.mkv",
+            "virtual_path": "/demo.mkv",
+            "name": "demo.mkv",
+            "size": 393090,
+            "is_dir": false,
+            "modified": "2023-07-19T09:48:13.695585868+08:00",
+            "created": "2023-07-19T09:48:13.695585868+08:00",
+            "sign": "signed",
+            "thumb": "thumb",
+            "type": 2,
+            "hashinfo": "md5:abc",
+            "hash_info": { "md5": "abc" },
+            "storage_class": "STANDARD"
+        })
+    }
+
+    pub(crate) fn object_with(mut extra: Map<String, Value>) -> Value {
+        let mut object = object_json().as_object().unwrap().clone();
+        object.append(&mut extra);
+        Value::Object(object)
+    }
+
+    #[test]
+    fn obj_resp_deserializes_current_fs_shape() {
+        let obj: ObjResp = serde_json::from_value(object_json()).unwrap();
+        assert_eq!(obj.name, "demo.mkv");
+        assert_eq!(obj.obj_type, 2);
+        assert_eq!(obj.storage_class.as_deref(), Some("STANDARD"));
+        assert!(obj.hash_info.is_some());
+    }
+
+    #[test]
+    fn fs_list_resp_matches_current_api_shape() {
+        let item = object_with(Map::from_iter([("label_list".to_string(), Value::Null)]));
+        let resp: ApiResponse<FsListResp> = serde_json::from_value(serde_json::json!({
+            "code": 200,
+            "message": "success",
+            "data": {
+                "content": [item],
+                "total": 1,
+                "filtered_total": 1,
+                "page": 1,
+                "per_page": 0,
+                "has_more": false,
+                "pages_total": 1,
+                "readme": "",
+                "header": "",
+                "write": true,
+                "provider": "Local"
+            }
+        }))
+        .unwrap();
+
+        assert_eq!(resp.data.content.len(), 1);
+        assert_eq!(resp.data.provider, "Local");
+        assert!(resp.data.write);
+    }
+}

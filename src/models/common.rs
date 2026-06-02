@@ -70,3 +70,32 @@ pub struct UploadResp {
     /// data instead of this object, so callers should handle both shapes.
     pub task: TaskInfo,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::auth::LoginResp;
+    use serde_json::Value;
+
+    #[test]
+    fn api_response_deserializes_success_and_error_envelopes() {
+        let ok: ApiResponse<LoginResp> = serde_json::from_value(serde_json::json!({
+            "code": 200,
+            "message": "success",
+            "data": { "token": "abc", "device_key": "dev" }
+        }))
+        .unwrap();
+        assert_eq!(ok.data.token, "abc");
+        assert_eq!(ok.data.device_key.as_deref(), Some("dev"));
+
+        let err: ApiResponse<Value> = serde_json::from_value(serde_json::json!({
+            "code": 403,
+            "message": "permission denied",
+            "data": null
+        }))
+        .unwrap();
+        assert_eq!(err.code, 403);
+        assert_eq!(err.message, "permission denied");
+        assert!(err.data.is_null());
+    }
+}
