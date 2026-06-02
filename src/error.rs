@@ -147,6 +147,14 @@ impl InternalErrorKind {
     pub fn from_message(message: &str) -> Option<Self> {
         let normalized = message.to_ascii_lowercase();
         const MAPPINGS: &[(&str, InternalErrorKind)] = &[
+            (
+                "upload not supported",
+                InternalErrorKind::UploadNotSupported,
+            ),
+            (
+                "driver extraction not supported",
+                InternalErrorKind::DriverExtractNotSupported,
+            ),
             ("not implement", InternalErrorKind::NotImplement),
             ("not support", InternalErrorKind::NotSupport),
             (
@@ -157,7 +165,6 @@ impl InternalErrorKind {
                 "can't move files between two storages, try to copy",
                 InternalErrorKind::MoveBetweenTwoStorages,
             ),
-            ("upload not supported", InternalErrorKind::UploadNotSupported),
             ("meta not found", InternalErrorKind::MetaNotFound),
             ("storage not found", InternalErrorKind::StorageNotFound),
             (
@@ -169,10 +176,9 @@ impl InternalErrorKind {
                 "unknown archive format",
                 InternalErrorKind::UnknownArchiveFormat,
             ),
-            ("wrong archive password", InternalErrorKind::WrongArchivePassword),
             (
-                "driver extraction not supported",
-                InternalErrorKind::DriverExtractNotSupported,
+                "wrong archive password",
+                InternalErrorKind::WrongArchivePassword,
             ),
             ("object not found", InternalErrorKind::ObjectNotFound),
             ("not a folder", InternalErrorKind::NotFolder),
@@ -184,7 +190,10 @@ impl InternalErrorKind {
                 "cannot delete admin or guest",
                 InternalErrorKind::DeleteAdminOrGuest,
             ),
-            ("search not available", InternalErrorKind::SearchNotAvailable),
+            (
+                "search not available",
+                InternalErrorKind::SearchNotAvailable,
+            ),
             (
                 "build index is running, please try later",
                 InternalErrorKind::BuildIndexIsRunning,
