@@ -1,14 +1,8 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+//! Async Rust client for the AList v3 API.
+//!
+//! This crate models AList's JSON envelopes and core file-system endpoints.
+//! API data models are grouped by OpenAPI tag.
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub mod models;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use models::*;
