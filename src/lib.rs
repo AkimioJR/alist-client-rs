@@ -8,6 +8,9 @@ pub mod client;
 pub mod error;
 pub mod models;
 
+#[cfg(test)]
+mod tests;
+
 pub use client::{Client, UploadPut};
 pub use error::{ApiStatusCode, ClientError, InternalErrorKind, Result};
 pub use models::*;
