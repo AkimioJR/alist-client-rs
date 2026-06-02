@@ -7,7 +7,7 @@ use reqwest::Method;
 
 impl Client {
     /// Log in using `/api/auth/login` with a complete login payload, including optional 2FA code.
-    async fn login_with(&mut self, req: LoginReq) -> Result<LoginResp> {
+    pub(crate) async fn login_with(&self, req: LoginReq) -> Result<LoginResp> {
         let resp: LoginResp = self
             .request_json_without_refresh(Method::POST, "/auth/login", Some(&req))
             .await?;
@@ -15,7 +15,7 @@ impl Client {
     }
 
     /// Log in with an AList static password hash using `/api/auth/login/hash`.
-    pub async fn login_hash_with(&mut self, req: LoginReq) -> Result<LoginResp> {
+    pub async fn login_hash_with(&self, req: LoginReq) -> Result<LoginResp> {
         let resp: LoginResp = self
             .request_json_without_refresh(Method::POST, "/auth/login/hash", Some(&req))
             .await?;
