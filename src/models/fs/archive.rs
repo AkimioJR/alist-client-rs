@@ -4,7 +4,7 @@
 //! `handles/archive.go`; keeping these models separate makes the recursive tree
 //! response easier to browse.
 
-use crate::models::fs::ObjResp;
+use super::ObjResp;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 

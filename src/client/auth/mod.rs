@@ -2,7 +2,7 @@
 
 use super::Client;
 use crate::error::Result;
-use crate::models::{LoginReq, LoginResp, MeResp};
+use crate::models::auth::{LoginReq, LoginResp, MeResp};
 use reqwest::Method;
 
 impl Client {

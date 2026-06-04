@@ -1,8 +1,8 @@
 //! Client methods and payload builder for `/api/fs/put` uploads.
 
-use super::Client;
+use super::super::Client;
 use crate::error::Result;
-use crate::models::UploadResp;
+use crate::models::common::UploadResp;
 use bytes::Bytes;
 use std::path::{Path, PathBuf};
 

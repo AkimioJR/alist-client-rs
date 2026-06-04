@@ -1,9 +1,13 @@
 //! Client methods for `/api/fs/*`, excluding archive and upload endpoints.
 
+pub mod archive;
+pub mod upload;
+
 use super::Client;
 use crate::error::Result;
-use crate::models::{
-    DirResp, DirsReq, FsGetReq, FsGetResp, FsListReq, FsListResp, MkdirReq, MoveCopyReq, PageResp,
+use crate::models::common::PageResp;
+use crate::models::fs::{
+    DirResp, DirsReq, FsGetReq, FsGetResp, FsListReq, FsListResp, MkdirReq, MoveCopyReq,
     RemoveEmptyDirectoryReq, RemoveReq, RenameReq, SearchReq, SearchResp, TasksResp,
 };
 use reqwest::Method;

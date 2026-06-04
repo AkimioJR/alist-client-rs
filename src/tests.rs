@@ -1,4 +1,6 @@
-use crate::{Authentication, Client, ClientError, FsListReq, UploadPut};
+use crate::client::fs::upload::UploadPut;
+use crate::models::fs::FsListReq;
+use crate::{Authentication, Client, ClientError};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};

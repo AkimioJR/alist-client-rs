@@ -2,7 +2,7 @@
 
 use super::Client;
 use crate::error::Result;
-use crate::models::PublicSettings;
+use crate::models::public::PublicSettings;
 use reqwest::Method;
 
 impl Client {

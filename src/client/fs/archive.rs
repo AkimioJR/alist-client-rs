@@ -1,8 +1,8 @@
 //! Client methods for `/api/fs/archive/*`.
 
-use super::Client;
+use super::super::Client;
 use crate::error::Result;
-use crate::models::{
+use crate::models::fs::archive::{
     ArchiveDecompressReq, ArchiveListReq, ArchiveListResp, ArchiveMetaReq, ArchiveMetaResp,
 };
 use reqwest::Method;

@@ -11,6 +11,5 @@ pub mod models;
 #[cfg(test)]
 mod tests;
 
-pub use client::{Authentication, Client, UploadPut};
+pub use client::{Authentication, Client};
 pub use error::{ApiStatusCode, ClientError, InternalErrorKind, Result};
-pub use models::*;

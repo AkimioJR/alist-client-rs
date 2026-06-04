@@ -1,13 +1,12 @@
 //! Async HTTP client core for AList APIs.
 
-mod archive;
-mod auth;
-mod fs;
-mod public;
-mod upload;
+pub mod auth;
+pub mod fs;
+pub mod public;
 
 use crate::error::{ApiStatusCode, ClientError, InternalErrorKind, Result};
-use crate::models::{ApiResponse, LoginReq};
+use crate::models::auth::LoginReq;
+use crate::models::common::ApiResponse;
 use reqwest::header::CONTENT_TYPE;
 use reqwest::{Method, Url};
 use serde::Serialize;
@@ -17,8 +16,6 @@ use std::sync::RwLock;
 use std::time::Duration;
 use tokio::sync::Mutex;
 use tokio::time::{Instant, sleep_until};
-
-pub use upload::UploadPut;
 
 /// Stored authentication material used to refresh the current token.
 #[derive(Debug, Clone, PartialEq, Eq)]

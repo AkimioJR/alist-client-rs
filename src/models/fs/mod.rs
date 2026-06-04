@@ -1,5 +1,7 @@
 //! Data models for the `fs` OpenAPI group, excluding archive-specific payloads.
 
+pub mod archive;
+
 use crate::models::common::TaskInfo;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
