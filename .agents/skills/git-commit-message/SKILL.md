@@ -1,6 +1,6 @@
 ---
 name: git-commit-message
-description: "Generate or review Git commit messages for this repository using the local convention with prefixes feat, perfect, fix, refactor, style, docs, test, update, and chore. Use when Codex needs to draft, improve, validate, or explain commit messages, including scoped forms like feat(models): or fix(api): with Chinese or English descriptions."
+description: "Generate or review English Git commit messages for this repository using the local convention with prefixes feat, perfect, fix, refactor, style, docs, test, update, and chore. Use when Codex needs to draft, improve, validate, or explain commit messages, including scoped forms like feat(models): or fix(api):."
 ---
 
 # Git Commit Message
@@ -22,7 +22,7 @@ Rules:
 
 - Use exactly one allowed `type`.
 - Use `scope` only when it clarifies the changed area.
-- Write `description` in Chinese or English.
+- Write `description` in English to match this repository's commit history.
 - Keep the first line short and specific; aim for 50 characters or fewer when practical.
 - Do not end the first line with punctuation.
 - Prefer an action/result phrase, not a vague label.
@@ -30,11 +30,12 @@ Rules:
 Good examples:
 
 ```text
-feat(models): 添加归档解压请求模型
-fix(archive): 修复压缩包列表路径编码
-refactor(client): 拆分文件系统请求构建逻辑
-docs: 更新 AList API 说明
-test(upload): 覆盖分片上传失败场景
+feat(models): add archive extraction request models
+perfect(api): include context in JSON parse errors
+fix(archive): encode archive listing paths correctly
+refactor(client): split filesystem request building
+docs: update AList API notes
+test(upload): cover multipart upload failure handling
 ```
 
 Avoid:
@@ -42,7 +43,7 @@ Avoid:
 ```text
 update
 fix bug
-feat: 修改代码
+feat: change code
 style: big change.
 ```
 
