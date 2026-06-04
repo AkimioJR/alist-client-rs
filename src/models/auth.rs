@@ -1,6 +1,6 @@
 //! Data models for the `auth` OpenAPI group and `/api/me`.
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 /// Login request for `/api/auth/login` and `/api/auth/login/hash`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -74,6 +74,7 @@ pub struct UserResp {
     /// User base path.
     pub base_path: String,
     /// Role ids.
+    #[serde(deserialize_with = "deserialize_role_ids")]
     pub role: Vec<i32>,
     /// Whether the account is disabled.
     pub disabled: bool,
@@ -94,6 +95,23 @@ pub struct UserResp {
 
 /// Alias matching the `/api/me` endpoint name used by the client API.
 pub type MeResp = UserResp;
+
+fn deserialize_role_ids<'de, D>(deserializer: D) -> Result<Vec<i32>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum RoleIds {
+        Many(Vec<i32>),
+        One(i32),
+    }
+
+    match RoleIds::deserialize(deserializer)? {
+        RoleIds::Many(values) => Ok(values),
+        RoleIds::One(value) => Ok(vec![value]),
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -193,5 +211,29 @@ mod tests {
         assert_eq!(resp.data.role, vec![2]);
         assert_eq!(resp.data.role_names, vec!["admin"]);
         assert_eq!(resp.data.permissions[0].permission, 65535);
+    }
+
+    #[test]
+    fn me_role_accepts_legacy_single_integer() {
+        let resp: ApiResponse<MeResp> = serde_json::from_value(serde_json::json!({
+            "code": 200,
+            "message": "success",
+            "data": {
+                "id": 2,
+                "username": "admin",
+                "password": "",
+                "base_path": "/",
+                "role": 2,
+                "disabled": false,
+                "permission": 65535,
+                "sso_id": "",
+                "otp": false,
+                "role_names": ["admin"],
+                "permissions": [{ "path": "/", "permission": 65535 }]
+            }
+        }))
+        .unwrap();
+
+        assert_eq!(resp.data.role, vec![2]);
     }
 }
