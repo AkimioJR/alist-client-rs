@@ -8,6 +8,7 @@ mod upload;
 
 use crate::error::{ApiStatusCode, ClientError, InternalErrorKind, Result};
 use crate::models::{ApiResponse, LoginReq};
+use reqwest::header::CONTENT_TYPE;
 use reqwest::{Method, Url};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -66,6 +67,11 @@ pub struct Client {
 struct RequestRateLimit {
     interval: Duration,
     next_request_at: Mutex<Instant>,
+}
+
+struct DecodedResponse {
+    data: Value,
+    body: String,
 }
 
 impl RequestRateLimit {
@@ -205,19 +211,32 @@ impl Client {
         is_retry: bool,
     ) -> Result<T> {
         let mut is_retry = is_retry;
+        let request_body = self.serialize_request_body(method.as_str(), path, body)?;
 
         loop {
             let url = self.api_url(path)?;
             let mut builder = self.http.request(method.clone(), url);
             builder = self.apply_auth(builder);
-            if let Some(body) = body {
-                builder = builder.json(body);
+            if let Some(request_body) = &request_body {
+                builder = builder
+                    .header(CONTENT_TYPE, "application/json")
+                    .body(request_body.clone());
             }
             self.wait_for_rate_limit().await;
             let response = builder.send().await?;
 
-            match self.decode_response_value(response).await {
-                Ok(value) => return Ok(serde_json::from_value(value)?),
+            match self
+                .decode_response_value(method.as_str(), path, request_body.as_deref(), response)
+                .await
+            {
+                Ok(decoded) => {
+                    return self.decode_response_data(
+                        decoded,
+                        method.as_str(),
+                        path,
+                        request_body.as_deref(),
+                    );
+                }
                 Err(err) if !is_retry && self.should_refresh_auth(&err) => {
                     self.refresh_token().await?;
                     is_retry = true;
@@ -233,31 +252,48 @@ impl Client {
         path: &str,
         body: Option<&B>,
     ) -> Result<T> {
+        let request_body = self.serialize_request_body(method.as_str(), path, body)?;
         let url = self.api_url(path)?;
-        let mut builder = self.http.request(method, url);
+        let mut builder = self.http.request(method.clone(), url);
         builder = self.apply_auth(builder);
-        if let Some(body) = body {
-            builder = builder.json(body);
+        if let Some(request_body) = &request_body {
+            builder = builder
+                .header(CONTENT_TYPE, "application/json")
+                .body(request_body.clone());
         }
         self.wait_for_rate_limit().await;
         let response = builder.send().await?;
-        let value = self.decode_response_value(response).await?;
-        Ok(serde_json::from_value(value)?)
+        let decoded = self
+            .decode_response_value(method.as_str(), path, request_body.as_deref(), response)
+            .await?;
+        self.decode_response_data(decoded, method.as_str(), path, request_body.as_deref())
     }
 
     async fn decode_response_nullable<T: DeserializeOwned>(
         &self,
+        method: &str,
+        path: &str,
+        request_body: Option<&str>,
         response: reqwest::Response,
     ) -> Result<Option<T>> {
-        let value = self.decode_response_value(response).await?;
-        if value.is_null() {
+        let decoded = self
+            .decode_response_value(method, path, request_body, response)
+            .await?;
+        if decoded.data.is_null() {
             Ok(None)
         } else {
-            Ok(Some(serde_json::from_value(value)?))
+            self.decode_response_data(decoded, method, path, request_body)
+                .map(Some)
         }
     }
 
-    async fn decode_response_value(&self, response: reqwest::Response) -> Result<Value> {
+    async fn decode_response_value(
+        &self,
+        method: &str,
+        path: &str,
+        request_body: Option<&str>,
+        response: reqwest::Response,
+    ) -> Result<DecodedResponse> {
         let status = response.status();
         let resp_body = response.text().await?;
         if !status.is_success() {
@@ -266,7 +302,15 @@ impl Client {
                 body: resp_body,
             });
         }
-        let envelope: ApiResponse<Value> = serde_json::from_str(&resp_body)?;
+        let envelope: ApiResponse<Value> = serde_json::from_str(&resp_body).map_err(|source| {
+            Self::json_error(
+                source,
+                method,
+                path,
+                request_body.map(str::to_string),
+                Some(resp_body.clone()),
+            )
+        })?;
         let code = ApiStatusCode::from_code(envelope.code);
         if !code.is_success() {
             return Err(ClientError::Api {
@@ -277,7 +321,55 @@ impl Client {
             });
         }
 
-        Ok(envelope.data)
+        Ok(DecodedResponse {
+            data: envelope.data,
+            body: resp_body,
+        })
+    }
+
+    fn decode_response_data<T: DeserializeOwned>(
+        &self,
+        decoded: DecodedResponse,
+        method: &str,
+        path: &str,
+        request_body: Option<&str>,
+    ) -> Result<T> {
+        serde_json::from_value(decoded.data).map_err(|source| {
+            Self::json_error(
+                source,
+                method,
+                path,
+                request_body.map(str::to_string),
+                Some(decoded.body),
+            )
+        })
+    }
+
+    fn serialize_request_body<B: Serialize + ?Sized>(
+        &self,
+        method: &str,
+        path: &str,
+        body: Option<&B>,
+    ) -> Result<Option<String>> {
+        body.map(serde_json::to_string)
+            .transpose()
+            .map_err(|source| Self::json_error(source, method, path, None, None))
+    }
+
+    fn json_error(
+        source: serde_json::Error,
+        method: &str,
+        path: &str,
+        request_body: Option<String>,
+        response_body: Option<String>,
+    ) -> ClientError {
+        ClientError::JsonWithContext {
+            source,
+            method: method.to_string(),
+            path: path.to_string(),
+            request_body,
+            response_body,
+        }
     }
 
     fn apply_auth(&self, builder: reqwest::RequestBuilder) -> reqwest::RequestBuilder {

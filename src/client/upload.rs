@@ -9,13 +9,18 @@ use std::path::{Path, PathBuf};
 impl Client {
     /// Upload bytes through `/api/fs/put`.
     pub async fn upload_put(&self, upload: UploadPut) -> Result<Option<UploadResp>> {
+        let request_body = upload.request_context();
         let response = self.send_upload_put(&upload).await?;
-        match self.decode_response_nullable(response).await {
+        match self
+            .decode_response_nullable("PUT", "/fs/put", Some(&request_body), response)
+            .await
+        {
             Ok(resp) => Ok(resp),
             Err(err) if self.should_refresh_auth(&err) => {
                 self.refresh_token().await?;
                 let response = self.send_upload_put(&upload).await?;
-                self.decode_response_nullable(response).await
+                self.decode_response_nullable("PUT", "/fs/put", Some(&request_body), response)
+                    .await
             }
             Err(err) => Err(err),
         }
@@ -105,6 +110,22 @@ impl UploadPut {
             sha1: None,
             sha256: None,
         }
+    }
+
+    fn request_context(&self) -> String {
+        format!(
+            "file_path={:?}, body_len={}, password_present={}, overwrite={}, as_task={}, content_type={:?}, last_modified_millis={:?}, md5_present={}, sha1_present={}, sha256_present={}",
+            self.file_path,
+            self.body.len(),
+            !self.password.is_empty(),
+            self.overwrite,
+            self.as_task,
+            self.content_type,
+            self.last_modified_millis,
+            self.md5.is_some(),
+            self.sha1.is_some(),
+            self.sha256.is_some()
+        )
     }
 
     /// Set the meta password header.

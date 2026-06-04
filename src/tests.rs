@@ -1,4 +1,4 @@
-use crate::{Authentication, Client, UploadPut};
+use crate::{Authentication, Client, ClientError, FsListReq, UploadPut};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -96,6 +96,39 @@ async fn api_request_rate_limit_delays_consecutive_requests() {
 }
 
 #[tokio::test]
+async fn json_parse_errors_include_request_and_response_context() {
+    let response_body =
+        r#"{"code":200,"message":"success","data":{"content":2,"total":0}}"#.to_string();
+    let base_url = spawn_static_response_server(response_body.clone()).await;
+    let client = Client::new(base_url).unwrap();
+
+    let err = client.fs_list(FsListReq::all("/broken")).await.unwrap_err();
+
+    match err {
+        ClientError::JsonWithContext {
+            method,
+            path,
+            request_body,
+            response_body: actual_response_body,
+            ..
+        } => {
+            assert_eq!(method, "POST");
+            assert_eq!(path, "/fs/list");
+            assert!(
+                request_body
+                    .expect("request body should be captured")
+                    .contains("\"path\":\"/broken\"")
+            );
+            assert_eq!(
+                actual_response_body.as_deref(),
+                Some(response_body.as_str())
+            );
+        }
+        other => panic!("expected JsonWithContext, got {other:?}"),
+    }
+}
+
+#[tokio::test]
 async fn username_password_authentication_refreshes_expired_token() {
     let requests = Arc::new(Mutex::new(Vec::new()));
     let base_url = spawn_refresh_server(Arc::clone(&requests)).await;
@@ -173,6 +206,26 @@ async fn spawn_me_server(request_count: usize) -> String {
             );
             stream.write_all(response.as_bytes()).await.unwrap();
         }
+    });
+
+    format!("http://{addr}")
+}
+
+async fn spawn_static_response_server(body: String) -> String {
+    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = listener.local_addr().unwrap();
+
+    tokio::spawn(async move {
+        let (mut stream, _) = listener.accept().await.unwrap();
+        let mut buffer = vec![0; 4096];
+        stream.read(&mut buffer).await.unwrap();
+
+        let response = format!(
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{}",
+            body.len(),
+            body
+        );
+        stream.write_all(response.as_bytes()).await.unwrap();
     });
 
     format!("http://{addr}")

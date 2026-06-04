@@ -231,6 +231,22 @@ pub enum ClientError {
     /// JSON serialization or deserialization error.
     #[error("json error: {0}")]
     Json(#[from] serde_json::Error),
+    /// JSON serialization or deserialization error with HTTP request context.
+    #[error(
+        "json error at {method} {path}: {source}; request_body={request_body:?}; response_body={response_body:?}"
+    )]
+    JsonWithContext {
+        /// JSON parser/serializer error.
+        source: serde_json::Error,
+        /// HTTP method.
+        method: String,
+        /// API path.
+        path: String,
+        /// Serialized request body or request metadata.
+        request_body: Option<String>,
+        /// Raw response body when available.
+        response_body: Option<String>,
+    },
     /// I/O error, typically from upload body construction.
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
