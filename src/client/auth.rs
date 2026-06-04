@@ -2,7 +2,9 @@
 
 use super::Client;
 use crate::error::Result;
-use crate::models::auth::{LoginReq, LoginResp, MeResp, RegisterReq};
+use crate::models::auth::{
+    Generate2FaResp, LoginReq, LoginResp, MeResp, RegisterReq, Verify2FaReq,
+};
 use reqwest::Method;
 
 impl Client {
@@ -21,6 +23,18 @@ impl Client {
     /// Register a new user with `/api/auth/register`.
     pub async fn register(&self, req: RegisterReq) -> Result<()> {
         self.request(Method::POST, "/auth/register", Some(&req), false)
+            .await
+    }
+
+    /// Generate a two-factor authentication secret with `/api/auth/2fa/generate`.
+    pub async fn generate_2fa(&self) -> Result<Generate2FaResp> {
+        self.request_without_body(Method::POST, "/auth/2fa/generate")
+            .await
+    }
+
+    /// Verify and enable two-factor authentication with `/api/auth/2fa/verify`.
+    pub async fn verify_2fa(&self, req: Verify2FaReq) -> Result<()> {
+        self.request(Method::POST, "/auth/2fa/verify", Some(&req), false)
             .await
     }
 
