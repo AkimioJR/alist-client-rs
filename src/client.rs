@@ -13,6 +13,9 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::sync::RwLock;
+use std::time::Duration;
+use tokio::sync::Mutex;
+use tokio::time::{Instant, sleep_until};
 
 pub use upload::UploadPut;
 
@@ -56,6 +59,36 @@ pub struct Client {
     http: reqwest::Client,
     token: RwLock<Option<String>>,
     authentication: RwLock<Option<Authentication>>,
+    api_request_rate_limit: Option<RequestRateLimit>,
+}
+
+#[derive(Debug)]
+struct RequestRateLimit {
+    interval: Duration,
+    next_request_at: Mutex<Instant>,
+}
+
+impl RequestRateLimit {
+    fn new(interval: Duration) -> Self {
+        Self {
+            interval,
+            next_request_at: Mutex::new(Instant::now()),
+        }
+    }
+
+    async fn wait(&self) {
+        let mut next_request_at = self.next_request_at.lock().await;
+        let now = Instant::now();
+
+        if *next_request_at > now {
+            let scheduled_at = *next_request_at;
+            *next_request_at += self.interval;
+            drop(next_request_at);
+            sleep_until(scheduled_at).await;
+        } else {
+            *next_request_at = now + self.interval;
+        }
+    }
 }
 
 impl Client {
@@ -72,6 +105,7 @@ impl Client {
             http: reqwest::Client::new(),
             token: RwLock::new(None),
             authentication: RwLock::new(None),
+            api_request_rate_limit: None,
         })
     }
 
@@ -88,6 +122,33 @@ impl Client {
     /// Create a client with token authentication.
     pub fn with_token(base_url: impl AsRef<str>, token: impl Into<String>) -> Result<Self> {
         Self::with_authentication(base_url, Authentication::token(token))
+    }
+
+    /// Return the minimum interval enforced between API requests.
+    ///
+    /// `None` means requests are sent without client-side rate limiting.
+    pub fn api_request_interval(&self) -> Option<Duration> {
+        self.api_request_rate_limit
+            .as_ref()
+            .map(|rate_limit| rate_limit.interval)
+    }
+
+    /// Configure the minimum interval between API requests.
+    ///
+    /// `None` or `Duration::ZERO` disables client-side rate limiting.
+    pub fn set_api_request_interval(&mut self, interval: impl Into<Option<Duration>>) {
+        self.api_request_rate_limit = interval
+            .into()
+            .filter(|interval| !interval.is_zero())
+            .map(RequestRateLimit::new);
+    }
+
+    /// Configure the minimum interval between API requests while building a client.
+    ///
+    /// `None` or `Duration::ZERO` disables client-side rate limiting.
+    pub fn with_api_request_interval(mut self, interval: impl Into<Option<Duration>>) -> Self {
+        self.set_api_request_interval(interval);
+        self
     }
 
     /// Return the current token, if any.
@@ -152,6 +213,7 @@ impl Client {
             if let Some(body) = body {
                 builder = builder.json(body);
             }
+            self.wait_for_rate_limit().await;
             let response = builder.send().await?;
 
             match self.decode_response_value(response).await {
@@ -177,6 +239,7 @@ impl Client {
         if let Some(body) = body {
             builder = builder.json(body);
         }
+        self.wait_for_rate_limit().await;
         let response = builder.send().await?;
         let value = self.decode_response_value(response).await?;
         Ok(serde_json::from_value(value)?)
@@ -222,6 +285,12 @@ impl Client {
             builder.header("Authorization", token)
         } else {
             builder
+        }
+    }
+
+    async fn wait_for_rate_limit(&self) {
+        if let Some(rate_limit) = &self.api_request_rate_limit {
+            rate_limit.wait().await;
         }
     }
 

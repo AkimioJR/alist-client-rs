@@ -49,6 +49,7 @@ impl Client {
             builder = builder.header("X-File-Sha256", sha256);
         }
 
+        self.wait_for_rate_limit().await;
         Ok(builder.send().await?)
     }
 

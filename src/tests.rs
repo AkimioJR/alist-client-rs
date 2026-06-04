@@ -1,5 +1,6 @@
 use crate::{Authentication, Client, UploadPut};
 use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
 
@@ -60,6 +61,40 @@ fn authentication_builders_configure_client_token_state() {
     );
 }
 
+#[test]
+fn api_request_rate_limit_configuration_is_optional() {
+    let mut client = Client::new("https://alist.example").unwrap();
+    assert_eq!(client.api_request_interval(), None);
+
+    client.set_api_request_interval(Duration::from_millis(250));
+    assert_eq!(
+        client.api_request_interval(),
+        Some(Duration::from_millis(250))
+    );
+
+    client.set_api_request_interval(Duration::ZERO);
+    assert_eq!(client.api_request_interval(), None);
+
+    let client = Client::new("https://alist.example")
+        .unwrap()
+        .with_api_request_interval(Duration::from_secs(1));
+    assert_eq!(client.api_request_interval(), Some(Duration::from_secs(1)));
+}
+
+#[tokio::test]
+async fn api_request_rate_limit_delays_consecutive_requests() {
+    let base_url = spawn_me_server(2).await;
+    let client = Client::new(base_url)
+        .unwrap()
+        .with_api_request_interval(Duration::from_millis(50));
+
+    let started_at = Instant::now();
+    client.me().await.unwrap();
+    client.me().await.unwrap();
+
+    assert!(started_at.elapsed() >= Duration::from_millis(45));
+}
+
 #[tokio::test]
 async fn username_password_authentication_refreshes_expired_token() {
     let requests = Arc::new(Mutex::new(Vec::new()));
@@ -108,6 +143,29 @@ async fn spawn_refresh_server(requests: Arc<Mutex<Vec<String>>>) -> String {
                     r#"{"code":200,"message":"success","data":{"id":2,"username":"admin","password":"","base_path":"/","role":[2],"disabled":false,"permission":65535,"sso_id":"","otp":false,"role_names":["admin"],"permissions":[{"path":"/","permission":65535}]}}"#
                 }
             };
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{}",
+                body.len(),
+                body
+            );
+            stream.write_all(response.as_bytes()).await.unwrap();
+        }
+    });
+
+    format!("http://{addr}")
+}
+
+async fn spawn_me_server(request_count: usize) -> String {
+    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = listener.local_addr().unwrap();
+
+    tokio::spawn(async move {
+        for _ in 0..request_count {
+            let (mut stream, _) = listener.accept().await.unwrap();
+            let mut buffer = vec![0; 4096];
+            stream.read(&mut buffer).await.unwrap();
+
+            let body = r#"{"code":200,"message":"success","data":{"id":2,"username":"admin","password":"","base_path":"/","role":[2],"disabled":false,"permission":65535,"sso_id":"","otp":false,"role_names":["admin"],"permissions":[{"path":"/","permission":65535}]}}"#;
             let response = format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{}",
                 body.len(),
