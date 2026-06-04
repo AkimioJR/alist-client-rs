@@ -7,8 +7,8 @@ use super::Client;
 use crate::error::Result;
 use crate::models::common::PageResp;
 use crate::models::fs::{
-    DirResp, DirsReq, FsGetReq, FsGetResp, FsListReq, FsListResp, MkdirReq, MoveCopyReq,
-    RemoveEmptyDirectoryReq, RemoveReq, RenameReq, SearchReq, SearchResp, TasksResp,
+    BatchRenameReq, DirResp, DirsReq, FsGetReq, FsGetResp, FsListReq, FsListResp, MkdirReq,
+    MoveCopyReq, RemoveEmptyDirectoryReq, RemoveReq, RenameReq, SearchReq, SearchResp, TasksResp,
 };
 use reqwest::Method;
 
@@ -47,6 +47,12 @@ impl Client {
     /// Rename an object with `/api/fs/rename`.
     pub async fn rename(&self, req: RenameReq) -> Result<()> {
         self.request(Method::POST, "/fs/rename", Some(&req), false)
+            .await
+    }
+
+    /// Rename multiple objects with `/api/fs/batch_rename`.
+    pub async fn batch_rename(&self, req: BatchRenameReq) -> Result<()> {
+        self.request(Method::POST, "/fs/batch_rename", Some(&req), false)
             .await
     }
 

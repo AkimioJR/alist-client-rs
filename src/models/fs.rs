@@ -224,6 +224,24 @@ pub struct RenameReq {
     pub overwrite: bool,
 }
 
+/// Rename pair used by `/api/fs/batch_rename`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct BatchRenameObject {
+    /// Original file or directory name relative to `src_dir`.
+    pub src_name: String,
+    /// New file or directory name.
+    pub new_name: String,
+}
+
+/// Request body for `/api/fs/batch_rename`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct BatchRenameReq {
+    /// Source directory containing the renamed objects.
+    pub src_dir: String,
+    /// Rename operations to apply.
+    pub rename_objects: Vec<BatchRenameObject>,
+}
+
 /// Request body for `/api/fs/remove`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RemoveReq {
@@ -525,6 +543,24 @@ pub(crate) mod tests {
                 "path": "/阿里云盘/test2",
                 "name": "test3",
                 "overwrite": false
+            })
+        );
+
+        let batch = BatchRenameReq {
+            src_dir: "/m2".to_string(),
+            rename_objects: vec![BatchRenameObject {
+                src_name: "test.txt".to_string(),
+                new_name: "aaas2.txt".to_string(),
+            }],
+        };
+        assert_eq!(
+            serde_json::to_value(&batch).unwrap(),
+            serde_json::json!({
+                "src_dir": "/m2",
+                "rename_objects": [{
+                    "src_name": "test.txt",
+                    "new_name": "aaas2.txt"
+                }]
             })
         );
     }
