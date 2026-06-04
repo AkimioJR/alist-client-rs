@@ -1,6 +1,7 @@
 //! Data models for the `admin` OpenAPI groups.
 
 pub mod meta;
+pub mod user;
 
 use serde::{Deserialize, Serialize};
 
@@ -9,6 +10,13 @@ use serde::{Deserialize, Serialize};
 pub struct IdQuery {
     /// Resource id.
     pub id: u64,
+}
+
+/// Query parameters containing a username.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UsernameQuery {
+    /// Username value.
+    pub username: String,
 }
 
 /// Optional pagination query parameters used by admin list endpoints.
