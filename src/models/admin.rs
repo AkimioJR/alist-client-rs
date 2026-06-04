@@ -4,6 +4,7 @@ pub mod driver;
 pub mod meta;
 pub mod setting;
 pub mod storage;
+pub mod task;
 pub mod user;
 
 use serde::{Deserialize, Serialize};
@@ -27,6 +28,13 @@ pub struct UsernameQuery {
 pub struct DriverQuery {
     /// Driver name.
     pub driver: String,
+}
+
+/// Query parameters containing a task id.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TaskIdQuery {
+    /// Task id.
+    pub tid: String,
 }
 
 /// Optional pagination query parameters used by admin list endpoints.
