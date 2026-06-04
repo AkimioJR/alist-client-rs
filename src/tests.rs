@@ -1,4 +1,4 @@
-use crate::client::fs::upload::UploadPut;
+use crate::client::fs::upload::{UploadForm, UploadPut};
 use crate::models::fs::FsListReq;
 use crate::{Authentication, Client, ClientError};
 use std::sync::{Arc, Mutex};
@@ -36,6 +36,19 @@ fn upload_put_builder_sets_expected_defaults_and_hashes() {
     assert_eq!(upload.md5.as_deref(), Some("md5"));
     assert_eq!(upload.sha1.as_deref(), Some("sha1"));
     assert_eq!(upload.sha256.as_deref(), Some("sha256"));
+}
+
+#[test]
+fn upload_form_builder_sets_expected_defaults() {
+    let upload = UploadForm::new("/dst/demo.txt", "demo.txt", "hello")
+        .as_task(true)
+        .content_type("text/plain");
+
+    assert_eq!(upload.file_path, "/dst/demo.txt");
+    assert_eq!(upload.file_name, "demo.txt");
+    assert_eq!(upload.body, bytes::Bytes::from_static(b"hello"));
+    assert!(upload.as_task);
+    assert_eq!(upload.content_type.as_deref(), Some("text/plain"));
 }
 
 #[test]
