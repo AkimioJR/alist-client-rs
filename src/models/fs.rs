@@ -109,15 +109,20 @@ pub struct FsListResp {
     /// Total visible rows.
     pub total: i64,
     /// Filtered total in current server versions.
-    pub filtered_total: i64,
+    #[serde(default)]
+    pub filtered_total: Option<i64>,
     /// Effective page returned by the server.
-    pub page: i32,
+    #[serde(default)]
+    pub page: Option<i32>,
     /// Effective page size returned by the server.
-    pub per_page: i32,
+    #[serde(default)]
+    pub per_page: Option<i32>,
     /// Whether more pages are available.
-    pub has_more: bool,
+    #[serde(default)]
+    pub has_more: Option<bool>,
     /// Total pages.
-    pub pages_total: i32,
+    #[serde(default)]
+    pub pages_total: Option<i32>,
     /// Directory readme content.
     pub readme: String,
     /// Directory header content.
@@ -338,8 +343,40 @@ pub(crate) mod tests {
         .unwrap();
 
         assert_eq!(resp.data.content.len(), 1);
+        assert_eq!(resp.data.filtered_total, Some(1));
+        assert_eq!(resp.data.page, Some(1));
+        assert_eq!(resp.data.per_page, Some(0));
+        assert_eq!(resp.data.has_more, Some(false));
+        assert_eq!(resp.data.pages_total, Some(1));
         assert_eq!(resp.data.provider, "Local");
         assert!(resp.data.write);
+    }
+
+    #[test]
+    fn fs_list_resp_accepts_legacy_api_shape_without_pagination_metadata() {
+        let item = object_with(Map::new());
+        let resp: ApiResponse<FsListResp> = serde_json::from_value(serde_json::json!({
+            "code": 200,
+            "message": "success",
+            "data": {
+                "content": [item],
+                "total": 1,
+                "readme": "",
+                "header": "",
+                "write": true,
+                "provider": "ANiOpen"
+            }
+        }))
+        .unwrap();
+
+        assert_eq!(resp.data.content.len(), 1);
+        assert_eq!(resp.data.total, 1);
+        assert_eq!(resp.data.filtered_total, None);
+        assert_eq!(resp.data.page, None);
+        assert_eq!(resp.data.per_page, None);
+        assert_eq!(resp.data.has_more, None);
+        assert_eq!(resp.data.pages_total, None);
+        assert_eq!(resp.data.provider, "ANiOpen");
     }
 
     #[test]
