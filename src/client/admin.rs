@@ -2,5 +2,6 @@
 
 pub mod driver;
 pub mod meta;
+pub mod setting;
 pub mod storage;
 pub mod user;
