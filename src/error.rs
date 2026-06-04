@@ -35,7 +35,7 @@ impl ApiStatusCode {
     /// Convert a raw AList response code into a typed status.
     pub fn from_code(code: i32) -> Self {
         match code {
-            200 => Self::Ok,
+            0 | 200 => Self::Ok,
             202 => Self::Accepted,
             400 => Self::BadRequest,
             401 => Self::Unauthorized,
@@ -278,6 +278,7 @@ mod tests {
 
     #[test]
     fn api_status_code_maps_known_and_unknown_codes() {
+        assert_eq!(ApiStatusCode::from_code(0), ApiStatusCode::Ok);
         assert_eq!(ApiStatusCode::from_code(200), ApiStatusCode::Ok);
         assert_eq!(ApiStatusCode::from_code(202), ApiStatusCode::Accepted);
         assert_eq!(ApiStatusCode::from_code(400), ApiStatusCode::BadRequest);
