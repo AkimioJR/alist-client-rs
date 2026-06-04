@@ -1,5 +1,6 @@
 //! Data models for the `admin` OpenAPI groups.
 
+pub mod driver;
 pub mod meta;
 pub mod storage;
 pub mod user;
@@ -18,6 +19,13 @@ pub struct IdQuery {
 pub struct UsernameQuery {
     /// Username value.
     pub username: String,
+}
+
+/// Query parameters containing a driver name.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DriverQuery {
+    /// Driver name.
+    pub driver: String,
 }
 
 /// Optional pagination query parameters used by admin list endpoints.
