@@ -242,6 +242,17 @@ pub struct BatchRenameReq {
     pub rename_objects: Vec<BatchRenameObject>,
 }
 
+/// Request body for `/api/fs/regex_rename`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RegexRenameReq {
+    /// Source directory containing matched objects.
+    pub src_dir: String,
+    /// Regular expression used to match original file names.
+    pub src_name_regex: String,
+    /// Replacement expression used to build new file names.
+    pub new_name_regex: String,
+}
+
 /// Request body for `/api/fs/remove`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RemoveReq {
@@ -561,6 +572,20 @@ pub(crate) mod tests {
                     "src_name": "test.txt",
                     "new_name": "aaas2.txt"
                 }]
+            })
+        );
+
+        let regex = RegexRenameReq {
+            src_dir: "/m2".to_string(),
+            src_name_regex: "(.*)\\.txt".to_string(),
+            new_name_regex: "$1.md".to_string(),
+        };
+        assert_eq!(
+            serde_json::to_value(&regex).unwrap(),
+            serde_json::json!({
+                "src_dir": "/m2",
+                "src_name_regex": "(.*)\\.txt",
+                "new_name_regex": "$1.md"
             })
         );
     }
