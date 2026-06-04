@@ -1,6 +1,7 @@
 //! Data models for the `admin` OpenAPI groups.
 
 pub mod driver;
+pub mod label;
 pub mod meta;
 pub mod setting;
 pub mod storage;
