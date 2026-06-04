@@ -266,6 +266,31 @@ impl Client {
         self.decode_response_data(decoded, method.as_str(), path, request_body.as_deref())
     }
 
+    async fn request_with_query<Q: Serialize + ?Sized, T: DeserializeOwned>(
+        &self,
+        method: Method,
+        path: &str,
+        query: &Q,
+    ) -> Result<T> {
+        let url = self.api_url_with_query(method.as_str(), path, query)?;
+        let mut builder = self.http.request(method.clone(), url);
+        builder = self.apply_auth(builder);
+        self.wait_for_rate_limit().await;
+        let response = builder.send().await?;
+        let decoded = self
+            .decode_response_value(method.as_str(), path, None, response)
+            .await?;
+        self.decode_response_data(decoded, method.as_str(), path, None)
+    }
+
+    async fn request_without_body<T: DeserializeOwned>(
+        &self,
+        method: Method,
+        path: &str,
+    ) -> Result<T> {
+        self.request::<(), T>(method, path, None, false).await
+    }
+
     async fn decode_response_nullable<T: DeserializeOwned>(
         &self,
         method: &str,
@@ -351,6 +376,44 @@ impl Client {
         body.map(serde_json::to_string)
             .transpose()
             .map_err(|source| Self::json_error(source, method, path, None, None))
+    }
+
+    fn api_url_with_query<Q: Serialize + ?Sized>(
+        &self,
+        method: &str,
+        path: &str,
+        query: &Q,
+    ) -> Result<Url> {
+        let mut url = self.api_url(path)?;
+        let value = serde_json::to_value(query)
+            .map_err(|source| Self::json_error(source, method, path, None, None))?;
+        if let Value::Object(params) = value {
+            let mut pairs = url.query_pairs_mut();
+            for (key, value) in params {
+                // 将简单标量转换成 query 参数，跳过缺省的空值。
+                match value {
+                    Value::Null => {}
+                    Value::String(value) => {
+                        pairs.append_pair(&key, &value);
+                    }
+                    Value::Bool(value) => {
+                        pairs.append_pair(&key, if value { "true" } else { "false" });
+                    }
+                    Value::Number(value) => {
+                        pairs.append_pair(&key, &value.to_string());
+                    }
+                    Value::Array(values) => {
+                        for value in values {
+                            pairs.append_pair(&key, &value.to_string());
+                        }
+                    }
+                    Value::Object(value) => {
+                        pairs.append_pair(&key, &Value::Object(value).to_string());
+                    }
+                }
+            }
+        }
+        Ok(url)
     }
 
     fn json_error(
