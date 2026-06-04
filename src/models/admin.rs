@@ -1,6 +1,7 @@
 //! Data models for the `admin` OpenAPI groups.
 
 pub mod meta;
+pub mod storage;
 pub mod user;
 
 use serde::{Deserialize, Serialize};
