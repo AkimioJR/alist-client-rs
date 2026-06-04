@@ -1,5 +1,6 @@
 //! Async HTTP client core for AList APIs.
 
+pub mod admin;
 pub mod auth;
 pub mod fs;
 pub mod public;
