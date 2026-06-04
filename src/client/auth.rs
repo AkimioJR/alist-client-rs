@@ -2,7 +2,7 @@
 
 use super::Client;
 use crate::error::Result;
-use crate::models::auth::{LoginReq, LoginResp, MeResp};
+use crate::models::auth::{LoginReq, LoginResp, MeResp, RegisterReq};
 use reqwest::Method;
 
 impl Client {
@@ -15,6 +15,12 @@ impl Client {
     /// Log in with an AList static password hash using `/api/auth/login/hash`.
     pub async fn login_hash_with(&self, req: LoginReq) -> Result<LoginResp> {
         self.request_without_refresh(Method::POST, "/auth/login/hash", Some(&req))
+            .await
+    }
+
+    /// Register a new user with `/api/auth/register`.
+    pub async fn register(&self, req: RegisterReq) -> Result<()> {
+        self.request(Method::POST, "/auth/register", Some(&req), false)
             .await
     }
 
