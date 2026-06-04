@@ -7,9 +7,9 @@ use super::Client;
 use crate::error::Result;
 use crate::models::common::PageResp;
 use crate::models::fs::{
-    BatchRenameReq, DirResp, DirsReq, FsGetReq, FsGetResp, FsListReq, FsListResp, MkdirReq,
-    MoveCopyReq, RecursiveMoveReq, RegexRenameReq, RemoveEmptyDirectoryReq, RemoveReq, RenameReq,
-    SearchReq, SearchResp, TasksResp,
+    AddOfflineDownloadReq, BatchRenameReq, DirResp, DirsReq, FsGetReq, FsGetResp, FsListReq,
+    FsListResp, MkdirReq, MoveCopyReq, RecursiveMoveReq, RegexRenameReq, RemoveEmptyDirectoryReq,
+    RemoveReq, RenameReq, SearchReq, SearchResp, TasksResp,
 };
 use reqwest::Method;
 
@@ -99,5 +99,11 @@ impl Client {
             false,
         )
         .await
+    }
+
+    /// Add offline download tasks with `/api/fs/add_offline_download`.
+    pub async fn add_offline_download(&self, req: AddOfflineDownloadReq) -> Result<TasksResp> {
+        self.request(Method::POST, "/fs/add_offline_download", Some(&req), false)
+            .await
     }
 }

@@ -262,6 +262,19 @@ pub struct RecursiveMoveReq {
     pub dst_dir: String,
 }
 
+/// Request body for `/api/fs/add_offline_download`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AddOfflineDownloadReq {
+    /// Download URLs.
+    pub urls: Vec<String>,
+    /// Destination path.
+    pub path: String,
+    /// Download tool, for example `aria2`, `SimpleHttp`, or `qBittorrent`.
+    pub tool: String,
+    /// Deletion policy after upload.
+    pub delete_policy: String,
+}
+
 /// Request body for `/api/fs/remove`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RemoveReq {
@@ -613,6 +626,24 @@ pub(crate) mod tests {
 
     #[test]
     fn openapi_offline_download_task_example_matches_model() {
+        let req = AddOfflineDownloadReq {
+            path: "/local".to_string(),
+            urls: vec![
+                "https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png".to_string(),
+            ],
+            tool: "SimpleHttp".to_string(),
+            delete_policy: "delete_on_upload_succeed".to_string(),
+        };
+        assert_eq!(
+            serde_json::to_value(&req).unwrap(),
+            serde_json::json!({
+                "urls": ["https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png"],
+                "path": "/local",
+                "tool": "SimpleHttp",
+                "delete_policy": "delete_on_upload_succeed"
+            })
+        );
+
         let resp: ApiResponse<TasksResp> = serde_json::from_value(serde_json::json!({
             "code": 200,
             "message": "success",
