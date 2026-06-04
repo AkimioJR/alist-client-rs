@@ -253,6 +253,15 @@ pub struct RegexRenameReq {
     pub new_name_regex: String,
 }
 
+/// Request body for `/api/fs/recursive_move`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RecursiveMoveReq {
+    /// Source directory to aggregate move from.
+    pub src_dir: String,
+    /// Destination directory.
+    pub dst_dir: String,
+}
+
 /// Request body for `/api/fs/remove`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RemoveReq {
@@ -586,6 +595,18 @@ pub(crate) mod tests {
                 "src_dir": "/m2",
                 "src_name_regex": "(.*)\\.txt",
                 "new_name_regex": "$1.md"
+            })
+        );
+
+        let recursive = RecursiveMoveReq {
+            src_dir: "/source".to_string(),
+            dst_dir: "/dest".to_string(),
+        };
+        assert_eq!(
+            serde_json::to_value(&recursive).unwrap(),
+            serde_json::json!({
+                "src_dir": "/source",
+                "dst_dir": "/dest"
             })
         );
     }

@@ -8,8 +8,8 @@ use crate::error::Result;
 use crate::models::common::PageResp;
 use crate::models::fs::{
     BatchRenameReq, DirResp, DirsReq, FsGetReq, FsGetResp, FsListReq, FsListResp, MkdirReq,
-    MoveCopyReq, RegexRenameReq, RemoveEmptyDirectoryReq, RemoveReq, RenameReq, SearchReq,
-    SearchResp, TasksResp,
+    MoveCopyReq, RecursiveMoveReq, RegexRenameReq, RemoveEmptyDirectoryReq, RemoveReq, RenameReq,
+    SearchReq, SearchResp, TasksResp,
 };
 use reqwest::Method;
 
@@ -66,6 +66,12 @@ impl Client {
     /// Move objects with `/api/fs/move`.
     pub async fn move_items(&self, req: MoveCopyReq) -> Result<()> {
         self.request(Method::POST, "/fs/move", Some(&req), false)
+            .await
+    }
+
+    /// Move objects recursively with `/api/fs/recursive_move`.
+    pub async fn recursive_move(&self, req: RecursiveMoveReq) -> Result<()> {
+        self.request(Method::POST, "/fs/recursive_move", Some(&req), false)
             .await
     }
 
