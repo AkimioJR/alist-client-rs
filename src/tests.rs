@@ -1,5 +1,5 @@
 use crate::client::fs::upload::{UploadForm, UploadPut};
-use crate::models::fs::FsListReq;
+use crate::models::fs::{FsListReq, MoveCopyReq};
 use crate::{Authentication, Client, ClientError};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
@@ -172,6 +172,60 @@ async fn username_password_authentication_refreshes_expired_token() {
     );
 }
 
+#[tokio::test]
+async fn query_requests_append_parameters_and_auth_header() {
+    let requests = Arc::new(Mutex::new(Vec::new()));
+    let body = r#"{"code":200,"message":"success","data":{"id":1,"path":"/a","password":"c","p_sub":false,"write":false,"w_sub":false,"hide":"","h_sub":false,"readme":"","r_sub":false}}"#;
+    let base_url = spawn_recording_response_server(Arc::clone(&requests), body).await;
+    let client = Client::with_token(base_url, "token-1").unwrap();
+
+    let meta = client.admin_meta_get(1).await.unwrap();
+
+    assert_eq!(meta.id, 1);
+    let requests = requests.lock().unwrap();
+    assert!(requests[0].contains("GET /api/admin/meta/get?id=1 "));
+    assert!(
+        requests[0]
+            .to_ascii_lowercase()
+            .contains("authorization: token-1")
+    );
+}
+
+#[tokio::test]
+async fn empty_body_requests_send_no_json_payload() {
+    let requests = Arc::new(Mutex::new(Vec::new()));
+    let body = r#"{"code":200,"message":"success","data":{"qr":"data:image/png;base64,a","secret":"secret"}}"#;
+    let base_url = spawn_recording_response_server(Arc::clone(&requests), body).await;
+    let client = Client::with_token(base_url, "token-1").unwrap();
+
+    let generated = client.generate_2fa().await.unwrap();
+
+    assert_eq!(generated.secret, "secret");
+    let requests = requests.lock().unwrap();
+    assert!(requests[0].contains("POST /api/auth/2fa/generate "));
+    assert!(!requests[0].contains("Content-Type: application/json"));
+    assert!(!requests[0].contains("\r\n\r\nnull"));
+}
+
+#[tokio::test]
+async fn nullable_api_responses_decode_to_none() {
+    let body = r#"{"code":200,"message":"success","data":null}"#.to_string();
+    let base_url = spawn_static_response_server(body).await;
+    let client = Client::new(base_url).unwrap();
+
+    let resp = client
+        .copy_items(MoveCopyReq {
+            src_dir: "/src".to_string(),
+            dst_dir: "/dst".to_string(),
+            names: vec!["a.txt".to_string()],
+            overwrite: false,
+        })
+        .await
+        .unwrap();
+
+    assert_eq!(resp, None);
+}
+
 async fn spawn_refresh_server(requests: Arc<Mutex<Vec<String>>>) -> String {
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
@@ -234,6 +288,33 @@ async fn spawn_static_response_server(body: String) -> String {
         let (mut stream, _) = listener.accept().await.unwrap();
         let mut buffer = vec![0; 4096];
         stream.read(&mut buffer).await.unwrap();
+
+        let response = format!(
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{}",
+            body.len(),
+            body
+        );
+        stream.write_all(response.as_bytes()).await.unwrap();
+    });
+
+    format!("http://{addr}")
+}
+
+async fn spawn_recording_response_server(
+    requests: Arc<Mutex<Vec<String>>>,
+    body: &'static str,
+) -> String {
+    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = listener.local_addr().unwrap();
+
+    tokio::spawn(async move {
+        let (mut stream, _) = listener.accept().await.unwrap();
+        let mut buffer = vec![0; 4096];
+        let n = stream.read(&mut buffer).await.unwrap();
+        requests
+            .lock()
+            .unwrap()
+            .push(String::from_utf8_lossy(&buffer[..n]).to_string());
 
         let response = format!(
             "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{}",
