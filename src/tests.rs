@@ -53,18 +53,18 @@ fn upload_form_builder_sets_expected_defaults() {
 
 #[test]
 fn authentication_builders_configure_client_token_state() {
-    let client = Client::with_token("https://alist.example", "token-1").unwrap();
+    let client = Client::new("https://alist.example")
+        .unwrap()
+        .with_authentication(Authentication::Token("token-1".to_string()));
     assert_eq!(client.token().as_deref(), Some("token-1"));
     assert_eq!(
         client.authentication(),
         Some(Authentication::Token("token-1".to_string()))
     );
 
-    let client = Client::with_authentication(
-        "https://alist.example",
-        Authentication::username_password("admin", "password", None::<String>),
-    )
-    .unwrap();
+    let client = Client::new("https://alist.example")
+        .unwrap()
+        .with_authentication(Authentication::username_password("admin", "password", None));
     assert_eq!(client.token(), None);
     assert_eq!(
         client.authentication(),
@@ -147,11 +147,9 @@ async fn json_parse_errors_include_request_and_response_context() {
 async fn username_password_authentication_refreshes_expired_token() {
     let requests = Arc::new(Mutex::new(Vec::new()));
     let base_url = spawn_refresh_server(Arc::clone(&requests)).await;
-    let client = Client::with_authentication(
-        base_url,
-        Authentication::username_password("admin", "password", None::<String>),
-    )
-    .unwrap();
+    let client = Client::new(base_url)
+        .unwrap()
+        .with_authentication(Authentication::username_password("admin", "password", None));
 
     let me = client.me().await.unwrap();
 
@@ -177,7 +175,9 @@ async fn query_requests_append_parameters_and_auth_header() {
     let requests = Arc::new(Mutex::new(Vec::new()));
     let body = r#"{"code":200,"message":"success","data":{"id":1,"path":"/a","password":"c","p_sub":false,"write":false,"w_sub":false,"hide":"","h_sub":false,"readme":"","r_sub":false}}"#;
     let base_url = spawn_recording_response_server(Arc::clone(&requests), body).await;
-    let client = Client::with_token(base_url, "token-1").unwrap();
+    let client = Client::new(base_url)
+        .unwrap()
+        .with_authentication(Authentication::Token("token-1".to_string()));
 
     let meta = client.admin_meta_get(1).await.unwrap();
 
@@ -196,7 +196,9 @@ async fn empty_body_requests_send_no_json_payload() {
     let requests = Arc::new(Mutex::new(Vec::new()));
     let body = r#"{"code":200,"message":"success","data":{"qr":"data:image/png;base64,a","secret":"secret"}}"#;
     let base_url = spawn_recording_response_server(Arc::clone(&requests), body).await;
-    let client = Client::with_token(base_url, "token-1").unwrap();
+    let client = Client::new(base_url)
+        .unwrap()
+        .with_authentication(Authentication::Token("token-1".to_string()));
 
     let generated = client.generate_2fa().await.unwrap();
 
