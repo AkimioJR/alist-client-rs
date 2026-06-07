@@ -113,21 +113,6 @@ impl Client {
         })
     }
 
-    /// Create a client with refreshable authentication credentials.
-    pub fn with_authentication(
-        base_url: impl AsRef<str>,
-        authentication: Authentication,
-    ) -> Result<Self> {
-        let mut client = Self::new(base_url)?;
-        client.set_authentication(authentication);
-        Ok(client)
-    }
-
-    /// Create a client with token authentication.
-    pub fn with_token(base_url: impl AsRef<str>, token: impl Into<String>) -> Result<Self> {
-        Self::with_authentication(base_url, Authentication::token(token))
-    }
-
     /// Return the minimum interval enforced between API requests.
     ///
     /// `None` means requests are sent without client-side rate limiting.
@@ -183,6 +168,12 @@ impl Client {
         if let Ok(mut current) = self.authentication.write() {
             *current = None;
         }
+    }
+
+    /// Set the authentication material used to refresh the current token.
+    pub fn with_authentication(mut self, authentication: Authentication) -> Self {
+        self.set_authentication(authentication);
+        self
     }
 
     /// Return the base site URL.
