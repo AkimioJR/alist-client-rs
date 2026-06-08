@@ -415,7 +415,7 @@ impl Client {
         request_body: Option<String>,
         response_body: Option<String>,
     ) -> ClientError {
-        ClientError::JsonWithContext {
+        ClientError::Json {
             source,
             method: method.to_string(),
             path: path.to_string(),

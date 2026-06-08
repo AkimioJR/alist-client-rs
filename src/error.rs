@@ -228,14 +228,11 @@ pub enum ClientError {
     /// HTTP transport error from reqwest.
     #[error("http error: {0}")]
     Http(#[from] reqwest::Error),
-    /// JSON serialization or deserialization error.
-    #[error("json error: {0}")]
-    Json(#[from] serde_json::Error),
     /// JSON serialization or deserialization error with HTTP request context.
     #[error(
         "json error at {method} {path}: {source}; request_body={request_body:?}; response_body={response_body:?}"
     )]
-    JsonWithContext {
+    Json {
         /// JSON parser/serializer error.
         source: serde_json::Error,
         /// HTTP method.

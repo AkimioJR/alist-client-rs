@@ -120,7 +120,7 @@ async fn json_parse_errors_include_request_and_response_context() {
     let err = client.fs_list(FsListReq::all("/broken")).await.unwrap_err();
 
     match err {
-        ClientError::JsonWithContext {
+        ClientError::Json {
             method,
             path,
             request_body,
@@ -139,7 +139,7 @@ async fn json_parse_errors_include_request_and_response_context() {
                 Some(response_body.as_str())
             );
         }
-        other => panic!("expected JsonWithContext, got {other:?}"),
+        other => panic!("expected Json, got {other:?}"),
     }
 }
 
