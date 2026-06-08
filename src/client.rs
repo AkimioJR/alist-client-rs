@@ -3,6 +3,7 @@
 pub mod admin;
 pub mod auth;
 pub mod fs;
+pub mod ping;
 pub mod public;
 
 use crate::error::{ApiStatusCode, ClientError, InternalErrorKind, Result};
