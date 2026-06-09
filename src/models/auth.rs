@@ -1,5 +1,6 @@
 //! Data models for the `auth` OpenAPI group and `/api/me`.
 
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Deserializer, Serialize};
 
 /// Login request for `/api/auth/login` and `/api/auth/login/hash`.
@@ -86,10 +87,10 @@ pub struct UserResp {
     /// Whether TOTP is enabled.
     pub otp: bool,
     /// Role names added by current server versions.
-    #[serde(default)]
+    #[serde(default, deserialize_with = "null_to_default")]
     pub role_names: Vec<String>,
     /// Path-scoped permissions added by current server versions.
-    #[serde(default)]
+    #[serde(default, deserialize_with = "null_to_default")]
     pub permissions: Vec<PermissionEntry>,
 }
 
@@ -111,6 +112,14 @@ where
         RoleIds::Many(values) => Ok(values),
         RoleIds::One(value) => Ok(vec![value]),
     }
+}
+
+fn null_to_default<'a, D, T: Default + DeserializeOwned>(deserializer: D) -> Result<T, D::Error>
+where
+    D: Deserializer<'a>,
+{
+    let opt = Option::<T>::deserialize(deserializer)?;
+    Ok(opt.unwrap_or_default())
 }
 
 #[cfg(test)]
@@ -235,5 +244,67 @@ mod tests {
         .unwrap();
 
         assert_eq!(resp.data.role, vec![2]);
+    }
+
+    #[test]
+    fn me_accepts_null_role_names_and_permissions_from_deployed_server() {
+        let resp: ApiResponse<MeResp> = serde_json::from_value(serde_json::json!({
+            "code": 200,
+            "message": "success",
+            "data": {
+                "id": 1,
+                "username": "akimio",
+                "password": "",
+                "base_path": "/",
+                "role": [2],
+                "disabled": false,
+                "permission": 65535,
+                "sso_id": "",
+                "otp": false,
+                "role_names": null,
+                "permissions": null
+            }
+        }))
+        .unwrap();
+
+        assert_eq!(resp.code, 200);
+        assert_eq!(resp.message, "success");
+
+        assert_eq!(resp.data.id, 1);
+        assert_eq!(resp.data.username, "akimio");
+        assert_eq!(resp.data.password.as_deref(), Some(""));
+        assert_eq!(resp.data.base_path, "/");
+        assert_eq!(resp.data.role, vec![2]);
+        assert!(!resp.data.disabled);
+        assert_eq!(resp.data.permission, 65535);
+        assert_eq!(resp.data.sso_id.as_deref(), Some(""));
+        assert!(!resp.data.otp);
+
+        assert!(resp.data.role_names.is_empty());
+        assert!(resp.data.permissions.is_empty());
+    }
+
+    #[test]
+    fn me_accepts_missing_role_names_and_permissions() {
+        let resp: ApiResponse<MeResp> = serde_json::from_value(serde_json::json!({
+            "code": 200,
+            "message": "success",
+            "data": {
+                "id": 1,
+                "username": "akimio",
+                "password": "",
+                "base_path": "/",
+                "role": [2],
+                "disabled": false,
+                "permission": 65535,
+                "sso_id": "",
+                "otp": false
+            }
+        }))
+        .unwrap();
+
+        assert_eq!(resp.data.role, vec![2]);
+        assert!(resp.data.role_names.is_empty());
+        assert!(resp.data.permissions.is_empty());
     }
 }
