@@ -47,7 +47,7 @@ pub struct Storage {
 pub struct StorageReq {
     /// Storage id for updates.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    pub id: Option<u64>,
     /// Mount path.
     pub mount_path: String,
     /// Sort order.
@@ -169,6 +169,15 @@ mod tests {
                 "addition": "{\"root_folder_path\":\"/\"}",
                 "enable_sign": false
             })
+        );
+
+        let update_req = StorageReq {
+            id: Some(4),
+            ..req.clone()
+        };
+        assert_eq!(
+            serde_json::to_value(&update_req).unwrap()["id"],
+            serde_json::json!(4)
         );
 
         let created: ApiResponse<StorageCreateResp> = serde_json::from_value(serde_json::json!({
