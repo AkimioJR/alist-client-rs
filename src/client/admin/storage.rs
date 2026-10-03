@@ -15,7 +15,10 @@ impl Client {
     }
 
     /// Update a storage with `/api/admin/storage/update`.
-    pub async fn admin_storage_update(&self, req: StorageReq) -> Result<StorageCreateResp> {
+    ///
+    /// The server echoes the updated storage id when available; OpenList
+    /// responds with a `null` payload on success.
+    pub async fn admin_storage_update(&self, req: StorageReq) -> Result<Option<StorageCreateResp>> {
         self.request(Method::POST, "/admin/storage/update", Some(&req), false)
             .await
     }

@@ -210,6 +210,36 @@ async fn empty_body_requests_send_no_json_payload() {
 }
 
 #[tokio::test]
+async fn storage_update_accepts_null_payload() {
+    let body = r#"{"code":200,"message":"success","data":null}"#.to_string();
+    let base_url = spawn_static_response_server(body).await;
+    let client = Client::new(base_url).unwrap();
+
+    let resp = client
+        .admin_storage_update(crate::models::admin::storage::StorageReq {
+            id: Some(2),
+            mount_path: "/Anime".to_string(),
+            order: Some(0),
+            driver: "UrlTree".to_string(),
+            remark: Some(String::new()),
+            cache_expiration: Some(30),
+            status: Some("work".to_string()),
+            web_proxy: false,
+            webdav_policy: Some("native_proxy".to_string()),
+            down_proxy_url: Some(String::new()),
+            order_by: "name".to_string(),
+            extract_folder: "front".to_string(),
+            order_direction: "asc".to_string(),
+            addition: "{}".to_string(),
+            enable_sign: false,
+        })
+        .await
+        .unwrap();
+
+    assert_eq!(resp, None);
+}
+
+#[tokio::test]
 async fn nullable_api_responses_decode_to_none() {
     let body = r#"{"code":200,"message":"success","data":null}"#.to_string();
     let base_url = spawn_static_response_server(body).await;
