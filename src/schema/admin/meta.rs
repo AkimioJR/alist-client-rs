@@ -1,5 +1,232 @@
 //! admin-meta 元信息域数据模型。
 //!
-//! 涵盖 Meta 与创建/更新请求等模型。
-//! schema 约定（`#[serde(default)]`、可选字段、示例 JSON 钉扎测试）见 `docs/design.md`；
-//! 字段形状以 `docs/api/alistv3.openapi.yaml` 与 `examples/alist` Go 源码为准。
+//! 建模目录元信息规则（密码、写入、隐藏、说明与自定义响应头等），
+//! 覆盖 `/api/admin/meta/list`、`/get`、`/create`、`/update`、`/delete` 五个端点的
+//! 请求与响应数据。字段形状的数据来源：
+//!
+//! - `docs/api/alistv3.openapi.yaml` 的 `admin/meta` 分组（`/api/admin/meta/*` 各路径的
+//!   请求/响应示例 JSON）；
+//! - `examples/alist/internal/model/meta.go` 的 `model.Meta`（字段保真仲裁来源，
+//!   含 openapi 未列出的 `header`/`header_sub` 两个字段）；
+//! - `examples/alist/server/handles/meta.go`（各端点的绑定与响应形态）。
+//!
+//! `Meta` 同时用作响应条目与 `/create`、`/update` 的请求体（Go 侧 handler 直接
+//! `ShouldBind` 到 `model.Meta`，见 `server/handles/meta.go:36`、`meta.go:54`）。
+
+use serde::{Deserialize, Serialize};
+
+/// 目录元信息规则。
+///
+/// 对应 `examples/alist/internal/model/meta.go` 的 `model.Meta`：
+/// 一条规则将密码/写入/隐藏/说明/自定义响应头等设置绑定到某个路径（可选择性
+/// 应用到子目录）。同一路径仅能有一条规则（Go 侧 `gorm:"unique"` 标签）。
+///
+/// 服务端总是返回全部字段；为兼容不返回新字段（如 `header`/`header_sub`）的
+/// 老版本服务器，所有字段均带 `#[serde(default)]`。
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct Meta {
+    /// 元信息 ID，服务端自动分配；创建时应保持 `0`。
+    ///
+    /// 对应 Go `model.Meta.ID`（`uint`，主键）。
+    #[serde(default)]
+    pub id: u64,
+    /// 规则作用的目录路径（同一路径唯一）。
+    ///
+    /// 对应 Go `model.Meta.Path`（服务端绑定要求非空）。
+    #[serde(default)]
+    pub path: String,
+    /// 目录密码；空字符串表示不设密码。
+    ///
+    /// 对应 Go `model.Meta.Password`。
+    #[serde(default)]
+    pub password: String,
+    /// 密码是否应用于子目录。
+    ///
+    /// 对应 Go `model.Meta.PSub`（JSON 键 `p_sub`）。
+    #[serde(default)]
+    pub p_sub: bool,
+    /// 是否允许访客写入该目录。
+    ///
+    /// 对应 Go `model.Meta.Write`。
+    #[serde(default)]
+    pub write: bool,
+    /// 写权限是否应用于子目录。
+    ///
+    /// 对应 Go `model.Meta.WSub`（JSON 键 `w_sub`）。
+    #[serde(default)]
+    pub w_sub: bool,
+    /// 隐藏条目的匹配规则；多条以 `\n` 分隔，每条为一个正则表达式。
+    ///
+    /// 对应 Go `model.Meta.Hide`；服务端创建/更新时会逐条校验正则合法性
+    /// （`server/handles/meta.go` 的 `validHide`）。
+    #[serde(default)]
+    pub hide: String,
+    /// 隐藏规则是否应用于子目录。
+    ///
+    /// 对应 Go `model.Meta.HSub`（JSON 键 `h_sub`）。
+    #[serde(default)]
+    pub h_sub: bool,
+    /// 目录说明内容（展示在目录页顶部）。
+    ///
+    /// 对应 Go `model.Meta.Readme`。
+    #[serde(default)]
+    pub readme: String,
+    /// 说明是否应用于子目录。
+    ///
+    /// 对应 Go `model.Meta.RSub`（JSON 键 `r_sub`）。
+    #[serde(default)]
+    pub r_sub: bool,
+    /// 自定义响应头；每行一条 `Header: Value`。
+    ///
+    /// 对应 Go `model.Meta.Header`；该字段未被 openapi 文档收录，以 Go 源码为准。
+    #[serde(default)]
+    pub header: String,
+    /// 自定义响应头是否应用于子目录。
+    ///
+    /// 对应 Go `model.Meta.HeaderSub`（JSON 键 `header_sub`）；
+    /// 该字段未被 openapi 文档收录，以 Go 源码为准。
+    #[serde(default)]
+    pub header_sub: bool,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::schema::common::PageResp;
+
+    /// `docs/api/alistv3.openapi.yaml` `/api/admin/meta/get` 的 200 响应示例：
+    /// 不含 `header`/`header_sub`（openapi 未收录），应回退为默认值。
+    #[test]
+    fn meta_decodes_openapi_get_example() {
+        let meta: Meta = serde_json::from_value(serde_json::json!({
+            "id": 1,
+            "path": "/a",
+            "password": "c",
+            "p_sub": false,
+            "write": false,
+            "w_sub": false,
+            "hide": "",
+            "h_sub": false,
+            "readme": "",
+            "r_sub": false
+        }))
+        .unwrap();
+        assert_eq!(meta.id, 1);
+        assert_eq!(meta.path, "/a");
+        assert_eq!(meta.password, "c");
+        assert!(!meta.p_sub);
+        assert!(!meta.write);
+        assert!(!meta.w_sub);
+        assert_eq!(meta.hide, "");
+        assert!(!meta.h_sub);
+        assert_eq!(meta.readme, "");
+        assert!(!meta.r_sub);
+        // openapi 未收录的新字段缺失时回退默认值（跨版本兼容）
+        assert_eq!(meta.header, "");
+        assert!(!meta.header_sub);
+    }
+
+    /// `examples/alist/internal/model/meta.go` 的 `model.Meta` 全字段形状：
+    /// 含 openapi 未列出的 `header`/`header_sub`。
+    #[test]
+    fn meta_decodes_full_go_model_shape() {
+        let meta: Meta = serde_json::from_value(serde_json::json!({
+            "id": 2,
+            "path": "/docs",
+            "password": "pw",
+            "p_sub": true,
+            "write": true,
+            "w_sub": true,
+            "hide": "\\.txt\nsecret",
+            "h_sub": true,
+            "readme": "# Hello",
+            "r_sub": false,
+            "header": "X-Custom: 1",
+            "header_sub": true
+        }))
+        .unwrap();
+        assert_eq!(meta.id, 2);
+        assert_eq!(meta.path, "/docs");
+        assert_eq!(meta.password, "pw");
+        assert!(meta.p_sub);
+        assert!(meta.write);
+        assert!(meta.w_sub);
+        assert_eq!(meta.hide, "\\.txt\nsecret");
+        assert!(meta.h_sub);
+        assert_eq!(meta.readme, "# Hello");
+        assert!(!meta.r_sub);
+        assert_eq!(meta.header, "X-Custom: 1");
+        assert!(meta.header_sub);
+    }
+
+    /// 老版本服务器缺失部分字段时全部回退零值，不应报错。
+    #[test]
+    fn meta_tolerates_missing_fields() {
+        let meta: Meta = serde_json::from_value(serde_json::json!({
+            "id": 3,
+            "path": "/"
+        }))
+        .unwrap();
+        assert_eq!(meta.id, 3);
+        assert_eq!(meta.path, "/");
+        assert_eq!(meta.password, "");
+        assert!(!meta.p_sub);
+        assert!(!meta.write);
+        assert_eq!(meta.header, "");
+        assert!(!meta.header_sub);
+    }
+
+    /// 序列化键名与 Go JSON 标签一一对应（12 个字段全量输出）。
+    #[test]
+    fn meta_serializes_with_api_field_names() {
+        let meta = Meta {
+            id: 4,
+            path: "/a".to_owned(),
+            password: "c".to_owned(),
+            ..Default::default()
+        };
+        assert_eq!(
+            serde_json::to_value(&meta).unwrap(),
+            serde_json::json!({
+                "id": 4,
+                "path": "/a",
+                "password": "c",
+                "p_sub": false,
+                "write": false,
+                "w_sub": false,
+                "hide": "",
+                "h_sub": false,
+                "readme": "",
+                "r_sub": false,
+                "header": "",
+                "header_sub": false
+            })
+        );
+    }
+
+    /// `docs/api/alistv3.openapi.yaml` `/api/admin/meta/list` 的 200 响应示例：
+    /// 分页包裹形态 `{"content": [...], "total": n}`（复用 [`PageResp`]）。
+    #[test]
+    fn meta_list_decodes_page_resp_example() {
+        let resp: PageResp<Meta> = serde_json::from_value(serde_json::json!({
+            "content": [{
+                "id": 1,
+                "path": "/a",
+                "password": "i",
+                "p_sub": false,
+                "write": false,
+                "w_sub": false,
+                "hide": "",
+                "h_sub": false,
+                "readme": "",
+                "r_sub": false
+            }],
+            "total": 1
+        }))
+        .unwrap();
+        assert_eq!(resp.total, 1);
+        assert_eq!(resp.content.len(), 1);
+        assert_eq!(resp.content[0].path, "/a");
+        assert_eq!(resp.content[0].password, "i");
+    }
+}
