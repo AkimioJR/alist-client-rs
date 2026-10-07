@@ -1,7 +1,6 @@
 //! Data models for the `auth` OpenAPI group and `/api/me`.
 
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, de::DeserializeOwned};
 
 /// Login request for `/api/auth/login` and `/api/auth/login/hash`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

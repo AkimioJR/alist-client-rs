@@ -1,11 +1,12 @@
 //! Client methods for `/api/auth/*` and `/api/me`.
 
-use super::Client;
-use crate::error::Result;
-use crate::models::auth::{
-    Generate2FaResp, LoginReq, LoginResp, MeResp, RegisterReq, Verify2FaReq,
-};
 use reqwest::Method;
+
+use super::Client;
+use crate::{
+    error::Result,
+    models::auth::{Generate2FaResp, LoginReq, LoginResp, MeResp, RegisterReq, Verify2FaReq},
+};
 
 impl Client {
     /// Log in using `/api/auth/login` with a complete login payload, including optional 2FA code.

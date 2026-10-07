@@ -1,11 +1,18 @@
 //! Client methods for `/api/admin/user/*`.
 
-use super::super::Client;
-use crate::error::Result;
-use crate::models::admin::user::{AdminUser, AdminUserReq};
-use crate::models::admin::{IdQuery, UsernameQuery};
-use crate::models::common::PageResp;
 use reqwest::Method;
+
+use super::super::Client;
+use crate::{
+    error::Result,
+    models::{
+        admin::{
+            IdQuery, UsernameQuery,
+            user::{AdminUser, AdminUserReq},
+        },
+        common::PageResp,
+    },
+};
 
 impl Client {
     /// List users with `/api/admin/user/list`.

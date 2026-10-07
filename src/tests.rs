@@ -1,10 +1,18 @@
-use crate::client::fs::upload::{UploadForm, UploadPut};
-use crate::models::fs::{FsListReq, MoveCopyReq};
-use crate::{Authentication, Client, ClientError};
-use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::TcpListener;
+use std::{
+    sync::{Arc, Mutex},
+    time::{Duration, Instant},
+};
+
+use tokio::{
+    io::{AsyncReadExt, AsyncWriteExt},
+    net::TcpListener,
+};
+
+use crate::{
+    Authentication, Client, ClientError,
+    client::fs::upload::{UploadForm, UploadPut},
+    models::fs::{FsListReq, MoveCopyReq},
+};
 
 #[test]
 fn client_trims_base_url_and_builds_api_paths() {

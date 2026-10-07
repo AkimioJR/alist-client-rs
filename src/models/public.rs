@@ -1,7 +1,8 @@
 //! Public unauthenticated API models.
 
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+use serde::{Deserialize, Serialize};
 
 /// Site settings returned by `/api/public/settings`.
 ///

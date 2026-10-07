@@ -1,10 +1,15 @@
 //! Client methods for `/api/admin/driver/*`.
 
-use super::super::Client;
-use crate::error::Result;
-use crate::models::admin::DriverQuery;
-use crate::models::admin::driver::{DriverInfoResp, DriverListResp, DriverNamesResp};
 use reqwest::Method;
+
+use super::super::Client;
+use crate::{
+    error::Result,
+    models::admin::{
+        DriverQuery,
+        driver::{DriverInfoResp, DriverListResp, DriverNamesResp},
+    },
+};
 
 impl Client {
     /// List driver templates with `/api/admin/driver/list`.

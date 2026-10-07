@@ -2,10 +2,11 @@
 
 pub mod archive;
 
-use crate::models::common::TaskInfo;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+
+use crate::models::common::TaskInfo;
 
 /// Object metadata returned by AList fs endpoints.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -333,9 +334,10 @@ pub struct TasksResp {
 
 #[cfg(test)]
 pub(crate) mod tests {
+    use serde_json::{Map, Value};
+
     use super::*;
     use crate::models::common::{ApiResponse, PageResp};
-    use serde_json::{Map, Value};
 
     pub(crate) fn object_json() -> Value {
         serde_json::json!({

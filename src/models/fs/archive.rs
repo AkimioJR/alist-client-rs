@@ -4,9 +4,10 @@
 //! `handles/archive.go`; keeping these models separate makes the recursive tree
 //! response easier to browse.
 
-use super::ObjResp;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+
+use super::ObjResp;
 
 /// Request body for `/api/fs/archive/meta`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -102,10 +103,10 @@ pub struct ArchiveDecompressReq {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::models::common::ApiResponse;
-    use crate::models::fs::tests::object_with;
     use serde_json::{Map, Value};
+
+    use super::*;
+    use crate::models::{common::ApiResponse, fs::tests::object_with};
 
     #[test]
     fn archive_meta_resp_deserializes_recursive_tree() {

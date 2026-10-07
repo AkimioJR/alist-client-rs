@@ -1,11 +1,14 @@
 //! Client methods for `/api/admin/setting/*`.
 
-use super::super::Client;
-use crate::error::Result;
-use crate::models::admin::setting::{
-    SetAria2Req, SetQbitReq, Setting, SettingGetQuery, SettingKeyQuery, SettingListQuery,
-};
 use reqwest::Method;
+
+use super::super::Client;
+use crate::{
+    error::Result,
+    models::admin::setting::{
+        SetAria2Req, SetQbitReq, Setting, SettingGetQuery, SettingKeyQuery, SettingListQuery,
+    },
+};
 
 impl Client {
     /// List settings with `/api/admin/setting/list`.

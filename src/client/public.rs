@@ -1,9 +1,9 @@
 //! Client methods for `/api/public/*`.
 
-use super::Client;
-use crate::error::Result;
-use crate::models::public::PublicSettings;
 use reqwest::Method;
+
+use super::Client;
+use crate::{error::Result, models::public::PublicSettings};
 
 impl Client {
     /// Fetch public site settings from `/api/public/settings`.

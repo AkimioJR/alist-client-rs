@@ -3,15 +3,20 @@
 pub mod archive;
 pub mod upload;
 
-use super::Client;
-use crate::error::Result;
-use crate::models::common::PageResp;
-use crate::models::fs::{
-    AddOfflineDownloadReq, BatchRenameReq, DirResp, DirsReq, FsGetReq, FsGetResp, FsListReq,
-    FsListResp, MkdirReq, MoveCopyReq, RecursiveMoveReq, RegexRenameReq, RemoveEmptyDirectoryReq,
-    RemoveReq, RenameReq, SearchReq, SearchResp, TasksResp,
-};
 use reqwest::Method;
+
+use super::Client;
+use crate::{
+    error::Result,
+    models::{
+        common::PageResp,
+        fs::{
+            AddOfflineDownloadReq, BatchRenameReq, DirResp, DirsReq, FsGetReq, FsGetResp,
+            FsListReq, FsListResp, MkdirReq, MoveCopyReq, RecursiveMoveReq, RegexRenameReq,
+            RemoveEmptyDirectoryReq, RemoveReq, RenameReq, SearchReq, SearchResp, TasksResp,
+        },
+    },
+};
 
 impl Client {
     /// List a directory with `/api/fs/list`.

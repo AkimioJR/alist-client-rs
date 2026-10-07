@@ -1,7 +1,8 @@
 //! Data models for `/api/admin/driver/*`.
 
-use serde_json::Value;
 use std::collections::HashMap;
+
+use serde_json::Value;
 
 /// Driver template map keyed by driver name.
 pub type DriverListResp = HashMap<String, Value>;

@@ -1,11 +1,14 @@
 //! Client methods for `/api/fs/archive/*`.
 
-use super::super::Client;
-use crate::error::Result;
-use crate::models::fs::archive::{
-    ArchiveDecompressReq, ArchiveListReq, ArchiveListResp, ArchiveMetaReq, ArchiveMetaResp,
-};
 use reqwest::Method;
+
+use super::super::Client;
+use crate::{
+    error::Result,
+    models::fs::archive::{
+        ArchiveDecompressReq, ArchiveListReq, ArchiveListResp, ArchiveMetaReq, ArchiveMetaResp,
+    },
+};
 
 impl Client {
     /// Read archive metadata with `/api/fs/archive/meta`.

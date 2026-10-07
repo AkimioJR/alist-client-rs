@@ -1,11 +1,18 @@
 //! Client methods for `/api/admin/meta/*`.
 
-use super::super::Client;
-use crate::error::Result;
-use crate::models::admin::meta::{Meta, MetaReq};
-use crate::models::admin::{AdminPageQuery, IdQuery};
-use crate::models::common::PageResp;
 use reqwest::Method;
+
+use super::super::Client;
+use crate::{
+    error::Result,
+    models::{
+        admin::{
+            AdminPageQuery, IdQuery,
+            meta::{Meta, MetaReq},
+        },
+        common::PageResp,
+    },
+};
 
 impl Client {
     /// List metadata rules with `/api/admin/meta/list`.

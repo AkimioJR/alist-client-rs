@@ -1,13 +1,19 @@
 //! Client methods for `/api/admin/label_file_binding/*`.
 
-use super::super::Client;
-use crate::error::Result;
-use crate::models::admin::label::Label;
-use crate::models::admin::label_file_binding::{
-    FileNameQuery, LabelFileBindingBatchReq, LabelFileBindingBatchResp, LabelFileBindingCreateReq,
-    LabelFileBindingCreateResp, LabelFileBindingDeleteReq, LabelIdQuery, LabeledFile,
-};
 use reqwest::Method;
+
+use super::super::Client;
+use crate::{
+    error::Result,
+    models::admin::{
+        label::Label,
+        label_file_binding::{
+            FileNameQuery, LabelFileBindingBatchReq, LabelFileBindingBatchResp,
+            LabelFileBindingCreateReq, LabelFileBindingCreateResp, LabelFileBindingDeleteReq,
+            LabelIdQuery, LabeledFile,
+        },
+    },
+};
 
 impl Client {
     /// Bind labels to a file with `/api/admin/label_file_binding/create`.

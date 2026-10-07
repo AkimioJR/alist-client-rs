@@ -1,11 +1,12 @@
 //! Client methods and payload builder for `/api/fs/put` uploads.
 
-use super::super::Client;
-use crate::error::Result;
-use crate::models::common::UploadResp;
+use std::path::{Path, PathBuf};
+
 use bytes::Bytes;
 use reqwest::multipart::{Form, Part};
-use std::path::{Path, PathBuf};
+
+use super::super::Client;
+use crate::{error::Result, models::common::UploadResp};
 
 impl Client {
     /// Upload bytes through `/api/fs/put`.

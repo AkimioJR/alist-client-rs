@@ -1,11 +1,18 @@
 //! Client methods for `/api/admin/storage/*`.
 
-use super::super::Client;
-use crate::error::Result;
-use crate::models::admin::storage::{Storage, StorageCreateResp, StorageReq};
-use crate::models::admin::{AdminPageQuery, IdQuery};
-use crate::models::common::PageResp;
 use reqwest::Method;
+
+use super::super::Client;
+use crate::{
+    error::Result,
+    models::{
+        admin::{
+            AdminPageQuery, IdQuery,
+            storage::{Storage, StorageCreateResp, StorageReq},
+        },
+        common::PageResp,
+    },
+};
 
 impl Client {
     /// Create a storage with `/api/admin/storage/create`.

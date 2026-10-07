@@ -6,18 +6,20 @@ pub mod fs;
 pub mod ping;
 pub mod public;
 
-use crate::error::{ApiStatusCode, ClientError, InternalErrorKind, Result};
-use crate::models::auth::LoginReq;
-use crate::models::common::ApiResponse;
-use reqwest::header::CONTENT_TYPE;
-use reqwest::{Method, Url};
-use serde::Serialize;
-use serde::de::DeserializeOwned;
+use std::{sync::RwLock, time::Duration};
+
+use reqwest::{Method, Url, header::CONTENT_TYPE};
+use serde::{Serialize, de::DeserializeOwned};
 use serde_json::Value;
-use std::sync::RwLock;
-use std::time::Duration;
-use tokio::sync::Mutex;
-use tokio::time::{Instant, sleep_until};
+use tokio::{
+    sync::Mutex,
+    time::{Instant, sleep_until},
+};
+
+use crate::{
+    error::{ApiStatusCode, ClientError, InternalErrorKind, Result},
+    models::{auth::LoginReq, common::ApiResponse},
+};
 
 /// Stored authentication material used to refresh the current token.
 #[derive(Debug, Clone, PartialEq, Eq)]

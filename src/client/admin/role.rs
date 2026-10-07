@@ -1,11 +1,18 @@
 //! Client methods for `/api/admin/role/*`.
 
-use super::super::Client;
-use crate::error::Result;
-use crate::models::admin::IdQuery;
-use crate::models::admin::role::{Role, RoleReq};
-use crate::models::common::PageResp;
 use reqwest::Method;
+
+use super::super::Client;
+use crate::{
+    error::Result,
+    models::{
+        admin::{
+            IdQuery,
+            role::{Role, RoleReq},
+        },
+        common::PageResp,
+    },
+};
 
 impl Client {
     /// List roles with `/api/admin/role/list`.

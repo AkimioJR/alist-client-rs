@@ -1,10 +1,12 @@
 //! Client methods for `/api/admin/task/*`.
 
-use super::super::Client;
-use crate::error::Result;
-use crate::models::admin::TaskIdQuery;
-use crate::models::admin::task::UploadTaskInfo;
 use reqwest::Method;
+
+use super::super::Client;
+use crate::{
+    error::Result,
+    models::admin::{TaskIdQuery, task::UploadTaskInfo},
+};
 
 impl Client {
     /// Get upload task info with `/api/admin/task/upload/info`.

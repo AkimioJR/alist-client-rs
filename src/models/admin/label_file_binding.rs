@@ -1,7 +1,8 @@
 //! Data models for `/api/admin/label_file_binding/*`.
 
-use crate::models::admin::label::Label;
 use serde::{Deserialize, Serialize};
+
+use crate::models::admin::label::Label;
 
 /// Request body for `/api/admin/label_file_binding/create`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

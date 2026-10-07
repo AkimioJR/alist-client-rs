@@ -73,9 +73,10 @@ pub struct UploadResp {
 
 #[cfg(test)]
 mod tests {
+    use serde_json::Value;
+
     use super::*;
     use crate::models::auth::LoginResp;
-    use serde_json::Value;
 
     #[test]
     fn api_response_deserializes_success_and_error_envelopes() {
