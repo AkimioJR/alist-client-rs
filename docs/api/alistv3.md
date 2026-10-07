@@ -1,5 +1,5 @@
 ---
-title: Alist API
+title: é»èź€æšĄć
 language_tabs:
   - shell: Shell
   - http: HTTP
@@ -19,7 +19,7 @@ generator: "@tarslib/widdershins v4.0.30"
 
 ---
 
-# 默认模块
+# é»èź€æšĄć
 
 Base URLs:
 
@@ -27,31 +27,31 @@ Base URLs:
 
 # auth
 
-## POST token获取
+## POST tokenè·ć
 
 POST /api/auth/login
 
-获取某个用户的临时JWt token，默认48小时过期
+è·ćæäžȘçšæ·çäžŽæ¶JWt tokenïŒé»èź€48ć°æ¶èżæ
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
-    "username": "{{alist_username}}",
-    "password": "{{alist_password}}"
+    "username": "akimio",
+    "password": "JuXQMCe4m6LstB"
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|body|body|object| 否 ||none|
-|» username|body|string| 是 | 用户名|用户名|
-|» password|body|string| 是 | 密码|密码|
-|» otp_code|body|string| 否 | 二步验证码|二步验证码|
+| ćç§°      | äœçœź | ç±»ć | ćżé | äž­æć       | èŻŽæ          |
+| ----------- | ------ | ------ | ------ | --------------- | --------------- |
+| body        | body   | object | ćŠ    |                 | none            |
+| Â» username | body   | string | æŻ    | çšæ·ć       | çšæ·ć       |
+| Â» password | body   | string | æŻ    | ćŻç           | ćŻç           |
+| Â» otp_code | body   | string | ćŠ    | äșæ­„éȘèŻç  | äșæ­„éȘèŻç  |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -65,104 +65,30 @@ POST /api/auth/login
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||状态码|
-|» message|string|true|none||信息|
-|» data|object|true|none||data|
-|»» token|string|true|none||token|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ    |
+| ---------- | ------- | ------ | ------ | --------- | --------- |
+| Â» code    | integer | true   | none   |           | ç¶æç  |
+| Â» message | string  | true   | none   |           | äżĄæŻ    |
+| Â» data    | object  | true   | none   |           | data      |
+| Â»Â» token | string  | true   | none   |           | token     |
 
-## POST 用户注册
-
-POST /api/auth/register
-
-> Body 请求参数
-
-```json
-{
-    "username": "string",
-    "password": "string"
-}
-```
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|body|body|object| 否 ||none|
-|» username|body|string| 是 ||none|
-|» password|body|string| 是 ||none|
-
-> 返回示例
-
-```json
-{
-    "code": 200,
-    "message": "success",
-    "data": null
-}
-```
-
-```json
-{
-    "code": 403,
-    "message": "registration is disabled",
-    "data": null
-}
-```
-
-> 403 Response
-
-```json
-{
-  "code": 0,
-  "message": "string",
-  "data": null
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-|403|[Forbidden](https://tools.ietf.org/html/rfc7231#section-6.5.3)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» message|string|true|none||none|
-|» data|null|true|none||none|
-
-状态码 **403**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» message|string|true|none||none|
-|» data|null|true|none||none|
-
-## POST token获取hash
+## POST tokenè·ćhash
 
 POST /api/auth/login/hash
 
-获取某个用户的临时JWt token，传入的密码需要在添加-https://github.com/alist-org/alist后缀后再进行sha256
+è·ćæäžȘçšæ·çäžŽæ¶JWt tokenïŒäŒ ć„çćŻç éèŠćšæ·»ć -https://github.com/alist-org/alistćçŒććèżèĄsha256
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
@@ -171,16 +97,16 @@ POST /api/auth/login/hash
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|body|body|object| 否 ||none|
-|» username|body|string| 是 | 用户名|用户名|
-|» password|body|string| 是 | 密码|hash后密码，获取方式为`sha256(密码-https://github.com/alist-org/alist)`|
-|» otp_code|body|string| 否 | 二步验证码|二步验证码|
+| ćç§°      | äœçœź | ç±»ć | ćżé | äž­æć       | èŻŽæ                                                                             |
+| ----------- | ------ | ------ | ------ | --------------- | ---------------------------------------------------------------------------------- |
+| body        | body   | object | ćŠ    |                 | none                                                                               |
+| Â» username | body   | string | æŻ    | çšæ·ć       | çšæ·ć                                                                          |
+| Â» password | body   | string | æŻ    | ćŻç           | hashććŻç ïŒè·ćæčćŒäžș`sha256(ćŻç -https://github.com/alist-org/alist)` |
+| Â» otp_code | body   | string | ćŠ    | äșæ­„éȘèŻç  | äșæ­„éȘèŻç                                                                     |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -194,34 +120,34 @@ POST /api/auth/login/hash
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||状态码|
-|» message|string|true|none||信息|
-|» data|object|true|none||data|
-|»» token|string|true|none||token|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ    |
+| ---------- | ------- | ------ | ------ | --------- | --------- |
+| Â» code    | integer | true   | none   |           | ç¶æç  |
+| Â» message | string  | true   | none   |           | äżĄæŻ    |
+| Â» data    | object  | true   | none   |           | data      |
+| Â»Â» token | string  | true   | none   |           | token     |
 
-## POST 生成2FA密钥
+## POST çæ2FAćŻé„
 
 POST /api/auth/2fa/generate
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------- | ------ |
+| Authorization | header | string | æŻ    |           | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -236,29 +162,29 @@ POST /api/auth/2fa/generate
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|object|true|none|数据|none|
-|»» qr|string|true|none|二维码|二维码图片的data url|
-|»» secret|string|true|none|密钥|none|
+| ćç§°      | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ                     |
+| ----------- | ------- | ------ | ------ | --------- | -------------------------- |
+| Â» code     | integer | true   | none   | ç¶æç  | none                       |
+| Â» message  | string  | true   | none   | äżĄæŻ    | none                       |
+| Â» data     | object  | true   | none   | æ°æź    | none                       |
+| Â»Â» qr     | string  | true   | none   | äșç»Žç  | äșç»Žç ćŸççdata url |
+| Â»Â» secret | string  | true   | none   | ćŻé„    | none                       |
 
-## POST 验证2FA code
+## POST éȘèŻ2FA code
 
 POST /api/auth/2fa/verify
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
@@ -267,16 +193,16 @@ POST /api/auth/2fa/verify
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-|body|body|object| 否 ||none|
-|» code|body|string| 是 | 2FA验证码|none|
-|» secret|body|string| 是 | 2FA密钥|none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć    | èŻŽæ |
+| ------------- | ------ | ------ | ------ | ------------ | ------ |
+| Authorization | header | string | æŻ    |              | none   |
+| body          | body   | object | ćŠ    |              | none   |
+| Â» code       | body   | string | æŻ    | 2FAéȘèŻç  | none   |
+| Â» secret     | body   | string | æŻ    | 2FAćŻé„    | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -288,33 +214,33 @@ POST /api/auth/2fa/verify
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
-## GET 获取当前用户信息
+## GET è·ććœćçšæ·äżĄæŻ
 
 GET /api/me
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 否 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------- | ------ |
+| Authorization | header | string | ćŠ    |           | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -323,178 +249,51 @@ GET /api/me
     "code": 200,
     "message": "success",
     "data": {
-        "id": 2,
+        "id": 1,
         "username": "admin",
         "password": "",
         "base_path": "/",
-        "role": [
-            2
-        ],
+        "role": 2,
         "disabled": false,
-        "permission": 65535,
+        "permission": 0,
         "sso_id": "",
-        "otp": false,
-        "role_names": [
-            "admin"
-        ],
-        "permissions": [
-            {
-                "path": "/",
-                "permission": 65535
-            }
-        ]
+        "otp": true
     }
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|object|true|none|数据|none|
-|»» id|integer|true|none|id|none|
-|»» username|string|true|none|用户名|none|
-|»» password|string|true|none|密码|none|
-|»» base_path|string|true|none|根目录|none|
-|»» role|[integer]|true|none||none|
-|»» disabled|boolean|true|none|是否禁用|none|
-|»» permission|integer|true|none|权限（无用，未来移除）|none|
-|»» sso_id|string|true|none|sso id|none|
-|»» otp|boolean|true|none|是否开启二步验证|none|
-|»» role_names|[string]|true|none||none|
-|»» permissions|[object]|true|none||none|
-|»»» path|string|false|none||none|
-|»»» permission|integer|false|none||none|
+| ćç§°          | ç±»ć  | ćżé | çșŠæ | äž­æć                | èŻŽæ |
+| --------------- | ------- | ------ | ------ | ------------------------ | ------ |
+| Â» code         | integer | true   | none   | ç¶æç                 | none   |
+| Â» message      | string  | true   | none   | äżĄæŻ                   | none   |
+| Â» data         | object  | true   | none   | æ°æź                   | none   |
+| Â»Â» id         | integer | true   | none   | id                       | none   |
+| Â»Â» username   | string  | true   | none   | çšæ·ć                | none   |
+| Â»Â» password   | string  | true   | none   | ćŻç                    | none   |
+| Â»Â» base_path  | string  | true   | none   | æ čçźćœ                | none   |
+| Â»Â» role       | integer | true   | none   | è§èČ                   | none   |
+| Â»Â» disabled   | boolean | true   | none   | æŻćŠçŠçš             | none   |
+| Â»Â» permission | integer | true   | none   | æé                   | none   |
+| Â»Â» sso_id     | string  | true   | none   | sso id                   | none   |
+| Â»Â» otp        | boolean | true   | none   | æŻćŠćŒćŻäșæ­„éȘèŻ | none   |
 
 # fs
 
-## POST 列出文件目录
+## POST ććșæä»¶çźćœ
 
 POST /api/fs/list
 
-> Body 请求参数
-
-```json
-{
-  "path": "string",
-  "password": "string",
-  "page": 0,
-  "per_page": 0,
-  "refresh": true
-}
-```
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 否 ||none|
-|body|body|object| 否 ||none|
-|» path|body|string| 是 | 路径|none|
-|» password|body|string| 是 | 密码|none|
-|» page|body|integer| 是 | 页数|none|
-|» per_page|body|integer| 是 | 每页数目|none|
-|» refresh|body|boolean| 是 | 是否强制刷新|none|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-  "code": 0,
-  "message": "string",
-  "data": {
-    "content": [
-      {
-        "id": "string",
-        "path": "string",
-        "name": "string",
-        "size": 0,
-        "is_dir": true,
-        "modified": "string",
-        "created": "string",
-        "sign": "string",
-        "thumb": "string",
-        "type": 0,
-        "hashinfo": "string",
-        "hash_info": {
-          "md5": "string"
-        },
-        "label_list": [
-          {
-            "id": null,
-            "type": null,
-            "name": null,
-            "create_time": null
-          }
-        ]
-      }
-    ],
-    "total": 0,
-    "readme": "string",
-    "header": "string",
-    "write": true,
-    "provider": "string"
-  }
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|object|true|none||none|
-|»» content|[object]|true|none|内容|none|
-|»»» id|string|true|none||none|
-|»»» path|string|true|none||none|
-|»»» name|string|true|none||none|
-|»»» size|integer|true|none||none|
-|»»» is_dir|boolean|true|none||none|
-|»»» modified|string|true|none||none|
-|»»» created|string|true|none||none|
-|»»» sign|string|true|none||none|
-|»»» thumb|string|true|none||none|
-|»»» type|integer|true|none||none|
-|»»» hashinfo|string|true|none||none|
-|»»» hash_info|object|true|none||none|
-|»»»» md5|string|true|none||none|
-|»»» label_list|[object]¦null|true|none||none|
-|»»»» id|integer|true|none||none|
-|»»»» type|integer|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» create_time|string|true|none||none|
-|»» total|integer|true|none|总数|none|
-|»» readme|string|true|none|说明|none|
-|»» header|string|true|none||none|
-|»» write|boolean|true|none|是否可写入|none|
-|»» provider|string|true|none||none|
-
-## POST 获取某个文件/目录信息
-
-POST /api/fs/get
-
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
@@ -506,19 +305,111 @@ POST /api/fs/get
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-|body|body|object| 否 ||none|
-|» path|body|string| 是 | 路径|none|
-|» password|body|string| 是 | 密码|none|
-|» page|body|integer| 否 ||none|
-|» per_page|body|integer| 否 ||none|
-|» refresh|body|boolean| 否 | 强制 刷新|none|
+| ćç§°        | äœçœź | ç±»ć  | ćżé | äž­æć          | èŻŽæ |
+| ------------- | ------ | ------- | ------ | ------------------ | ------ |
+| Authorization | header | string  | æŻ    |                    | none   |
+| body          | body   | object  | ćŠ    |                    | none   |
+| Â» path       | body   | string  | ćŠ    | è·ŻćŸ             | none   |
+| Â» password   | body   | string  | ćŠ    | ćŻç              | none   |
+| Â» page       | body   | integer | ćŠ    | éĄ”æ°             | none   |
+| Â» per_page   | body   | integer | ćŠ    | æŻéĄ”æ°çź       | none   |
+| Â» refresh    | body   | boolean | ćŠ    | æŻćŠćŒșć¶ć·æ° | none   |
 
-> 返回示例
+> èżćç€șäŸ
+
+> 200 Response
+
+```json
+{
+    "code": 200,
+    "message": "success",
+    "data": {
+        "content": [
+            {
+                "name": "Alist V3.md",
+                "size": 1592,
+                "is_dir": false,
+                "modified": "2024-05-17T13:47:55.4174917+08:00",
+                "created": "2024-05-17T13:47:47.5725906+08:00",
+                "sign": "",
+                "thumb": "",
+                "type": 4,
+                "hashinfo": "null",
+                "hash_info": null
+            }
+        ],
+        "total": 1,
+        "readme": "",
+        "header": "",
+        "write": true,
+        "provider": "Local"
+    }
+}
+```
+
+### èżćç»æ
+
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
+
+### èżćæ°æźç»æ
+
+ç¶æç  **200**
+
+| ćç§°           | ç±»ć   | ćżé | çșŠæ | äž­æć          | èŻŽæ |
+| ---------------- | -------- | ------ | ------ | ------------------ | ------ |
+| Â» code          | integer  | true   | none   | ç¶æç           | none   |
+| Â» message       | string   | true   | none   | äżĄæŻ             | none   |
+| Â» data          | object   | true   | none   |                    | none   |
+| Â»Â» content     | [object] | true   | none   | ććźč             | none   |
+| Â»Â»Â» name      | string   | true   | none   | æä»¶ć          | none   |
+| Â»Â»Â» size      | integer  | true   | none   | ć€§ć°             | none   |
+| Â»Â»Â» is_dir    | boolean  | true   | none   | æŻćŠæŻæä»¶ć€č | none   |
+| Â»Â»Â» modified  | string   | true   | none   | äżźæčæ¶éŽ       | none   |
+| Â»Â»Â» sign      | string   | true   | none   | ç­Ÿć             | none   |
+| Â»Â»Â» thumb     | string   | true   | none   | çŒ©ç„ćŸ          | none   |
+| Â»Â»Â» type      | integer  | true   | none   | ç±»ć             | none   |
+| Â»Â»Â» created   | string   | false  | none   | ćć»șæ¶éŽ       | none   |
+| Â»Â»Â» hashinfo  | string   | false  | none   |                    | none   |
+| Â»Â»Â» hash_info | null     | false  | none   |                    | none   |
+| Â»Â» total       | integer  | true   | none   | æ»æ°             | none   |
+| Â»Â» readme      | string   | true   | none   | èŻŽæ             | none   |
+| Â»Â» write       | boolean  | true   | none   | æŻćŠćŻćć„    | none   |
+| Â»Â» provider    | string   | true   | none   |                    | none   |
+| Â»Â» header      | string   | true   | none   |                    | none   |
+
+## POST è·ćæäžȘæä»¶/çźćœäżĄæŻ
+
+POST /api/fs/get
+
+> Body èŻ·æ±ćæ°
+
+```json
+{
+    "path": "/t",
+    "password": "",
+    "page": 1,
+    "per_page": 0,
+    "refresh": false
+}
+```
+
+### èŻ·æ±ćæ°
+
+| ćç§°        | äœçœź | ç±»ć  | ćżé | äž­æć     | èŻŽæ |
+| ------------- | ------ | ------- | ------ | ------------- | ------ |
+| Authorization | header | string  | æŻ    |               | none   |
+| body          | body   | object  | ćŠ    |               | none   |
+| Â» path       | body   | string  | æŻ    | è·ŻćŸ        | none   |
+| Â» password   | body   | string  | æŻ    | ćŻç         | none   |
+| Â» page       | body   | integer | ćŠ    |               | none   |
+| Â» per_page   | body   | integer | ćŠ    |               | none   |
+| Â» refresh    | body   | boolean | ćŠ    | ćŒșć¶ ć·æ° | none   |
+
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -546,42 +437,42 @@ POST /api/fs/get
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|object|true|none||none|
-|»» name|string|true|none|文件名|none|
-|»» size|integer|true|none|大小|none|
-|»» is_dir|boolean|true|none|是否是文件夹|none|
-|»» modified|string|true|none|修改时间|none|
-|»» sign|string|true|none|签名|none|
-|»» thumb|string|true|none|缩略图|none|
-|»» type|integer|true|none|类型|none|
-|»» raw_url|string|true|none|原始url|none|
-|»» readme|string|true|none|说明|none|
-|»» provider|string|true|none||none|
-|»» related|null|true|none||none|
-|»» created|string|true|none|创建时间|none|
-|»» hashinfo|string|true|none||none|
-|»» hash_info|null|true|none||none|
-|»» header|string|true|none||none|
+| ćç§°         | ç±»ć  | ćżé | çșŠæ | äž­æć          | èŻŽæ |
+| -------------- | ------- | ------ | ------ | ------------------ | ------ |
+| Â» code        | integer | true   | none   | ç¶æç           | none   |
+| Â» message     | string  | true   | none   | äżĄæŻ             | none   |
+| Â» data        | object  | true   | none   |                    | none   |
+| Â»Â» name      | string  | true   | none   | æä»¶ć          | none   |
+| Â»Â» size      | integer | true   | none   | ć€§ć°             | none   |
+| Â»Â» is_dir    | boolean | true   | none   | æŻćŠæŻæä»¶ć€č | none   |
+| Â»Â» modified  | string  | true   | none   | äżźæčæ¶éŽ       | none   |
+| Â»Â» sign      | string  | true   | none   | ç­Ÿć             | none   |
+| Â»Â» thumb     | string  | true   | none   | çŒ©ç„ćŸ          | none   |
+| Â»Â» type      | integer | true   | none   | ç±»ć             | none   |
+| Â»Â» raw_url   | string  | true   | none   | ćć§url          | none   |
+| Â»Â» readme    | string  | true   | none   | èŻŽæ             | none   |
+| Â»Â» provider  | string  | true   | none   |                    | none   |
+| Â»Â» related   | null    | true   | none   |                    | none   |
+| Â»Â» created   | string  | true   | none   | ćć»șæ¶éŽ       | none   |
+| Â»Â» hashinfo  | string  | true   | none   |                    | none   |
+| Â»Â» hash_info | null    | true   | none   |                    | none   |
+| Â»Â» header    | string  | true   | none   |                    | none   |
 
-## POST 获取目录
+## POST è·ćçźćœ
 
 POST /api/fs/dirs
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
@@ -591,17 +482,17 @@ POST /api/fs/dirs
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-|body|body|object| 否 ||none|
-|» path|body|string| 否 | 路径|none|
-|» password|body|string| 否 | 密码|none|
-|» force_root|body|boolean| 否 ||none|
+| ćç§°        | äœçœź | ç±»ć  | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------- | ------ | --------- | ------ |
+| Authorization | header | string  | æŻ    |           | none   |
+| body          | body   | object  | ćŠ    |           | none   |
+| Â» path       | body   | string  | ćŠ    | è·ŻćŸ    | none   |
+| Â» password   | body   | string  | ćŠ    | ćŻç     | none   |
+| Â» force_root | body   | boolean | ćŠ    |           | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -618,29 +509,29 @@ POST /api/fs/dirs
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|[object]|true|none||none|
-|»» name|string|true|none|文件夹名|none|
-|»» modified|string|true|none|修改时间|none|
+| ćç§°        | ç±»ć   | ćżé | çșŠæ | äž­æć    | èŻŽæ |
+| ------------- | -------- | ------ | ------ | ------------ | ------ |
+| Â» code       | integer  | true   | none   | ç¶æç     | none   |
+| Â» message    | string   | true   | none   | äżĄæŻ       | none   |
+| Â» data       | [object] | true   | none   |              | none   |
+| Â»Â» name     | string   | true   | none   | æä»¶ć€čć | none   |
+| Â»Â» modified | string   | true   | none   | äżźæčæ¶éŽ | none   |
 
-## POST 搜索文件或文件夹
+## POST æçŽąæä»¶ææä»¶ć€č
 
 POST /api/fs/search
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
@@ -648,25 +539,25 @@ POST /api/fs/search
     "keywords": "test",
     "scope": 0,
     "page": 1,
-    "per_page": 1,
+    "per_page":1 ,
     "password": ""
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-|body|body|object| 否 ||none|
-|» parent|body|string| 是 | 搜索目录|none|
-|» keywords|body|string| 是 | 关键词|none|
-|» scope|body|integer| 是 | 搜索类型|0-全部 1-文件夹 2-文件|
-|» page|body|integer| 是 | 页数|none|
-|» per_page|body|integer| 是 | 每页数目|none|
-|» password|body|string| 是 | 密码|none|
+| ćç§°        | äœçœź | ç±»ć  | ćżé | äž­æć    | èŻŽæ                        |
+| ------------- | ------ | ------- | ------ | ------------ | ----------------------------- |
+| Authorization | header | string  | æŻ    |              | none                          |
+| body          | body   | object  | ćŠ    |              | none                          |
+| Â» parent     | body   | string  | æŻ    | æçŽąçźćœ | none                          |
+| Â» keywords   | body   | string  | æŻ    | ćłéźèŻ    | none                          |
+| Â» scope      | body   | integer | æŻ    | æçŽąç±»ć | 0-ćšéš 1-æä»¶ć€č 2-æä»¶ |
+| Â» page       | body   | integer | æŻ    | éĄ”æ°       | none                          |
+| Â» per_page   | body   | integer | æŻ    | æŻéĄ”æ°çź | none                          |
+| Â» password   | body   | string  | æŻ    | ćŻç        | none                          |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -689,34 +580,34 @@ POST /api/fs/search
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|object|true|none||none|
-|»» content|[object]|true|none||none|
-|»»» parent|string|true|none|路径|none|
-|»»» name|string|true|none|文件名|none|
-|»»» is_dir|boolean|true|none|是否是文件夹|none|
-|»»» size|integer|true|none|大小|none|
-|»»» type|integer|true|none|类型|none|
-|»» total|integer|true|none|总数|none|
+| ćç§°        | ç±»ć   | ćżé | çșŠæ | äž­æć          | èŻŽæ |
+| ------------- | -------- | ------ | ------ | ------------------ | ------ |
+| Â» code       | integer  | true   | none   | ç¶æç           | none   |
+| Â» message    | string   | true   | none   | äżĄæŻ             | none   |
+| Â» data       | object   | true   | none   |                    | none   |
+| Â»Â» content  | [object] | true   | none   |                    | none   |
+| Â»Â»Â» parent | string   | true   | none   | è·ŻćŸ             | none   |
+| Â»Â»Â» name   | string   | true   | none   | æä»¶ć          | none   |
+| Â»Â»Â» is_dir | boolean  | true   | none   | æŻćŠæŻæä»¶ć€č | none   |
+| Â»Â»Â» size   | integer  | true   | none   | ć€§ć°             | none   |
+| Â»Â»Â» type   | integer  | true   | none   | ç±»ć             | none   |
+| Â»Â» total    | integer  | true   | none   | æ»æ°             | none   |
 
-## POST 新建文件夹
+## POST æ°ć»șæä»¶ć€č
 
 POST /api/fs/mkdir
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
@@ -724,16 +615,16 @@ POST /api/fs/mkdir
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||token|
-|Content-Type|header|string| 否 ||none|
-|body|body|object| 否 ||none|
-|» path|body|string| 是 | 新目录路径|none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć       | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------------- | ------ |
+| Authorization | header | string | æŻ    |                 | token  |
+| Content-Type  | header | string | ćŠ    |                 | none   |
+| body          | body   | object | ćŠ    |                 | none   |
+| Â» path       | body   | string | æŻ    | æ°çźćœè·ŻćŸ | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -745,46 +636,46 @@ POST /api/fs/mkdir
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
-## POST 重命名文件
+## POST éćœćæä»¶
 
 POST /api/fs/rename
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
     "name": "test3",
-    "path": "/阿里云盘/test2"
+    "path": "/éżéäșç/test2"
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||token|
-|Content-Type|header|string| 否 ||none|
-|body|body|object| 否 ||none|
-|» name|body|string| 是 | 目标文件名，不支持'/'|none|
-|» path|body|string| 是 | 源文件名|none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć                      | èŻŽæ |
+| ------------- | ------ | ------ | ------ | ------------------------------ | ------ |
+| Authorization | header | string | æŻ    |                                | token  |
+| Content-Type  | header | string | ćŠ    |                                | none   |
+| body          | body   | object | ćŠ    |                                | none   |
+| Â» name       | body   | string | æŻ    | çźæ æä»¶ćïŒäžæŻæ'/' | none   |
+| Â» path       | body   | string | æŻ    | æșæä»¶ć                   | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -796,27 +687,27 @@ POST /api/fs/rename
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
-## POST 批量重命名
+## POST æčééćœć
 
 POST /api/fs/batch_rename
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
@@ -830,19 +721,19 @@ POST /api/fs/batch_rename
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||token|
-|Content-Type|header|string| 否 ||none|
-|body|body|object| 否 ||none|
-|» src_dir|body|string| 是 | 源目录|none|
-|» rename_objects|body|[object]| 是 ||none|
-|»» src_name|body|string| 否 | 原文件名|none|
-|»» new_name|body|string| 否 | 新文件名|none|
+| ćç§°            | äœçœź | ç±»ć   | ćżé | äž­æć    | èŻŽæ |
+| ----------------- | ------ | -------- | ------ | ------------ | ------ |
+| Authorization     | header | string   | æŻ    |              | token  |
+| Content-Type      | header | string   | ćŠ    |              | none   |
+| body              | body   | object   | ćŠ    |              | none   |
+| Â» src_dir        | body   | string   | æŻ    | æșçźćœ    | none   |
+| Â» rename_objects | body   | [object] | æŻ    |              | none   |
+| Â»Â» src_name     | body   | string   | ćŠ    | ćæä»¶ć | none   |
+| Â»Â» new_name     | body   | string   | ćŠ    | æ°æä»¶ć | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -854,27 +745,27 @@ POST /api/fs/batch_rename
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|状态码|
-|» message|string|true|none|信息|信息|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ    |
+| ---------- | ------- | ------ | ------ | --------- | --------- |
+| Â» code    | integer | true   | none   | ç¶æç  | ç¶æç  |
+| Â» message | string  | true   | none   | äżĄæŻ    | äżĄæŻ    |
+| Â» data    | null    | true   | none   |           | none      |
 
-## POST 正则重命名
+## POST æ­Łćéćœć
 
 POST /api/fs/regex_rename
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
@@ -888,18 +779,18 @@ POST /api/fs/regex_rename
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||token|
-|Content-Type|header|string| 否 ||none|
-|body|body|object| 否 ||none|
-|» src_dir|body|string| 是 | 源目录|none|
-|» src_name_regex|body|string| 是 | 源文件匹配正则|none|
-|» new_name_regex|body|string| 是 | 新文件名正则|none|
+| ćç§°            | äœçœź | ç±»ć | ćżé | äž­æć             | èŻŽæ |
+| ----------------- | ------ | ------ | ------ | --------------------- | ------ |
+| Authorization     | header | string | æŻ    |                       | token  |
+| Content-Type      | header | string | ćŠ    |                       | none   |
+| body              | body   | object | ćŠ    |                       | none   |
+| Â» src_dir        | body   | string | æŻ    | æșçźćœ             | none   |
+| Â» src_name_regex | body   | string | æŻ    | æșæä»¶ćčéæ­Łć | none   |
+| Â» new_name_regex | body   | string | æŻ    | æ°æä»¶ćæ­Łć    | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -911,27 +802,94 @@ POST /api/fs/regex_rename
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|状态码|
-|» message|string|true|none|信息|信息|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ    |
+| ---------- | ------- | ------ | ------ | --------- | --------- |
+| Â» code    | integer | true   | none   | ç¶æç  | ç¶æç  |
+| Â» message | string  | true   | none   | äżĄæŻ    | äżĄæŻ    |
+| Â» data    | null    | true   | none   |           | none      |
 
-## POST 移动文件
+## PUT èĄšćäžäŒ æä»¶
+
+PUT /api/fs/form
+
+> Body èŻ·æ±ćæ°
+
+```yaml
+file: []
+
+```
+
+### èŻ·æ±ćæ°
+
+| ćç§°         | äœçœź | ç±»ć         | ćżé | äž­æć | èŻŽæ                               |
+| -------------- | ------ | -------------- | ------ | --------- | ------------------------------------ |
+| Authorization  | header | string         | æŻ    |           | token                                |
+| Content-Type   | header | string         | æŻ    |           | éèŠæŻmultipart/form-data;        |
+| Content-Length | header | string         | æŻ    |           | æä»¶ć€§ć°                         |
+| File-Path      | header | string         | æŻ    |           | ç»èżURLçŒç çćźæŽæä»¶è·ŻćŸ |
+| As-Task        | header | string         | ćŠ    |           | æŻćŠæ·»ć äžșä»»ćĄ                |
+| body           | body   | object         | ćŠ    |           | none                                 |
+| Â» file        | body   | string(binary) | æŻ    |           | æä»¶                               |
+
+> èżćç€șäŸ
+
+> 200 Response
+
+```json
+{
+    "code": 200,
+    "message": "success",
+    "data": {
+        "task": {
+            "id": "sdH2LbjyWRk",
+            "name": "upload animated_zoom.gif to [/data](/alist)",
+            "state": 0,
+            "status": "uploading",
+            "progress": 0,
+            "error": ""
+        }
+    }
+}
+```
+
+### èżćç»æ
+
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
+
+### èżćæ°æźç»æ
+
+ç¶æç  **200**
+
+| ćç§°          | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| --------------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code         | integer | true   | none   | ç¶æç  | none   |
+| Â» message      | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data         | object  | true   | none   |           | none   |
+| Â»Â» task       | object  | true   | none   |           | none   |
+| Â»Â»Â» id       | string  | true   | none   |           | none   |
+| Â»Â»Â» name     | string  | true   | none   |           | none   |
+| Â»Â»Â» state    | integer | true   | none   |           | none   |
+| Â»Â»Â» status   | string  | true   | none   |           | none   |
+| Â»Â»Â» progress | integer | true   | none   |           | none   |
+| Â»Â»Â» error    | string  | true   | none   |           | none   |
+
+## POST ç§»ćšæä»¶
 
 POST /api/fs/move
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
@@ -943,67 +901,17 @@ POST /api/fs/move
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-|body|body|object| 否 ||none|
-|» src_dir|body|string| 是 | 源文件夹|none|
-|» dst_dir|body|string| 是 | 目标文件夹|none|
-|» names|body|[string]| 是 | 文件名|none|
+| ćç§°        | äœçœź | ç±»ć   | ćżé | äž­æć       | èŻŽæ |
+| ------------- | ------ | -------- | ------ | --------------- | ------ |
+| Authorization | header | string   | æŻ    |                 | none   |
+| body          | body   | object   | ćŠ    |                 | none   |
+| Â» src_dir    | body   | string   | æŻ    | æșæä»¶ć€č    | none   |
+| Â» dst_dir    | body   | string   | æŻ    | çźæ æä»¶ć€č | none   |
+| Â» names      | body   | [string] | æŻ    | æä»¶ć       | none   |
 
-> 返回示例
-
-> 200 Response
-
-```json
-{
-    "code": 200,
-    "message": "success",
-    "data": null
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
-
-## POST 聚合移动
-
-POST /api/fs/recursive_move
-
-> Body 请求参数
-
-```json
-{
-  "src_dir": "string",
-  "dst_dir": "string"
-}
-```
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-|body|body|object| 否 ||none|
-|» src_dir|body|string| 是 | 源文件夹|none|
-|» dst_dir|body|string| 是 | 目标文件夹|none|
-
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -1015,27 +923,27 @@ POST /api/fs/recursive_move
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
-## POST 复制文件
+## POST ć€ć¶æä»¶
 
 POST /api/fs/copy
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
@@ -1047,17 +955,17 @@ POST /api/fs/copy
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-|body|body|object| 否 ||none|
-|» src_dir|body|string| 是 | 源文件夹|none|
-|» dst_dir|body|string| 是 | 目标文件夹|none|
-|» names|body|[string]| 是 | 文件名|none|
+| ćç§°        | äœçœź | ç±»ć   | ćżé | äž­æć       | èŻŽæ |
+| ------------- | ------ | -------- | ------ | --------------- | ------ |
+| Authorization | header | string   | æŻ    |                 | none   |
+| body          | body   | object   | ćŠ    |                 | none   |
+| Â» src_dir    | body   | string   | æŻ    | æșæä»¶ć€č    | none   |
+| Â» dst_dir    | body   | string   | æŻ    | çźæ æä»¶ć€č | none   |
+| Â» names      | body   | [string] | æŻ    | æä»¶ć       | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -1069,27 +977,27 @@ POST /api/fs/copy
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
-## POST 删除文件或文件夹
+## POST ć é€æä»¶ææä»¶ć€č
 
 POST /api/fs/remove
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
@@ -1100,16 +1008,16 @@ POST /api/fs/remove
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-|body|body|object| 否 ||none|
-|» names|body|[string]| 是 | 文件名|none|
-|» dir|body|string| 是 | 目录|none|
+| ćç§°        | äœçœź | ç±»ć   | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | -------- | ------ | --------- | ------ |
+| Authorization | header | string   | æŻ    |           | none   |
+| body          | body   | object   | ćŠ    |           | none   |
+| Â» names      | body   | [string] | æŻ    | æä»¶ć | none   |
+| Â» dir        | body   | string   | æŻ    | çźćœ    | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -1121,27 +1029,27 @@ POST /api/fs/remove
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
-## POST 删除空文件夹
+## POST ć é€ç©șæä»¶ć€č
 
 POST /api/fs/remove_empty_directory
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
@@ -1149,15 +1057,15 @@ POST /api/fs/remove_empty_directory
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-|body|body|object| 否 ||none|
-|» src_dir|body|string| 是 | 目录|none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------- | ------ |
+| Authorization | header | string | æŻ    |           | none   |
+| body          | body   | object | ćŠ    |           | none   |
+| Â» src_dir    | body   | string | æŻ    | çźćœ    | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -1169,27 +1077,143 @@ POST /api/fs/remove_empty_directory
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
-## POST 添加离线下载
+## POST èćç§»ćš
+
+POST /api/fs/recursive_move
+
+> Body èŻ·æ±ćæ°
+
+```json
+{
+  "src_dir": "string",
+  "dst_dir": "string"
+}
+```
+
+### èŻ·æ±ćæ°
+
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć       | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------------- | ------ |
+| Authorization | header | string | æŻ    |                 | none   |
+| body          | body   | object | ćŠ    |                 | none   |
+| Â» src_dir    | body   | string | æŻ    | æșæä»¶ć€č    | none   |
+| Â» dst_dir    | body   | string | æŻ    | çźæ æä»¶ć€č | none   |
+
+> èżćç€șäŸ
+
+> 200 Response
+
+```json
+{
+    "code": 200,
+    "message": "success",
+    "data": null
+}
+```
+
+### èżćç»æ
+
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
+
+### èżćæ°æźç»æ
+
+ç¶æç  **200**
+
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
+
+## PUT æ”ćŒäžäŒ æä»¶
+
+PUT /api/fs/put
+
+> Body èŻ·æ±ćæ°
+
+```yaml
+string
+
+```
+
+### èŻ·æ±ćæ°
+
+| ćç§°         | äœçœź | ç±»ć         | ćżé | äž­æć | èŻŽæ                                     |
+| -------------- | ------ | -------------- | ------ | --------- | ------------------------------------------ |
+| Authorization  | header | string         | æŻ    |           | none                                       |
+| File-Path      | header | string         | æŻ    |           | ç»èżURLçŒç çćźæŽçźæ æä»¶è·ŻćŸ |
+| As-Task        | header | string         | ćŠ    |           | æŻćŠæ·»ć äžșä»»ćĄ                      |
+| Content-Type   | header | string         | æŻ    |           | none                                       |
+| Content-Length | header | string         | æŻ    |           | none                                       |
+| body           | body   | string(binary) | ćŠ    |           | none                                       |
+
+> èżćç€șäŸ
+
+> 200 Response
+
+```json
+{
+    "code": 200,
+    "message": "success",
+    "data": {
+        "task": {
+            "id": "sdH2LbjyWRk",
+            "name": "upload animated_zoom.gif to [/data](/alist)",
+            "state": 0,
+            "status": "uploading",
+            "progress": 0,
+            "error": ""
+        }
+    }
+}
+```
+
+### èżćç»æ
+
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
+
+### èżćæ°æźç»æ
+
+ç¶æç  **200**
+
+| ćç§°          | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| --------------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code         | integer | true   | none   | ç¶æç  | none   |
+| Â» message      | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data         | object  | true   | none   |           | none   |
+| Â»Â» task       | object  | true   | none   |           | none   |
+| Â»Â»Â» id       | string  | true   | none   |           | none   |
+| Â»Â»Â» name     | string  | true   | none   |           | none   |
+| Â»Â»Â» state    | integer | true   | none   |           | none   |
+| Â»Â»Â» status   | string  | true   | none   |           | none   |
+| Â»Â»Â» progress | integer | true   | none   |           | none   |
+| Â»Â»Â» error    | string  | true   | none   |           | none   |
+
+## POST æ·»ć çŠ»çșżäžèœœ
 
 POST /api/fs/add_offline_download
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
@@ -1202,18 +1226,18 @@ POST /api/fs/add_offline_download
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-|body|body|object| 否 ||none|
-|» urls|body|[string]| 是 | url|none|
-|» path|body|string| 是 | 目标路径|none|
-|» tool|body|string| 是 | 工具|可选`aria2`,`SimpleHttp`和`qBittorrent`|
-|» delete_policy|body|string| 是 | 删除策略|可选`delete_on_upload_succeed`,`delete_on_upload_failed`,`delete_never`,`delete_always`|
+| ćç§°           | äœçœź | ç±»ć   | ćżé | äž­æć    | èŻŽæ                                                                                    |
+| ---------------- | ------ | -------- | ------ | ------------ | ----------------------------------------------------------------------------------------- |
+| Authorization    | header | string   | æŻ    |              | none                                                                                      |
+| body             | body   | object   | ćŠ    |              | none                                                                                      |
+| Â» urls          | body   | [string] | æŻ    | url          | none                                                                                      |
+| Â» path          | body   | string   | æŻ    | çźæ è·ŻćŸ | none                                                                                      |
+| Â» tool          | body   | string   | æŻ    | ć·„ć·       | ćŻé`aria2`,`SimpleHttp`ć`qBittorrent`                                                |
+| Â» delete_policy | body   | string   | æŻ    | ć é€ç­ç„ | ćŻé`delete_on_upload_succeed`,`delete_on_upload_failed`,`delete_never`,`delete_always` |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -1236,169 +1260,36 @@ POST /api/fs/add_offline_download
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|object|true|none||none|
-|»» tasks|[object]|true|none||none|
-|»»» id|string|false|none||none|
-|»»» name|string|false|none||none|
-|»»» state|integer|false|none||none|
-|»»» status|string|false|none||none|
-|»»» progress|integer|false|none||none|
-|»»» error|string|false|none||none|
-
-## PUT 表单上传文件
-
-PUT /api/fs/form
-
-> Body 请求参数
-
-```yaml
-file: []
-
-```
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||token|
-|Content-Type|header|string| 是 ||需要是multipart/form-data;|
-|Content-Length|header|string| 是 ||文件大小|
-|File-Path|header|string| 是 ||经过URL编码的完整文件路径|
-|As-Task|header|string| 否 ||是否添加为任务|
-|body|body|object| 否 ||none|
-|» file|body|string(binary)| 是 ||文件|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-    "code": 200,
-    "message": "success",
-    "data": {
-        "task": {
-            "id": "sdH2LbjyWRk",
-            "name": "upload animated_zoom.gif to [/data](/alist)",
-            "state": 0,
-            "status": "uploading",
-            "progress": 0,
-            "error": ""
-        }
-    }
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|object|true|none||none|
-|»» task|object|true|none||none|
-|»»» id|string|true|none||none|
-|»»» name|string|true|none||none|
-|»»» state|integer|true|none||none|
-|»»» status|string|true|none||none|
-|»»» progress|integer|true|none||none|
-|»»» error|string|true|none||none|
-
-## PUT 流式上传文件
-
-PUT /api/fs/put
-
-> Body 请求参数
-
-```yaml
-string
-
-```
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-|File-Path|header|string| 是 ||经过URL编码的完整目标文件路径|
-|As-Task|header|string| 否 ||是否添加为任务|
-|Content-Type|header|string| 是 ||none|
-|Content-Length|header|string| 是 ||none|
-|body|body|string(binary)| 否 ||none|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-    "code": 200,
-    "message": "success",
-    "data": {
-        "task": {
-            "id": "sdH2LbjyWRk",
-            "name": "upload animated_zoom.gif to [/data](/alist)",
-            "state": 0,
-            "status": "uploading",
-            "progress": 0,
-            "error": ""
-        }
-    }
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|object|true|none||none|
-|»» task|object|true|none||none|
-|»»» id|string|true|none||none|
-|»»» name|string|true|none||none|
-|»»» state|integer|true|none||none|
-|»»» status|string|true|none||none|
-|»»» progress|integer|true|none||none|
-|»»» error|string|true|none||none|
+| ćç§°          | ç±»ć   | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| --------------- | -------- | ------ | ------ | --------- | ------ |
+| Â» code         | integer  | true   | none   | ç¶æç  | none   |
+| Â» message      | string   | true   | none   | äżĄæŻ    | none   |
+| Â» data         | object   | true   | none   |           | none   |
+| Â»Â» tasks      | [object] | true   | none   |           | none   |
+| Â»Â»Â» id       | string   | false  | none   |           | none   |
+| Â»Â»Â» name     | string   | false  | none   |           | none   |
+| Â»Â»Â» state    | integer  | false  | none   |           | none   |
+| Â»Â»Â» status   | string   | false  | none   |           | none   |
+| Â»Â»Â» progress | integer  | false  | none   |           | none   |
+| Â»Â»Â» error    | string   | false  | none   |           | none   |
 
 # public
 
-## GET 获取站点设置
+## GET è·ćç«çčèźŸçœź
 
 GET /api/public/settings
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -1420,7 +1311,7 @@ GET /api/public/settings
         "forward_direct_link_params": "false",
         "hide_files": "/\\/README.md/i",
         "home_container": "hope_container",
-        "home_icon": "🏠",
+        "home_icon": "đ ",
         "iframe_previews": "{\n\t\"doc,docx,xls,xlsx,ppt,pptx\": {\n\t\t\"Microsoft\":\"https://view.officeapps.live.com/op/view.aspx?src=$e_url\",\n\t\t\"Google\":\"https://docs.google.com/gview?url=$e_url&embedded=true\"\n\t},\n\t\"pdf\": {\n\t\t\"PDF.js\":\"https://alist-org.github.io/pdf.js/web/viewer.html?file=$e_url\"\n\t},\n\t\"epub\": {\n\t\t\"EPUB.js\":\"https://alist-org.github.io/static/epub.js/viewer.html?url=$e_url\"\n\t}\n}",
         "logo": "https://cdn.jsdelivr.net/gh/alist-org/logo@main/logo.svg",
         "main_color": "#1890ff",
@@ -1439,57 +1330,57 @@ GET /api/public/settings
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|object|true|none|数据|none|
-|»» allow_indexed|string|true|none|允许索引|none|
-|»» allow_mounted|string|true|none|允许挂载|none|
-|»» announcement|string|true|none|公告|none|
-|»» audio_autoplay|string|true|none|自动播放音频|none|
-|»» audio_cover|string|true|none|音频封面|none|
-|»» auto_update_index|string|true|none|自动更新索引|none|
-|»» default_page_size|string|true|none|默认分页数|none|
-|»» external_previews|string|true|none|外部预览|none|
-|»» favicon|string|true|none|网站图标|none|
-|»» filename_char_mapping|string|true|none||none|
-|»» forward_direct_link_params|string|true|none||none|
-|»» hide_files|string|true|none|隐藏文件|none|
-|»» home_container|string|true|none|主页容器|none|
-|»» home_icon|string|true|none|主页图标|none|
-|»» iframe_previews|string|true|none|iframe预览设置|none|
-|»» logo|string|true|none|logo|none|
-|»» main_color|string|true|none|主题颜色|none|
-|»» ocr_api|string|true|none|pcr接口|none|
-|»» package_download|string|true|none|打包下载|none|
-|»» pagination_type|string|true|none||none|
-|»» robots_txt|string|true|none|robots文件|none|
-|»» search_index|string|true|none||none|
-|»» settings_layout|string|true|none||none|
-|»» site_title|string|true|none|站点标题|none|
-|»» sso_login_enabled|string|true|none|启用sso登录|none|
-|»» sso_login_platform|string|true|none|sso登录平台|none|
-|»» version|string|true|none|版本|none|
-|»» video_autoplay|string|true|none|视频自动播放|none|
+| ćç§°                          | ç±»ć  | ćżé | çșŠæ | äž­æć          | èŻŽæ |
+| ------------------------------- | ------- | ------ | ------ | ------------------ | ------ |
+| Â» code                         | integer | true   | none   | ç¶æç           | none   |
+| Â» message                      | string  | true   | none   | äżĄæŻ             | none   |
+| Â» data                         | object  | true   | none   | æ°æź             | none   |
+| Â»Â» allow_indexed              | string  | true   | none   | ćèźžçŽąćŒ       | none   |
+| Â»Â» allow_mounted              | string  | true   | none   | ćèźžæèœœ       | none   |
+| Â»Â» announcement               | string  | true   | none   | ćŹć             | none   |
+| Â»Â» audio_autoplay             | string  | true   | none   | èȘćšæ­æŸéłéą | none   |
+| Â»Â» audio_cover                | string  | true   | none   | éłéąć°éą       | none   |
+| Â»Â» auto_update_index          | string  | true   | none   | èȘćšæŽæ°çŽąćŒ | none   |
+| Â»Â» default_page_size          | string  | true   | none   | é»èź€ćéĄ”æ°    | none   |
+| Â»Â» external_previews          | string  | true   | none   | ć€éšéąè§       | none   |
+| Â»Â» favicon                    | string  | true   | none   | çœç«ćŸæ        | none   |
+| Â»Â» filename_char_mapping      | string  | true   | none   |                    | none   |
+| Â»Â» forward_direct_link_params | string  | true   | none   |                    | none   |
+| Â»Â» hide_files                 | string  | true   | none   | éèæä»¶       | none   |
+| Â»Â» home_container             | string  | true   | none   | äž»éĄ”ćźčćš       | none   |
+| Â»Â» home_icon                  | string  | true   | none   | äž»éĄ”ćŸæ        | none   |
+| Â»Â» iframe_previews            | string  | true   | none   | iframeéąè§èźŸçœź | none   |
+| Â»Â» logo                       | string  | true   | none   | logo               | none   |
+| Â»Â» main_color                 | string  | true   | none   | äž»éąéąèČ       | none   |
+| Â»Â» ocr_api                    | string  | true   | none   | pcræ„ćŁ          | none   |
+| Â»Â» package_download           | string  | true   | none   | æćäžèœœ       | none   |
+| Â»Â» pagination_type            | string  | true   | none   |                    | none   |
+| Â»Â» robots_txt                 | string  | true   | none   | robotsæä»¶       | none   |
+| Â»Â» search_index               | string  | true   | none   |                    | none   |
+| Â»Â» settings_layout            | string  | true   | none   |                    | none   |
+| Â»Â» site_title                 | string  | true   | none   | ç«çčæ éą       | none   |
+| Â»Â» sso_login_enabled          | string  | true   | none   | ćŻçšssoç»ćœ    | none   |
+| Â»Â» sso_login_platform         | string  | true   | none   | ssoç»ćœćčłć°    | none   |
+| Â»Â» version                    | string  | true   | none   | çæŹ             | none   |
+| Â»Â» video_autoplay             | string  | true   | none   | è§éąèȘćšæ­æŸ | none   |
 
-## GET ping检测
+## GET pingæŁæ”
 
 GET /ping
 
-连通性ping检测
+èżéæ§pingæŁæ”
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -1497,29 +1388,29 @@ GET /ping
 pong
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
 # admin/meta
 
-## GET 列出元信息
+## GET ććșćäżĄæŻ
 
 GET /api/admin/meta/list
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|page|query|string| 否 ||页数|
-|per_page|query|string| 否 ||每页个数|
-|Authorization|header|string| 是 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ       |
+| ------------- | ------ | ------ | ------ | --------- | ------------ |
+| page          | query  | string | ćŠ    |           | éĄ”æ°       |
+| per_page      | query  | string | ćŠ    |           | æŻéĄ”äžȘæ° |
+| Authorization | header | string | æŻ    |           | none         |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -1547,46 +1438,46 @@ GET /api/admin/meta/list
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|object|true|none|数据|none|
-|»» content|[object]|true|none|内容|none|
-|»»» id|integer|false|none|id|none|
-|»»» path|string|false|none|路径|none|
-|»»» password|string|false|none|密码|none|
-|»»» p_sub|boolean|false|none|密码是否应用到子文件夹|none|
-|»»» write|boolean|false|none|是否允许写入|none|
-|»»» w_sub|boolean|false|none|是否允许写入引用到子文件夹|none|
-|»»» hide|string|false|none|隐藏|none|
-|»»» h_sub|boolean|false|none|隐藏是否应用到子文件夹|none|
-|»»» readme|string|false|none|说明|none|
-|»»» r_sub|boolean|false|none|说明是否应用到子文件夹|none|
-|»» total|integer|true|none|总数|none|
+| ćç§°          | ç±»ć   | ćżé | çșŠæ | äž­æć                               | èŻŽæ |
+| --------------- | -------- | ------ | ------ | --------------------------------------- | ------ |
+| Â» code         | integer  | true   | none   | ç¶æç                                | none   |
+| Â» message      | string   | true   | none   | äżĄæŻ                                  | none   |
+| Â» data         | object   | true   | none   | æ°æź                                  | none   |
+| Â»Â» content    | [object] | true   | none   | ććźč                                  | none   |
+| Â»Â»Â» id       | integer  | false  | none   | id                                      | none   |
+| Â»Â»Â» path     | string   | false  | none   | è·ŻćŸ                                  | none   |
+| Â»Â»Â» password | string   | false  | none   | ćŻç                                   | none   |
+| Â»Â»Â» p_sub    | boolean  | false  | none   | ćŻç æŻćŠćșçšć°ć­æä»¶ć€č       | none   |
+| Â»Â»Â» write    | boolean  | false  | none   | æŻćŠćèźžćć„                      | none   |
+| Â»Â»Â» w_sub    | boolean  | false  | none   | æŻćŠćèźžćć„ćŒçšć°ć­æä»¶ć€č | none   |
+| Â»Â»Â» hide     | string   | false  | none   | éè                                  | none   |
+| Â»Â»Â» h_sub    | boolean  | false  | none   | éèæŻćŠćșçšć°ć­æä»¶ć€č       | none   |
+| Â»Â»Â» readme   | string   | false  | none   | èŻŽæ                                  | none   |
+| Â»Â»Â» r_sub    | boolean  | false  | none   | èŻŽææŻćŠćșçšć°ć­æä»¶ć€č       | none   |
+| Â»Â» total      | integer  | true   | none   | æ»æ°                                  | none   |
 
-## GET 获取元信息
+## GET è·ććäżĄæŻ
 
 GET /api/admin/meta/get
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|id|query|string| 是 ||元信息id|
-|Authorization|header|string| 是 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ      |
+| ------------- | ------ | ------ | ------ | --------- | ----------- |
+| id            | query  | string | æŻ    |           | ćäżĄæŻid |
+| Authorization | header | string | æŻ    |           | none        |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -1609,37 +1500,37 @@ GET /api/admin/meta/get
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|object|true|none||none|
-|»» id|integer|true|none|id|none|
-|»» path|string|true|none|路径|none|
-|»» password|string|true|none|密码|none|
-|»» p_sub|boolean|true|none|密码是否应用到子文件夹|none|
-|»» write|boolean|true|none|开启写入|none|
-|»» w_sub|boolean|true|none|开启写入是否应用到子文件夹|none|
-|»» hide|string|true|none|隐藏|none|
-|»» h_sub|boolean|true|none|隐藏是否应用到子文件夹|none|
-|»» readme|string|true|none|说明|none|
-|»» r_sub|boolean|true|none|说明是否应用到子文件夹|none|
+| ćç§°        | ç±»ć  | ćżé | çșŠæ | äž­æć                               | èŻŽæ |
+| ------------- | ------- | ------ | ------ | --------------------------------------- | ------ |
+| Â» code       | integer | true   | none   | ç¶æç                                | none   |
+| Â» message    | string  | true   | none   | äżĄæŻ                                  | none   |
+| Â» data       | object  | true   | none   |                                         | none   |
+| Â»Â» id       | integer | true   | none   | id                                      | none   |
+| Â»Â» path     | string  | true   | none   | è·ŻćŸ                                  | none   |
+| Â»Â» password | string  | true   | none   | ćŻç                                   | none   |
+| Â»Â» p_sub    | boolean | true   | none   | ćŻç æŻćŠćșçšć°ć­æä»¶ć€č       | none   |
+| Â»Â» write    | boolean | true   | none   | ćŒćŻćć„                            | none   |
+| Â»Â» w_sub    | boolean | true   | none   | ćŒćŻćć„æŻćŠćșçšć°ć­æä»¶ć€č | none   |
+| Â»Â» hide     | string  | true   | none   | éè                                  | none   |
+| Â»Â» h_sub    | boolean | true   | none   | éèæŻćŠćșçšć°ć­æä»¶ć€č       | none   |
+| Â»Â» readme   | string  | true   | none   | èŻŽæ                                  | none   |
+| Â»Â» r_sub    | boolean | true   | none   | èŻŽææŻćŠćșçšć°ć­æä»¶ć€č       | none   |
 
-## POST 新增元信息
+## POST æ°ćąćäżĄæŻ
 
 POST /api/admin/meta/create
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
@@ -1656,24 +1547,24 @@ POST /api/admin/meta/create
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-|body|body|object| 否 ||none|
-|» id|body|integer| 是 | id|none|
-|» path|body|string| 是 | 路径|none|
-|» password|body|string| 是 | 密码|none|
-|» p_sub|body|boolean| 是 | 密码是否应用到子文件夹|none|
-|» write|body|boolean| 是 | 开启写入|none|
-|» w_sub|body|boolean| 是 | 开启写入是否应用到子文件夹|none|
-|» hide|body|string| 是 | 隐藏|none|
-|» h_sub|body|boolean| 是 | 隐藏是否应用到子文件夹|none|
-|» readme|body|string| 是 | 说明|none|
-|» r_sub|body|boolean| 是 | 说明是否应用到子文件夹|none|
+| ćç§°        | äœçœź | ç±»ć  | ćżé | äž­æć                               | èŻŽæ |
+| ------------- | ------ | ------- | ------ | --------------------------------------- | ------ |
+| Authorization | header | string  | æŻ    |                                         | none   |
+| body          | body   | object  | ćŠ    |                                         | none   |
+| Â» id         | body   | integer | æŻ    | id                                      | none   |
+| Â» path       | body   | string  | æŻ    | è·ŻćŸ                                  | none   |
+| Â» password   | body   | string  | æŻ    | ćŻç                                   | none   |
+| Â» p_sub      | body   | boolean | æŻ    | ćŻç æŻćŠćșçšć°ć­æä»¶ć€č       | none   |
+| Â» write      | body   | boolean | æŻ    | ćŒćŻćć„                            | none   |
+| Â» w_sub      | body   | boolean | æŻ    | ćŒćŻćć„æŻćŠćșçšć°ć­æä»¶ć€č | none   |
+| Â» hide       | body   | string  | æŻ    | éè                                  | none   |
+| Â» h_sub      | body   | boolean | æŻ    | éèæŻćŠćșçšć°ć­æä»¶ć€č       | none   |
+| Â» readme     | body   | string  | æŻ    | èŻŽæ                                  | none   |
+| Â» r_sub      | body   | boolean | æŻ    | èŻŽææŻćŠćșçšć°ć­æä»¶ć€č       | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -1685,27 +1576,27 @@ POST /api/admin/meta/create
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» message|string|true|none||none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   |           | none   |
+| Â» message | string  | true   | none   |           | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
-## POST 更新元信息
+## POST æŽæ°ćäżĄæŻ
 
 POST /api/admin/meta/update
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
@@ -1722,24 +1613,24 @@ POST /api/admin/meta/update
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-|body|body|object| 否 ||none|
-|» id|body|integer| 是 | id|none|
-|» path|body|string| 是 | 路径|none|
-|» password|body|string| 是 | 密码|none|
-|» p_sub|body|boolean| 是 | 密码是否应用到子文件夹|none|
-|» write|body|boolean| 是 | 开启写入|none|
-|» w_sub|body|boolean| 是 | 开启写入是否应用到子文件夹|none|
-|» hide|body|string| 是 | 隐藏|none|
-|» h_sub|body|boolean| 是 | 隐藏是否应用到子文件夹|none|
-|» readme|body|string| 是 | 说明|none|
-|» r_sub|body|boolean| 是 | 说明是否应用到子文件夹|none|
+| ćç§°        | äœçœź | ç±»ć  | ćżé | äž­æć                               | èŻŽæ |
+| ------------- | ------ | ------- | ------ | --------------------------------------- | ------ |
+| Authorization | header | string  | æŻ    |                                         | none   |
+| body          | body   | object  | ćŠ    |                                         | none   |
+| Â» id         | body   | integer | æŻ    | id                                      | none   |
+| Â» path       | body   | string  | æŻ    | è·ŻćŸ                                  | none   |
+| Â» password   | body   | string  | æŻ    | ćŻç                                   | none   |
+| Â» p_sub      | body   | boolean | æŻ    | ćŻç æŻćŠćșçšć°ć­æä»¶ć€č       | none   |
+| Â» write      | body   | boolean | æŻ    | ćŒćŻćć„                            | none   |
+| Â» w_sub      | body   | boolean | æŻ    | ćŒćŻćć„æŻćŠćșçšć°ć­æä»¶ć€č | none   |
+| Â» hide       | body   | string  | æŻ    | éè                                  | none   |
+| Â» h_sub      | body   | boolean | æŻ    | éèæŻćŠćșçšć°ć­æä»¶ć€č       | none   |
+| Â» readme     | body   | string  | æŻ    | èŻŽæ                                  | none   |
+| Â» r_sub      | body   | boolean | æŻ    | èŻŽææŻćŠćșçšć°ć­æä»¶ć€č       | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -1751,34 +1642,34 @@ POST /api/admin/meta/update
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» message|string|true|none||none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   |           | none   |
+| Â» message | string  | true   | none   |           | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
-## POST 删除元信息
+## POST ć é€ćäżĄæŻ
 
 POST /api/admin/meta/delete
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|id|query|string| 是 ||none|
-|Authorization|header|string| 是 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------- | ------ |
+| id            | query  | string | æŻ    |           | none   |
+| Authorization | header | string | æŻ    |           | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -1790,37 +1681,37 @@ POST /api/admin/meta/delete
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
 # admin/user
 
-## GET 列出所有用户
+## GET ććșææçšæ·
 
 GET /api/admin/user/list
 
-列出所有用户的信息
+ććșææçšæ·çäżĄæŻ
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------- | ------ |
+| Authorization | header | string | æŻ    |           | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -1866,44 +1757,44 @@ GET /api/admin/user/list
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|object|true|none||none|
-|»» content|[object]|true|none||none|
-|»»» id|integer|true|none|id|none|
-|»»» username|string|true|none|用户名|none|
-|»»» password|string|true|none|密码|none|
-|»»» base_path|string|true|none|基本路径|none|
-|»»» role|integer|true|none|角色|none|
-|»»» disabled|boolean|true|none|是否禁用|none|
-|»»» permission|integer|true|none|权限|none|
-|»»» sso_id|string|true|none|sso id|none|
-|»» total|integer|true|none|总数|none|
+| ćç§°            | ç±»ć   | ćżé | çșŠæ | äž­æć    | èŻŽæ |
+| ----------------- | -------- | ------ | ------ | ------------ | ------ |
+| Â» code           | integer  | true   | none   | ç¶æç     | none   |
+| Â» message        | string   | true   | none   | äżĄæŻ       | none   |
+| Â» data           | object   | true   | none   |              | none   |
+| Â»Â» content      | [object] | true   | none   |              | none   |
+| Â»Â»Â» id         | integer  | true   | none   | id           | none   |
+| Â»Â»Â» username   | string   | true   | none   | çšæ·ć    | none   |
+| Â»Â»Â» password   | string   | true   | none   | ćŻç        | none   |
+| Â»Â»Â» base_path  | string   | true   | none   | ćșæŹè·ŻćŸ | none   |
+| Â»Â»Â» role       | integer  | true   | none   | è§èČ       | none   |
+| Â»Â»Â» disabled   | boolean  | true   | none   | æŻćŠçŠçš | none   |
+| Â»Â»Â» permission | integer  | true   | none   | æé       | none   |
+| Â»Â»Â» sso_id     | string   | true   | none   | sso id       | none   |
+| Â»Â» total        | integer  | true   | none   | æ»æ°       | none   |
 
-## GET 列出某个用户
+## GET ććșæäžȘçšæ·
 
 GET /api/admin/user/get
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|id|query|string| 是 ||none|
-|Authorization|header|string| 是 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------- | ------ |
+| id            | query  | string | æŻ    |           | none   |
+| Authorization | header | string | æŻ    |           | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -1924,35 +1815,35 @@ GET /api/admin/user/get
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» message|string|true|none||none|
-|» data|object|true|none||none|
-|»» id|integer|true|none|id|none|
-|»» username|string|true|none|用户名|none|
-|»» password|string|true|none|密码|none|
-|»» base_path|string|true|none|基本路径|none|
-|»» role|integer|true|none|角色|none|
-|»» disabled|boolean|true|none|是否禁用|none|
-|»» permission|integer|true|none|权限|none|
-|»» sso_id|string|true|none|sso id|none|
+| ćç§°          | ç±»ć  | ćżé | çșŠæ | äž­æć    | èŻŽæ |
+| --------------- | ------- | ------ | ------ | ------------ | ------ |
+| Â» code         | integer | true   | none   |              | none   |
+| Â» message      | string  | true   | none   |              | none   |
+| Â» data         | object  | true   | none   |              | none   |
+| Â»Â» id         | integer | true   | none   | id           | none   |
+| Â»Â» username   | string  | true   | none   | çšæ·ć    | none   |
+| Â»Â» password   | string  | true   | none   | ćŻç        | none   |
+| Â»Â» base_path  | string  | true   | none   | ćșæŹè·ŻćŸ | none   |
+| Â»Â» role       | integer | true   | none   | è§èČ       | none   |
+| Â»Â» disabled   | boolean | true   | none   | æŻćŠçŠçš | none   |
+| Â»Â» permission | integer | true   | none   | æé       | none   |
+| Â»Â» sso_id     | string  | true   | none   | sso id       | none   |
 
-## POST 新建用户
+## POST æ°ć»șçšæ·
 
 POST /api/admin/user/create
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
@@ -1967,22 +1858,22 @@ POST /api/admin/user/create
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-|body|body|object| 否 ||none|
-|» id|body|integer| 否 | id|none|
-|» username|body|string| 是 | 用户名|none|
-|» password|body|string| 否 | 密码|none|
-|» base_path|body|string| 否 | 基本路径|none|
-|» role|body|integer| 否 | 角色|none|
-|» permission|body|integer| 否 | 权限|none|
-|» disabled|body|boolean| 否 | 是否禁用|none|
-|» sso_id|body|string| 否 | sso id|none|
+| ćç§°        | äœçœź | ç±»ć  | ćżé | äž­æć    | èŻŽæ |
+| ------------- | ------ | ------- | ------ | ------------ | ------ |
+| Authorization | header | string  | æŻ    |              | none   |
+| body          | body   | object  | ćŠ    |              | none   |
+| Â» id         | body   | integer | ćŠ    | id           | none   |
+| Â» username   | body   | string  | æŻ    | çšæ·ć    | none   |
+| Â» password   | body   | string  | ćŠ    | ćŻç        | none   |
+| Â» base_path  | body   | string  | ćŠ    | ćșæŹè·ŻćŸ | none   |
+| Â» role       | body   | integer | ćŠ    | è§èČ       | none   |
+| Â» permission | body   | integer | ćŠ    | æé       | none   |
+| Â» disabled   | body   | boolean | ćŠ    | æŻćŠçŠçš | none   |
+| Â» sso_id     | body   | string  | ćŠ    | sso id       | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -1994,27 +1885,27 @@ POST /api/admin/user/create
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
-## POST 更新用户信息
+## POST æŽæ°çšæ·äżĄæŻ
 
 POST /api/admin/user/update
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
@@ -2029,22 +1920,22 @@ POST /api/admin/user/update
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-|body|body|object| 否 ||none|
-|» id|body|integer| 是 | id|none|
-|» username|body|string| 是 | 用户名|none|
-|» password|body|string| 否 | 密码|none|
-|» base_path|body|string| 否 | 基本路径|none|
-|» role|body|integer| 否 | 角色|none|
-|» permission|body|integer| 否 | 权限|none|
-|» disabled|body|boolean| 否 | 是否禁用|none|
-|» sso_id|body|string| 否 | sso id|none|
+| ćç§°        | äœçœź | ç±»ć  | ćżé | äž­æć    | èŻŽæ |
+| ------------- | ------ | ------- | ------ | ------------ | ------ |
+| Authorization | header | string  | æŻ    |              | none   |
+| body          | body   | object  | ćŠ    |              | none   |
+| Â» id         | body   | integer | æŻ    | id           | none   |
+| Â» username   | body   | string  | æŻ    | çšæ·ć    | none   |
+| Â» password   | body   | string  | ćŠ    | ćŻç        | none   |
+| Â» base_path  | body   | string  | ćŠ    | ćșæŹè·ŻćŸ | none   |
+| Â» role       | body   | integer | ćŠ    | è§èČ       | none   |
+| Â» permission | body   | integer | ćŠ    | æé       | none   |
+| Â» disabled   | body   | boolean | ćŠ    | æŻćŠçŠçš | none   |
+| Â» sso_id     | body   | string  | ćŠ    | sso id       | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -2056,34 +1947,34 @@ POST /api/admin/user/update
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
-## POST 取消某个用户的两步验证
+## POST ćæ¶æäžȘçšæ·çäž€æ­„éȘèŻ
 
 POST /api/admin/user/cancel_2fa
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|id|query|string| 是 ||none|
-|Authorization|header|string| 是 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------- | ------ |
+| id            | query  | string | æŻ    |           | none   |
+| Authorization | header | string | æŻ    |           | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -2095,34 +1986,34 @@ POST /api/admin/user/cancel_2fa
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
-## POST 删除用户
+## POST ć é€çšæ·
 
 POST /api/admin/user/delete
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|id|query|string| 是 ||none|
-|Authorization|header|string| 否 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------- | ------ |
+| id            | query  | string | æŻ    |           | none   |
+| Authorization | header | string | ćŠ    |           | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -2134,34 +2025,34 @@ POST /api/admin/user/delete
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
-## POST 删除用户缓存
+## POST ć é€çšæ·çŒć­
 
 POST /api/admin/user/del_cache
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|username|query|string| 是 ||none|
-|Authorization|header|string| 否 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------- | ------ |
+| username      | query  | string | æŻ    |           | none   |
+| Authorization | header | string | ćŠ    |           | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -2173,191 +2064,37 @@ POST /api/admin/user/del_cache
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
 # admin/storage
 
-## POST 创建存储
-
-POST /api/admin/storage/create
-
-> Body 请求参数
-
-```json
-{
-    "mount_path": "/lll",
-    "order": 0,
-    "remark": "",
-    "cache_expiration": 30,
-    "web_proxy": false,
-    "webdav_policy": "native_proxy",
-    "down_proxy_url": "",
-    "extract_folder": "front",
-    "enable_sign": false,
-    "driver": "Local",
-    "order_by": "name",
-    "order_direction": "asc",
-    "addition": "{\"root_folder_path\":\"/\",\"thumbnail\":false,\"thumb_cache_folder\":\"\",\"show_hidden\":true,\"mkdir_perm\":\"777\"}"
-}
-```
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||token|
-|body|body|object| 否 ||none|
-|» id|body|string| 否 | ID|none|
-|» mount_path|body|string| 是 | 挂载路径|none|
-|» order|body|integer| 否 | 排序|none|
-|» driver|body|string| 是 | 驱动|none|
-|» remark|body|string| 否 | 备注名|none|
-|» cache_expiration|body|integer| 否 | 缓存过期时间|none|
-|» status|body|string| 是 ||none|
-|» web_proxy|body|boolean| 是 | web代理|none|
-|» webdav_policy|body|string| 否 | webdav策略|none|
-|» down_proxy_url|body|string| 否 | 下载代理|none|
-|» order_by|body|string| 是 | 排序方式|none|
-|» extract_folder|body|string| 是 | 提取目录|none|
-|» order_direction|body|string| 是 | 排序方向|none|
-|» addition|body|string| 是 | 额外信息|none|
-|» enable_sign|body|string| 是 | 启用签名|none|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-    "code": 200,
-    "message": "success",
-    "data": {
-        "id": 7
-    }
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|状态码|
-|» message|string|true|none|信息|信息|
-|» data|object|true|none|data|data|
-|»» id|integer|true|none||none|
-
-## POST 更新存储
-
-POST /api/admin/storage/update
-
-> Body 请求参数
-
-```json
-{
-    "mount_path": "/lll",
-    "order": 0,
-    "remark": "",
-    "cache_expiration": 30,
-    "web_proxy": false,
-    "webdav_policy": "native_proxy",
-    "down_proxy_url": "",
-    "extract_folder": "front",
-    "enable_sign": false,
-    "driver": "Local",
-    "order_by": "name",
-    "order_direction": "asc",
-    "addition": "{\"root_folder_path\":\"/\",\"thumbnail\":false,\"thumb_cache_folder\":\"\",\"show_hidden\":true,\"mkdir_perm\":\"777\"}"
-}
-```
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||token|
-|body|body|object| 否 ||none|
-|» id|body|string| 否 | ID|none|
-|» mount_path|body|string| 是 | 挂载路径|none|
-|» order|body|integer| 否 | 排序|none|
-|» driver|body|string| 是 | 驱动|none|
-|» remark|body|string| 否 | 备注名|none|
-|» cache_expiration|body|integer| 否 | 缓存过期时间|none|
-|» status|body|string| 是 ||none|
-|» web_proxy|body|boolean| 是 | web代理|none|
-|» webdav_policy|body|string| 否 | webdav策略|none|
-|» down_proxy_url|body|string| 否 | 下载代理|none|
-|» order_by|body|string| 是 | 排序方式|none|
-|» extract_folder|body|string| 是 | 提取目录|none|
-|» order_direction|body|string| 是 | 排序方向|none|
-|» addition|body|string| 是 | 额外信息|none|
-|» enable_sign|body|string| 是 | 启用签名|none|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-    "code": 200,
-    "message": "success",
-    "data": {
-        "id": 7
-    }
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|状态码|
-|» message|string|true|none|信息|信息|
-|» data|object|true|none|data|data|
-|»» id|integer|true|none||none|
-
-## GET 列出存储列表
+## GET ććșć­ćšćèĄš
 
 GET /api/admin/storage/list
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|page|query|string| 否 ||页数|
-|per_page|query|string| 否 ||每页数目|
-|Authorization|header|string| 是 ||token|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ       |
+| ------------- | ------ | ------ | ------ | --------- | ------------ |
+| page          | query  | string | ćŠ    |           | éĄ”æ°       |
+| per_page      | query  | string | ćŠ    |           | æŻéĄ”æ°çź |
+| Authorization | header | string | æŻ    |           | token        |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -2392,53 +2129,53 @@ GET /api/admin/storage/list
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|状态码|
-|» message|string|true|none|信息|信息|
-|» data|object|true|none||none|
-|»» content|[object]|true|none||none|
-|»»» id|integer|false|none|id|id|
-|»»» mount_path|string|false|none|挂载路径|挂载路径|
-|»»» order|integer|false|none|排序|顺序|
-|»»» driver|string|false|none|驱动|驱动类型|
-|»»» cache_expiration|integer|false|none|缓存过期时间|缓存时间|
-|»»» status|string|false|none|状态|状态|
-|»»» addition|string|false|none|额外信息|额外信息|
-|»»» remark|string|false|none|备注|备注名|
-|»»» modified|string|false|none|修改时间|修改时间|
-|»»» disabled|boolean|false|none|禁用|是否被禁用|
-|»»» enable_sign|boolean|false|none|启用签名|none|
-|»»» order_by|string|false|none|排序|排序方式|
-|»»» order_direction|string|false|none|排序方向|排序方向|
-|»»» extract_folder|string|false|none|提取文件夹|提取目录顺序|
-|»»» web_proxy|boolean|false|none|web代理|http代理|
-|»»» webdav_policy|string|false|none|webdav代理|webdav策略|
-|»»» down_proxy_url|string|false|none|下载代理url|下载代理url|
-|»» total|integer|true|none|总数|none|
+| ćç§°                  | ç±»ć   | ćżé | çșŠæ | äž­æć          | èŻŽæ             |
+| ----------------------- | -------- | ------ | ------ | ------------------ | ------------------ |
+| Â» code                 | integer  | true   | none   | ç¶æç           | ç¶æç           |
+| Â» message              | string   | true   | none   | äżĄæŻ             | äżĄæŻ             |
+| Â» data                 | object   | true   | none   |                    | none               |
+| Â»Â» content            | [object] | true   | none   |                    | none               |
+| Â»Â»Â» id               | integer  | false  | none   | id                 | id                 |
+| Â»Â»Â» mount_path       | string   | false  | none   | æèœœè·ŻćŸ       | æèœœè·ŻćŸ       |
+| Â»Â»Â» order            | integer  | false  | none   | æćș             | éĄșćș             |
+| Â»Â»Â» driver           | string   | false  | none   | é©±ćš             | é©±ćšç±»ć       |
+| Â»Â»Â» cache_expiration | integer  | false  | none   | çŒć­èżææ¶éŽ | çŒć­æ¶éŽ       |
+| Â»Â»Â» status           | string   | false  | none   | ç¶æ             | ç¶æ             |
+| Â»Â»Â» addition         | string   | false  | none   | éąć€äżĄæŻ       | éąć€äżĄæŻ       |
+| Â»Â»Â» remark           | string   | false  | none   | ć€æłš             | ć€æłšć          |
+| Â»Â»Â» modified         | string   | false  | none   | äżźæčæ¶éŽ       | äżźæčæ¶éŽ       |
+| Â»Â»Â» disabled         | boolean  | false  | none   | çŠçš             | æŻćŠèą«çŠçš    |
+| Â»Â»Â» enable_sign      | boolean  | false  | none   | ćŻçšç­Ÿć       | none               |
+| Â»Â»Â» order_by         | string   | false  | none   | æćș             | æćșæčćŒ       |
+| Â»Â»Â» order_direction  | string   | false  | none   | æćșæčć       | æćșæčć       |
+| Â»Â»Â» extract_folder   | string   | false  | none   | æćæä»¶ć€č    | æćçźćœéĄșćș |
+| Â»Â»Â» web_proxy        | boolean  | false  | none   | webä»Łç          | httpä»Łç         |
+| Â»Â»Â» webdav_policy    | string   | false  | none   | webdavä»Łç       | webdavç­ç„       |
+| Â»Â»Â» down_proxy_url   | string   | false  | none   | äžèœœä»Łçurl    | äžèœœä»Łçurl    |
+| Â»Â» total              | integer  | true   | none   | æ»æ°             | none               |
 
-## POST 启用存储
+## POST ćŻçšć­ćš
 
 POST /api/admin/storage/enable
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|id|query|integer| 是 ||存储id|
-|Authorization|header|string| 是 ||token|
+| ćç§°        | äœçœź | ç±»ć  | ćżé | äž­æć | èŻŽæ   |
+| ------------- | ------ | ------- | ------ | --------- | -------- |
+| id            | query  | integer | æŻ    |           | ć­ćšid |
+| Authorization | header | string  | æŻ    |           | token    |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -2450,34 +2187,34 @@ POST /api/admin/storage/enable
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|状态码|
-|» message|string|true|none|信息|信息|
-|» data|null|true|none|data|data|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ    |
+| ---------- | ------- | ------ | ------ | --------- | --------- |
+| Â» code    | integer | true   | none   | ç¶æç  | ç¶æç  |
+| Â» message | string  | true   | none   | äżĄæŻ    | äżĄæŻ    |
+| Â» data    | null    | true   | none   | data      | data      |
 
-## POST 禁用存储
+## POST çŠçšć­ćš
 
 POST /api/admin/storage/disable
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|id|query|string| 是 ||存储id|
-|Authorization|header|string| 是 ||token|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ   |
+| ------------- | ------ | ------ | ------ | --------- | -------- |
+| id            | query  | string | æŻ    |           | ć­ćšid |
+| Authorization | header | string | æŻ    |           | token    |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -2489,34 +2226,188 @@ POST /api/admin/storage/disable
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|状态码|
-|» message|string|true|none|信息|信息|
-|» data|null|true|none|data|data|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ    |
+| ---------- | ------- | ------ | ------ | --------- | --------- |
+| Â» code    | integer | true   | none   | ç¶æç  | ç¶æç  |
+| Â» message | string  | true   | none   | äżĄæŻ    | äżĄæŻ    |
+| Â» data    | null    | true   | none   | data      | data      |
 
-## GET 查询指定存储信息
+## POST ćć»șć­ćš
+
+POST /api/admin/storage/create
+
+> Body èŻ·æ±ćæ°
+
+```json
+{
+    "mount_path": "/lll",
+    "order": 0,
+    "remark": "",
+    "cache_expiration": 30,
+    "web_proxy": false,
+    "webdav_policy": "native_proxy",
+    "down_proxy_url": "",
+    "extract_folder": "front",
+    "enable_sign": false,
+    "driver": "Local",
+    "order_by": "name",
+    "order_direction": "asc",
+    "addition": "{\"root_folder_path\":\"/\",\"thumbnail\":false,\"thumb_cache_folder\":\"\",\"show_hidden\":true,\"mkdir_perm\":\"777\"}"
+}
+```
+
+### èŻ·æ±ćæ°
+
+| ćç§°              | äœçœź | ç±»ć  | ćżé | äž­æć          | èŻŽæ |
+| ------------------- | ------ | ------- | ------ | ------------------ | ------ |
+| Authorization       | header | string  | æŻ    |                    | token  |
+| body                | body   | object  | ćŠ    |                    | none   |
+| Â» id               | body   | string  | ćŠ    | ID                 | none   |
+| Â» mount_path       | body   | string  | æŻ    | æèœœè·ŻćŸ       | none   |
+| Â» order            | body   | integer | ćŠ    | æćș             | none   |
+| Â» driver           | body   | string  | æŻ    | é©±ćš             | none   |
+| Â» remark           | body   | string  | ćŠ    | ć€æłšć          | none   |
+| Â» cache_expiration | body   | integer | ćŠ    | çŒć­èżææ¶éŽ | none   |
+| Â» status           | body   | string  | æŻ    |                    | none   |
+| Â» web_proxy        | body   | boolean | æŻ    | webä»Łç          | none   |
+| Â» webdav_policy    | body   | string  | ćŠ    | webdavç­ç„       | none   |
+| Â» down_proxy_url   | body   | string  | ćŠ    | äžèœœä»Łç       | none   |
+| Â» order_by         | body   | string  | æŻ    | æćșæčćŒ       | none   |
+| Â» extract_folder   | body   | string  | æŻ    | æćçźćœ       | none   |
+| Â» order_direction  | body   | string  | æŻ    | æćșæčć       | none   |
+| Â» addition         | body   | string  | æŻ    | éąć€äżĄæŻ       | none   |
+| Â» enable_sign      | body   | string  | æŻ    | ćŻçšç­Ÿć       | none   |
+
+> èżćç€șäŸ
+
+> 200 Response
+
+```json
+{
+    "code": 200,
+    "message": "success",
+    "data": {
+        "id": 7
+    }
+}
+```
+
+### èżćç»æ
+
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
+
+### èżćæ°æźç»æ
+
+ç¶æç  **200**
+
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ    |
+| ---------- | ------- | ------ | ------ | --------- | --------- |
+| Â» code    | integer | true   | none   | ç¶æç  | ç¶æç  |
+| Â» message | string  | true   | none   | äżĄæŻ    | äżĄæŻ    |
+| Â» data    | object  | true   | none   | data      | data      |
+| Â»Â» id    | integer | true   | none   |           | none      |
+
+## POST æŽæ°ć­ćš
+
+POST /api/admin/storage/update
+
+> Body èŻ·æ±ćæ°
+
+```json
+{
+    "mount_path": "/lll",
+    "order": 0,
+    "remark": "",
+    "cache_expiration": 30,
+    "web_proxy": false,
+    "webdav_policy": "native_proxy",
+    "down_proxy_url": "",
+    "extract_folder": "front",
+    "enable_sign": false,
+    "driver": "Local",
+    "order_by": "name",
+    "order_direction": "asc",
+    "addition": "{\"root_folder_path\":\"/\",\"thumbnail\":false,\"thumb_cache_folder\":\"\",\"show_hidden\":true,\"mkdir_perm\":\"777\"}"
+}
+```
+
+### èŻ·æ±ćæ°
+
+| ćç§°              | äœçœź | ç±»ć  | ćżé | äž­æć          | èŻŽæ |
+| ------------------- | ------ | ------- | ------ | ------------------ | ------ |
+| Authorization       | header | string  | æŻ    |                    | token  |
+| body                | body   | object  | ćŠ    |                    | none   |
+| Â» id               | body   | string  | ćŠ    | ID                 | none   |
+| Â» mount_path       | body   | string  | æŻ    | æèœœè·ŻćŸ       | none   |
+| Â» order            | body   | integer | ćŠ    | æćș             | none   |
+| Â» driver           | body   | string  | æŻ    | é©±ćš             | none   |
+| Â» remark           | body   | string  | ćŠ    | ć€æłšć          | none   |
+| Â» cache_expiration | body   | integer | ćŠ    | çŒć­èżææ¶éŽ | none   |
+| Â» status           | body   | string  | æŻ    |                    | none   |
+| Â» web_proxy        | body   | boolean | æŻ    | webä»Łç          | none   |
+| Â» webdav_policy    | body   | string  | ćŠ    | webdavç­ç„       | none   |
+| Â» down_proxy_url   | body   | string  | ćŠ    | äžèœœä»Łç       | none   |
+| Â» order_by         | body   | string  | æŻ    | æćșæčćŒ       | none   |
+| Â» extract_folder   | body   | string  | æŻ    | æćçźćœ       | none   |
+| Â» order_direction  | body   | string  | æŻ    | æćșæčć       | none   |
+| Â» addition         | body   | string  | æŻ    | éąć€äżĄæŻ       | none   |
+| Â» enable_sign      | body   | string  | æŻ    | ćŻçšç­Ÿć       | none   |
+
+> èżćç€șäŸ
+
+> 200 Response
+
+```json
+{
+    "code": 200,
+    "message": "success",
+    "data": {
+        "id": 7
+    }
+}
+```
+
+### èżćç»æ
+
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
+
+### èżćæ°æźç»æ
+
+ç¶æç  **200**
+
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ    |
+| ---------- | ------- | ------ | ------ | --------- | --------- |
+| Â» code    | integer | true   | none   | ç¶æç  | ç¶æç  |
+| Â» message | string  | true   | none   | äżĄæŻ    | äżĄæŻ    |
+| Â» data    | object  | true   | none   | data      | data      |
+| Â»Â» id    | integer | true   | none   |           | none      |
+
+## GET æ„èŻąæćźć­ćšäżĄæŻ
 
 GET /api/admin/storage/get
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|id|query|string| 是 ||存储id|
-|Authorization|header|string| 是 ||token|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ   |
+| ------------- | ------ | ------ | ------ | --------- | -------- |
+| id            | query  | string | æŻ    |           | ć­ćšid |
+| Authorization | header | string | æŻ    |           | token    |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -2545,50 +2436,50 @@ GET /api/admin/storage/get
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|object|true|none||none|
-|»» id|integer|true|none|id|none|
-|»» mount_path|string|true|none|挂载路径|none|
-|»» order|integer|true|none|排序|none|
-|»» driver|string|true|none|驱动|none|
-|»» cache_expiration|integer|true|none|缓存过期时间|none|
-|»» status|string|true|none|状态|none|
-|»» addition|string|true|none|额外信息|none|
-|»» remark|string|true|none|备注|none|
-|»» modified|string|true|none|修改时间|none|
-|»» disabled|boolean|true|none|是否被禁用|none|
-|»» order_by|string|true|none|排序方式|none|
-|»» order_direction|string|true|none|排序方向|none|
-|»» extract_folder|string|true|none|提取目录|none|
-|»» web_proxy|boolean|true|none|web代理|none|
-|»» webdav_policy|string|true|none|webdav策略|none|
-|»» down_proxy_url|string|true|none|下载代理|none|
+| ćç§°                | ç±»ć  | ćżé | çșŠæ | äž­æć          | èŻŽæ |
+| --------------------- | ------- | ------ | ------ | ------------------ | ------ |
+| Â» code               | integer | true   | none   | ç¶æç           | none   |
+| Â» message            | string  | true   | none   | äżĄæŻ             | none   |
+| Â» data               | object  | true   | none   |                    | none   |
+| Â»Â» id               | integer | true   | none   | id                 | none   |
+| Â»Â» mount_path       | string  | true   | none   | æèœœè·ŻćŸ       | none   |
+| Â»Â» order            | integer | true   | none   | æćș             | none   |
+| Â»Â» driver           | string  | true   | none   | é©±ćš             | none   |
+| Â»Â» cache_expiration | integer | true   | none   | çŒć­èżææ¶éŽ | none   |
+| Â»Â» status           | string  | true   | none   | ç¶æ             | none   |
+| Â»Â» addition         | string  | true   | none   | éąć€äżĄæŻ       | none   |
+| Â»Â» remark           | string  | true   | none   | ć€æłš             | none   |
+| Â»Â» modified         | string  | true   | none   | äżźæčæ¶éŽ       | none   |
+| Â»Â» disabled         | boolean | true   | none   | æŻćŠèą«çŠçš    | none   |
+| Â»Â» order_by         | string  | true   | none   | æćșæčćŒ       | none   |
+| Â»Â» order_direction  | string  | true   | none   | æćșæčć       | none   |
+| Â»Â» extract_folder   | string  | true   | none   | æćçźćœ       | none   |
+| Â»Â» web_proxy        | boolean | true   | none   | webä»Łç          | none   |
+| Â»Â» webdav_policy    | string  | true   | none   | webdavç­ç„       | none   |
+| Â»Â» down_proxy_url   | string  | true   | none   | äžèœœä»Łç       | none   |
 
-## POST 删除指定存储
+## POST ć é€æćźć­ćš
 
 POST /api/admin/storage/delete
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|id|query|string| 否 ||存储id|
-|Authorization|header|string| 是 ||token|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ   |
+| ------------- | ------ | ------ | ------ | --------- | -------- |
+| id            | query  | string | ćŠ    |           | ć­ćšid |
+| Authorization | header | string | æŻ    |           | token    |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -2600,33 +2491,33 @@ POST /api/admin/storage/delete
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|状态码|
-|» message|string|true|none|信息|信息|
-|» data|null|true|none|data|data|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ    |
+| ---------- | ------- | ------ | ------ | --------- | --------- |
+| Â» code    | integer | true   | none   | ç¶æç  | ç¶æç  |
+| Â» message | string  | true   | none   | äżĄæŻ    | äżĄæŻ    |
+| Â» data    | null    | true   | none   | data      | data      |
 
-## POST 重新加载所有存储
+## POST éæ°ć èœœææć­ćš
 
 POST /api/admin/storage/load_all
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------- | ------ |
+| Authorization | header | string | æŻ    |           | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -2638,35 +2529,35 @@ POST /api/admin/storage/load_all
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
 # admin/driver
 
-## GET 查询所有驱动配置模板列表
+## GET æ„èŻąææé©±ćšéçœźæšĄæżćèĄš
 
 GET /api/admin/driver/list
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||token|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------- | ------ |
+| Authorization | header | string | æŻ    |           | token  |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -10993,1483 +10884,1483 @@ GET /api/admin/driver/list
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» message|string|true|none||none|
-|» data|object|true|none||none|
-|»» 115 Cloud|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» 115 Share|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» 123Pan|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» 123PanLink|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» 123PanShare|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» 139Yun|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» 189Cloud|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» 189CloudPC|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» AList V2|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» AList V3|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» Alias|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|false|none||none|
-|»»»» type|string|false|none||none|
-|»»»» default|string|false|none||none|
-|»»»» options|string|false|none||none|
-|»»»» required|boolean|false|none||none|
-|»»»» help|string|false|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» Aliyundrive|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» AliyundriveOpen|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» AliyundriveShare|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» BaiduNetdisk|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» BaiduPhoto|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» BaiduShare|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» ChaoXingGroupDrive|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» Cloudreve|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» Crypt|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» Doge|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» Dropbox|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» FTP|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» FeijiPan|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» GoogleDrive|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» GooglePhoto|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» ILanZou|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» IPFS API|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» Lanzou|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» Local|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» MediaTrack|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» Mega_nz|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» MoPan|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» NeteaseMusic|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» Onedrive|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» OnedriveAPP|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» PikPak|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» PikPakShare|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» Quark|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» Quqi|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» S3|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» SFTP|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» SMB|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» Seafile|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» Teambition|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» Terabox|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» Thunder|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» ThunderExpert|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» Trainbit|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» UC|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» USS|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» UrlTree|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» VTencent|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» Virtual|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» WebDav|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» WeiYun|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» WoPan|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
-|»» YandexDisk|object|true|none||none|
-|»»» common|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» additional|[object]|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» type|string|true|none||none|
-|»»»» default|string|true|none||none|
-|»»»» options|string|true|none||none|
-|»»»» required|boolean|true|none||none|
-|»»»» help|string|true|none||none|
-|»»» config|object|true|none||none|
-|»»»» name|string|true|none||none|
-|»»»» local_sort|boolean|true|none||none|
-|»»»» only_local|boolean|true|none||none|
-|»»»» only_proxy|boolean|true|none||none|
-|»»»» no_cache|boolean|true|none||none|
-|»»»» no_upload|boolean|true|none||none|
-|»»»» need_ms|boolean|true|none||none|
-|»»»» default_root|string|true|none||none|
-|»»»» alert|string|true|none||none|
+| ćç§°                  | ç±»ć   | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ----------------------- | -------- | ------ | ------ | --------- | ------ |
+| Â» code                 | integer  | true   | none   |           | none   |
+| Â» message              | string   | true   | none   |           | none   |
+| Â» data                 | object   | true   | none   |           | none   |
+| Â»Â» 115 Cloud          | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» 115 Share          | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» 123Pan             | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» 123PanLink         | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» 123PanShare        | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» 139Yun             | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» 189Cloud           | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» 189CloudPC         | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» AList V2           | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» AList V3           | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» Alias              | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | false  | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | false  | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | false  | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | false  | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | false  | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | false  | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» Aliyundrive        | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» AliyundriveOpen    | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» AliyundriveShare   | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» BaiduNetdisk       | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» BaiduPhoto         | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» BaiduShare         | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» ChaoXingGroupDrive | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» Cloudreve          | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» Crypt              | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» Doge               | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» Dropbox            | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» FTP                | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» FeijiPan           | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» GoogleDrive        | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» GooglePhoto        | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» ILanZou            | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» IPFS API           | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» Lanzou             | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» Local              | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» MediaTrack         | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» Mega_nz            | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» MoPan              | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» NeteaseMusic       | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» Onedrive           | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» OnedriveAPP        | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» PikPak             | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» PikPakShare        | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» Quark              | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» Quqi               | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» S3                 | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» SFTP               | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» SMB                | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» Seafile            | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» Teambition         | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» Terabox            | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» Thunder            | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» ThunderExpert      | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» Trainbit           | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» UC                 | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» USS                | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» UrlTree            | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» VTencent           | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» Virtual            | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» WebDav             | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» WeiYun             | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» WoPan              | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
+| Â»Â» YandexDisk         | object   | true   | none   |           | none   |
+| Â»Â»Â» common           | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» additional       | [object] | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» type           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» default        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» options        | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» required       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» help           | string   | true   | none   |           | none   |
+| Â»Â»Â» config           | object   | true   | none   |           | none   |
+| Â»Â»Â»Â» name           | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» local_sort     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_local     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» only_proxy     | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_cache       | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» no_upload      | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» need_ms        | boolean  | true   | none   |           | none   |
+| Â»Â»Â»Â» default_root   | string   | true   | none   |           | none   |
+| Â»Â»Â»Â» alert          | string   | true   | none   |           | none   |
 
-## GET 列出驱动名列表
+## GET ććșé©±ćšććèĄš
 
 GET /api/admin/driver/names
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||token|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------- | ------ |
+| Authorization | header | string | æŻ    |           | token  |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -12540,34 +12431,34 @@ GET /api/admin/driver/names
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|状态码|
-|» message|string|true|none|信息|信息|
-|» data|[string]|true|none||none|
+| ćç§°     | ç±»ć   | ćżé | çșŠæ | äž­æć | èŻŽæ    |
+| ---------- | -------- | ------ | ------ | --------- | --------- |
+| Â» code    | integer  | true   | none   | ç¶æç  | ç¶æç  |
+| Â» message | string   | true   | none   | äżĄæŻ    | äżĄæŻ    |
+| Â» data    | [string] | true   | none   |           | none      |
 
-## GET 列出特定驱动信息
+## GET ććșçčćźé©±ćšäżĄæŻ
 
 GET /api/admin/driver/info
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|driver|query|string| 是 ||none|
-|Authorization|header|string| 是 ||token|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------- | ------ |
+| driver        | query  | string | æŻ    |           | none   |
+| Authorization | header | string | æŻ    |           | token  |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -12691,63 +12582,63 @@ GET /api/admin/driver/info
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|状态码|
-|» message|string|true|none|信息|信息|
-|» data|object|true|none||none|
-|»» common|[object]|true|none|通用配置|none|
-|»»» name|string|true|none|配置名|none|
-|»»» type|string|true|none|类型|none|
-|»»» default|string|true|none|默认值|none|
-|»»» options|string|true|none|选项|none|
-|»»» required|boolean|true|none|是否必须|none|
-|»»» help|string|true|none|帮助信息|none|
-|»» additional|[object]|true|none|额外配置|none|
-|»»» name|string|true|none|配置名|none|
-|»»» type|string|true|none|类型|none|
-|»»» default|string|true|none|默认值|none|
-|»»» options|string|true|none|选项|none|
-|»»» required|boolean|true|none|是否必须|none|
-|»»» help|string|true|none|帮助信息|none|
-|»» config|object|true|none|配置|none|
-|»»» name|string|true|none|配置名|none|
-|»»» local_sort|boolean|true|none|本地排序|none|
-|»»» only_local|boolean|true|none|仅本地|none|
-|»»» only_proxy|boolean|true|none|仅代理|none|
-|»»» no_cache|boolean|true|none|无缓存|none|
-|»»» no_upload|boolean|true|none|无上传|none|
-|»»» need_ms|boolean|true|none||none|
-|»»» default_root|string|true|none|默认基本路径|none|
-|»»» alert|string|true|none|警告信息|none|
+| ćç§°              | ç±»ć   | ćżé | çșŠæ | äž­æć          | èŻŽæ    |
+| ------------------- | -------- | ------ | ------ | ------------------ | --------- |
+| Â» code             | integer  | true   | none   | ç¶æç           | ç¶æç  |
+| Â» message          | string   | true   | none   | äżĄæŻ             | äżĄæŻ    |
+| Â» data             | object   | true   | none   |                    | none      |
+| Â»Â» common         | [object] | true   | none   | éçšéçœź       | none      |
+| Â»Â»Â» name         | string   | true   | none   | éçœźć          | none      |
+| Â»Â»Â» type         | string   | true   | none   | ç±»ć             | none      |
+| Â»Â»Â» default      | string   | true   | none   | é»èź€ćŒ          | none      |
+| Â»Â»Â» options      | string   | true   | none   | ééĄč             | none      |
+| Â»Â»Â» required     | boolean  | true   | none   | æŻćŠćżéĄ»       | none      |
+| Â»Â»Â» help         | string   | true   | none   | ćžźć©äżĄæŻ       | none      |
+| Â»Â» additional     | [object] | true   | none   | éąć€éçœź       | none      |
+| Â»Â»Â» name         | string   | true   | none   | éçœźć          | none      |
+| Â»Â»Â» type         | string   | true   | none   | ç±»ć             | none      |
+| Â»Â»Â» default      | string   | true   | none   | é»èź€ćŒ          | none      |
+| Â»Â»Â» options      | string   | true   | none   | ééĄč             | none      |
+| Â»Â»Â» required     | boolean  | true   | none   | æŻćŠćżéĄ»       | none      |
+| Â»Â»Â» help         | string   | true   | none   | ćžźć©äżĄæŻ       | none      |
+| Â»Â» config         | object   | true   | none   | éçœź             | none      |
+| Â»Â»Â» name         | string   | true   | none   | éçœźć          | none      |
+| Â»Â»Â» local_sort   | boolean  | true   | none   | æŹć°æćș       | none      |
+| Â»Â»Â» only_local   | boolean  | true   | none   | ä»æŹć°          | none      |
+| Â»Â»Â» only_proxy   | boolean  | true   | none   | ä»ä»Łç          | none      |
+| Â»Â»Â» no_cache     | boolean  | true   | none   | æ çŒć­          | none      |
+| Â»Â»Â» no_upload    | boolean  | true   | none   | æ äžäŒ           | none      |
+| Â»Â»Â» need_ms      | boolean  | true   | none   |                    | none      |
+| Â»Â»Â» default_root | string   | true   | none   | é»èź€ćșæŹè·ŻćŸ | none      |
+| Â»Â»Â» alert        | string   | true   | none   | è­ŠćäżĄæŻ       | none      |
 
 # admin/setting
 
-## GET 列出设置
+## GET ććșèźŸçœź
 
 GET /api/admin/setting/list
 
-包括永久令牌
+ćæŹæ°žäčä»€ç
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|groups|query|string| 否 ||5,0-其它设置，包括aria2和令牌等|
-|group|query|string| 否 ||1-站点；2-样式；3-预览；4-全局；7-单点登录|
-|Authorization|header|string| 否 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ                                                     |
+| ------------- | ------ | ------ | ------ | --------- | ---------------------------------------------------------- |
+| groups        | query  | string | ćŠ    |           | 5,0-ć¶ćźèźŸçœźïŒćæŹaria2ćä»€çç­                 |
+| group         | query  | string | ćŠ    |           | 1-ç«çčïŒ2-æ ·ćŒïŒ3-éąè§ïŒ4-ćšć±ïŒ7-ćçčç»ćœ |
+| Authorization | header | string | ćŠ    |           | none                                                       |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -12814,42 +12705,42 @@ GET /api/admin/setting/list
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|[object]|true|none||none|
-|»» key|string|true|none|键|none|
-|»» value|string|true|none|值|none|
-|»» help|string|true|none|帮助信息|none|
-|»» type|string|true|none|类型|string, number, bool, select|
-|»» options|string|true|none|选项|none|
-|»» group|integer|true|none|分组|用于前端分组|
-|»» flag|integer|true|none|标志|0 = public, 1 = private, 2 = readonly, 3 = deprecated|
+| ćç§°       | ç±»ć   | ćżé | çșŠæ | äž­æć    | èŻŽæ                                                |
+| ------------ | -------- | ------ | ------ | ------------ | ----------------------------------------------------- |
+| Â» code      | integer  | true   | none   | ç¶æç     | none                                                  |
+| Â» message   | string   | true   | none   | äżĄæŻ       | none                                                  |
+| Â» data      | [object] | true   | none   |              | none                                                  |
+| Â»Â» key     | string   | true   | none   | éź          | none                                                  |
+| Â»Â» value   | string   | true   | none   | ćŒ          | none                                                  |
+| Â»Â» help    | string   | true   | none   | ćžźć©äżĄæŻ | none                                                  |
+| Â»Â» type    | string   | true   | none   | ç±»ć       | string, number, bool, select                          |
+| Â»Â» options | string   | true   | none   | ééĄč       | none                                                  |
+| Â»Â» group   | integer  | true   | none   | ćç»       | çšäșćç«Żćç»                                    |
+| Â»Â» flag    | integer  | true   | none   | æ ćż       | 0 = public, 1 = private, 2 = readonly, 3 = deprecated |
 
-## GET 获取某项设置
+## GET è·ćæéĄčèźŸçœź
 
 GET /api/admin/setting/get
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|keys|query|string| 否 ||none|
-|key|query|string| 否 ||none|
-|Authorization|header|string| 否 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------- | ------ |
+| keys          | query  | string | ćŠ    |           | none   |
+| key           | query  | string | ćŠ    |           | none   |
+| Authorization | header | string | ćŠ    |           | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -12869,34 +12760,34 @@ GET /api/admin/setting/get
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|object|true|none||none|
-|»» key|string|true|none|键|none|
-|»» value|string|true|none|值|none|
-|»» help|string|true|none|帮助信息|none|
-|»» type|string|true|none|类型|string, number, bool, select|
-|»» options|string|true|none|选项|none|
-|»» group|integer|true|none|分组|none|
-|»» flag|integer|true|none|标志|0 = public, 1 = private, 2 = readonly, 3 = deprecated|
+| ćç§°       | ç±»ć  | ćżé | çșŠæ | äž­æć    | èŻŽæ                                                |
+| ------------ | ------- | ------ | ------ | ------------ | ----------------------------------------------------- |
+| Â» code      | integer | true   | none   | ç¶æç     | none                                                  |
+| Â» message   | string  | true   | none   | äżĄæŻ       | none                                                  |
+| Â» data      | object  | true   | none   |              | none                                                  |
+| Â»Â» key     | string  | true   | none   | éź          | none                                                  |
+| Â»Â» value   | string  | true   | none   | ćŒ          | none                                                  |
+| Â»Â» help    | string  | true   | none   | ćžźć©äżĄæŻ | none                                                  |
+| Â»Â» type    | string  | true   | none   | ç±»ć       | string, number, bool, select                          |
+| Â»Â» options | string  | true   | none   | ééĄč       | none                                                  |
+| Â»Â» group   | integer | true   | none   | ćç»       | none                                                  |
+| Â»Â» flag    | integer | true   | none   | æ ćż       | 0 = public, 1 = private, 2 = readonly, 3 = deprecated |
 
-## POST 保存设置
+## POST äżć­èźŸçœź
 
 POST /api/admin/setting/save
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 [
@@ -12975,14 +12866,14 @@ POST /api/admin/setting/save
 ]
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-|body|body|array[object]| 否 | 数组|none|
+| ćç§°        | äœçœź | ç±»ć        | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------------- | ------ | --------- | ------ |
+| Authorization | header | string        | æŻ    |           | none   |
+| body          | body   | array[object] | ćŠ    | æ°ç»    | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -12994,36 +12885,36 @@ POST /api/admin/setting/save
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
-## POST 删除设置
+## POST ć é€èźŸçœź
 
 POST /api/admin/setting/delete
 
-仅用于弃用的设置
+ä»çšäșćŒçšçèźŸçœź
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|key|query|string| 是 ||none|
-|Authorization|header|string| 是 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------- | ------ |
+| key           | query  | string | æŻ    |           | none   |
+| Authorization | header | string | æŻ    |           | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -13031,25 +12922,25 @@ POST /api/admin/setting/delete
 {}
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-## POST 重置令牌
+## POST éçœźä»€ç
 
 POST /api/admin/setting/reset_token
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 否 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------- | ------ |
+| Authorization | header | string | ćŠ    |           | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -13061,27 +12952,27 @@ POST /api/admin/setting/reset_token
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|string|true|none|新令牌|none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | string  | true   | none   | æ°ä»€ç | none   |
 
-## POST 设置aria2
+## POST èźŸçœźaria2
 
 POST /api/admin/setting/set_aria2
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
@@ -13090,16 +12981,16 @@ POST /api/admin/setting/set_aria2
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-|body|body|object| 否 ||none|
-|» uri|body|string| 是 | aria2地址|none|
-|» secret|body|string| 是 | aria2密钥|none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć   | èŻŽæ |
+| ------------- | ------ | ------ | ------ | ----------- | ------ |
+| Authorization | header | string | æŻ    |             | none   |
+| body          | body   | object | ćŠ    |             | none   |
+| Â» uri        | body   | string | æŻ    | aria2ć°ć | none   |
+| Â» secret     | body   | string | æŻ    | aria2ćŻé„ | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -13111,27 +13002,27 @@ POST /api/admin/setting/set_aria2
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|string|true|none|aria2版本|none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć   | èŻŽæ |
+| ---------- | ------- | ------ | ------ | ----------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç    | none   |
+| Â» message | string  | true   | none   | äżĄæŻ      | none   |
+| Â» data    | string  | true   | none   | aria2çæŹ | none   |
 
-## POST 设置qBittorrent
+## POST èźŸçœźqBittorrent
 
 POST /api/admin/setting/set_qbit
 
-> Body 请求参数
+> Body èŻ·æ±ćæ°
 
 ```json
 {
@@ -13140,16 +13031,16 @@ POST /api/admin/setting/set_qbit
 }
 ```
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-|body|body|object| 否 ||none|
-|» url|body|string| 是 | qBittorrent链接|none|
-|» seedtime|body|string| 是 | 做种时间|none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć         | èŻŽæ |
+| ------------- | ------ | ------ | ------ | ----------------- | ------ |
+| Authorization | header | string | æŻ    |                   | none   |
+| body          | body   | object | ćŠ    |                   | none   |
+| Â» url        | body   | string | æŻ    | qBittorrentéŸæ„ | none   |
+| Â» seedtime   | body   | string | æŻ    | ćç§æ¶éŽ      | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -13161,89 +13052,35 @@ POST /api/admin/setting/set_qbit
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|string|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | string  | true   | none   |           | none   |
 
 # admin/task/upload
 
-## POST 获取任务信息
-
-POST /api/admin/task/upload/info
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|tid|query|string| 否 ||任务id|
-|Authorization|header|string| 是 ||none|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-    "code": 200,
-    "message": "success",
-    "data": [
-        {
-            "id": "1",
-            "name": "upload 1.png to [/s](/test)",
-            "state": "succeeded",
-            "status": "",
-            "progress": 100,
-            "error": ""
-        }
-    ]
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|[object]|true|none||none|
-|»» id|string|false|none|id|none|
-|»» name|string|false|none|任务名|none|
-|»» state|string|false|none|任务完成状态|none|
-|»» status|string|false|none||none|
-|»» progress|integer|false|none|进度|none|
-|»» error|string|false|none|错误信息|none|
-
-## GET 获取已完成任务
+## GET è·ćć·Čćźæä»»ćĄ
 
 GET /api/admin/task/upload/done
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------- | ------ |
+| Authorization | header | string | æŻ    |           | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -13264,39 +13101,93 @@ GET /api/admin/task/upload/done
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|[object]|true|none||none|
-|»» id|string|false|none|id|none|
-|»» name|string|false|none|任务名|none|
-|»» state|string|false|none|任务完成状态|none|
-|»» status|string|false|none||none|
-|»» progress|integer|false|none|进度|none|
-|»» error|string|false|none|错误信息|none|
+| ćç§°        | ç±»ć   | ćżé | çșŠæ | äž­æć          | èŻŽæ |
+| ------------- | -------- | ------ | ------ | ------------------ | ------ |
+| Â» code       | integer  | true   | none   | ç¶æç           | none   |
+| Â» message    | string   | true   | none   | äżĄæŻ             | none   |
+| Â» data       | [object] | true   | none   |                    | none   |
+| Â»Â» id       | string   | false  | none   | id                 | none   |
+| Â»Â» name     | string   | false  | none   | ä»»ćĄć          | none   |
+| Â»Â» state    | string   | false  | none   | ä»»ćĄćźæç¶æ | none   |
+| Â»Â» status   | string   | false  | none   |                    | none   |
+| Â»Â» progress | integer  | false  | none   | èżćșŠ             | none   |
+| Â»Â» error    | string   | false  | none   | éèŻŻäżĄæŻ       | none   |
 
-## GET 获取未完成任务
+## POST è·ćä»»ćĄäżĄæŻ
+
+POST /api/admin/task/upload/info
+
+### èŻ·æ±ćæ°
+
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ   |
+| ------------- | ------ | ------ | ------ | --------- | -------- |
+| tid           | query  | string | ćŠ    |           | ä»»ćĄid |
+| Authorization | header | string | æŻ    |           | none     |
+
+> èżćç€șäŸ
+
+> 200 Response
+
+```json
+{
+    "code": 200,
+    "message": "success",
+    "data": [
+        {
+            "id": "1",
+            "name": "upload 1.png to [/s](/test)",
+            "state": "succeeded",
+            "status": "",
+            "progress": 100,
+            "error": ""
+        }
+    ]
+}
+```
+
+### èżćç»æ
+
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
+
+### èżćæ°æźç»æ
+
+ç¶æç  **200**
+
+| ćç§°        | ç±»ć   | ćżé | çșŠæ | äž­æć          | èŻŽæ |
+| ------------- | -------- | ------ | ------ | ------------------ | ------ |
+| Â» code       | integer  | true   | none   | ç¶æç           | none   |
+| Â» message    | string   | true   | none   | äżĄæŻ             | none   |
+| Â» data       | [object] | true   | none   |                    | none   |
+| Â»Â» id       | string   | false  | none   | id                 | none   |
+| Â»Â» name     | string   | false  | none   | ä»»ćĄć          | none   |
+| Â»Â» state    | string   | false  | none   | ä»»ćĄćźæç¶æ | none   |
+| Â»Â» status   | string   | false  | none   |                    | none   |
+| Â»Â» progress | integer  | false  | none   | èżćșŠ             | none   |
+| Â»Â» error    | string   | false  | none   | éèŻŻäżĄæŻ       | none   |
+
+## GET è·ćæȘćźæä»»ćĄ
 
 GET /api/admin/task/upload/undone
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------- | ------ |
+| Authorization | header | string | æŻ    |           | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -13317,40 +13208,40 @@ GET /api/admin/task/upload/undone
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|[object]|true|none||none|
-|»» id|string|false|none|id|none|
-|»» name|string|false|none|任务名|none|
-|»» state|string|false|none|任务完成状态|none|
-|»» status|string|false|none||none|
-|»» progress|integer|false|none|进度|none|
-|»» error|string|false|none|错误信息|none|
+| ćç§°        | ç±»ć   | ćżé | çșŠæ | äž­æć          | èŻŽæ |
+| ------------- | -------- | ------ | ------ | ------------------ | ------ |
+| Â» code       | integer  | true   | none   | ç¶æç           | none   |
+| Â» message    | string   | true   | none   | äżĄæŻ             | none   |
+| Â» data       | [object] | true   | none   |                    | none   |
+| Â»Â» id       | string   | false  | none   | id                 | none   |
+| Â»Â» name     | string   | false  | none   | ä»»ćĄć          | none   |
+| Â»Â» state    | string   | false  | none   | ä»»ćĄćźæç¶æ | none   |
+| Â»Â» status   | string   | false  | none   |                    | none   |
+| Â»Â» progress | integer  | false  | none   | èżćșŠ             | none   |
+| Â»Â» error    | string   | false  | none   | éèŻŻäżĄæŻ       | none   |
 
-## POST 删除任务
+## POST ć é€ä»»ćĄ
 
 POST /api/admin/task/upload/delete
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|tid|query|string| 是 ||任务id|
-|Authorization|header|string| 是 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ   |
+| ------------- | ------ | ------ | ------ | --------- | -------- |
+| tid           | query  | string | æŻ    |           | ä»»ćĄid |
+| Authorization | header | string | æŻ    |           | none     |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -13362,34 +13253,34 @@ POST /api/admin/task/upload/delete
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
-## POST 取消任务
+## POST ćæ¶ä»»ćĄ
 
 POST /api/admin/task/upload/cancel
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|tid|query|string| 是 ||任务id|
-|Authorization|header|string| 是 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ   |
+| ------------- | ------ | ------ | ------ | --------- | -------- |
+| tid           | query  | string | æŻ    |           | ä»»ćĄid |
+| Authorization | header | string | æŻ    |           | none     |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -13401,34 +13292,34 @@ POST /api/admin/task/upload/cancel
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
-## POST 重试任务
+## POST éèŻä»»ćĄ
 
 POST /api/admin/task/upload/retry
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|tid|query|string| 是 ||任务id|
-|Authorization|header|string| 是 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ   |
+| ------------- | ------ | ------ | ------ | --------- | -------- |
+| tid           | query  | string | æŻ    |           | ä»»ćĄid |
+| Authorization | header | string | æŻ    |           | none     |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -13440,33 +13331,33 @@ POST /api/admin/task/upload/retry
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
-## POST 清除已完成任务
+## POST æžé€ć·Čćźæä»»ćĄ
 
 POST /api/admin/task/upload/clear_done
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------- | ------ |
+| Authorization | header | string | æŻ    |           | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -13478,33 +13369,33 @@ POST /api/admin/task/upload/clear_done
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
-## POST 清除已成功任务
+## POST æžé€ć·Čæćä»»ćĄ
 
 POST /api/admin/task/upload/clear_succeeded
 
-### 请求参数
+### èŻ·æ±ćæ°
 
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
+| ćç§°        | äœçœź | ç±»ć | ćżé | äž­æć | èŻŽæ |
+| ------------- | ------ | ------ | ------ | --------- | ------ |
+| Authorization | header | string | æŻ    |           | none   |
 
-> 返回示例
+> èżćç€șäŸ
 
 > 200 Response
 
@@ -13516,1035 +13407,21 @@ POST /api/admin/task/upload/clear_succeeded
 }
 ```
 
-### 返回结果
+### èżćç»æ
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+| ç¶æç  | ç¶æç ć«äč                                         | èŻŽæ | æ°æźæšĄć |
+| --------- | ------------------------------------------------------- | ------ | ------------ |
+| 200       | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none   | Inline       |
 
-### 返回数据结构
+### èżćæ°æźç»æ
 
-状态码 **200**
+ç¶æç  **200**
 
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none|状态码|none|
-|» message|string|true|none|信息|none|
-|» data|null|true|none||none|
+| ćç§°     | ç±»ć  | ćżé | çșŠæ | äž­æć | èŻŽæ |
+| ---------- | ------- | ------ | ------ | --------- | ------ |
+| Â» code    | integer | true   | none   | ç¶æç  | none   |
+| Â» message | string  | true   | none   | äżĄæŻ    | none   |
+| Â» data    | null    | true   | none   |           | none   |
 
-# admin/tag
-
-## GET 标签列表
-
-GET /api/admin/label/list
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|page|query|integer| 否 ||页数|
-|per_page|query|integer| 否 ||每页数量|
-|Authorization|header|string| 否 ||none|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-  "code": 0,
-  "message": "string",
-  "data": {
-    "content": [
-      {
-        "id": 0,
-        "type": 0,
-        "name": "string",
-        "description": "string",
-        "bg_color": "string",
-        "create_time": "string"
-      }
-    ],
-    "total": 0
-  }
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» message|string|true|none||none|
-|» data|object|true|none||none|
-|»» content|[object]|true|none||none|
-|»»» id|integer|true|none||none|
-|»»» type|integer|true|none||标签类型，预留字段|
-|»»» name|string|true|none||标签名称|
-|»»» description|string|true|none||标签描述|
-|»»» bg_color|string|true|none||标签颜色|
-|»»» create_time|string|true|none||创建时间|
-|»» total|integer|true|none||总数量|
-
-## POST 创建标签
-
-POST /api/admin/label/create
-
-> Body 请求参数
-
-```json
-{
-  "name": "string",
-  "type": 0,
-  "description": "string",
-  "bg_color": "string"
-}
-```
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 否 ||none|
-|body|body|object| 否 ||none|
-|» name|body|string| 是 ||标签名称|
-|» type|body|integer| 否 ||预留字段，标签类型，暂时不必传|
-|» description|body|string| 否 ||标签描述|
-|» bg_color|body|string| 否 ||标签颜色|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-  "code": 0,
-  "message": "string",
-  "data": {
-    "id": 0
-  }
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» message|string|true|none||none|
-|» data|object|true|none||none|
-|»» id|integer|true|none||标签id|
-
-## POST 修改标签
-
-POST /api/admin/label/update
-
-> Body 请求参数
-
-```json
-{
-  "id": 0,
-  "name": "string",
-  "type": "string",
-  "description": "string",
-  "bg_color": "string"
-}
-```
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 否 ||none|
-|body|body|object| 否 ||none|
-|» id|body|integer| 是 ||标签id|
-|» name|body|string| 是 ||标签名称|
-|» type|body|string| 否 ||预留字段，标签类型，暂时不必传|
-|» description|body|string| 否 ||标签描述|
-|» bg_color|body|string| 是 ||标签颜色|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-  "code": 0,
-  "message": "string",
-  "data": {
-    "id": 0,
-    "type": 0,
-    "name": "string",
-    "create_time": "string"
-  }
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» message|string|true|none||none|
-|» data|object|true|none||none|
-|»» id|integer|true|none||none|
-|»» type|integer|true|none||none|
-|»» name|string|true|none||none|
-|»» create_time|string|true|none||none|
-
-## GET 标签详情
-
-GET /api/admin/label/get
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|id|query|string| 否 ||标签id|
-|Authorization|header|string| 否 ||none|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-  "code": 0,
-  "message": "string",
-  "data": {
-    "id": 0,
-    "type": 0,
-    "name": "string",
-    "create_time": "string"
-  }
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» message|string|true|none||none|
-|» data|object|true|none||none|
-|»» id|integer|true|none||none|
-|»» type|integer|true|none||none|
-|»» name|string|true|none||none|
-|»» create_time|string|true|none||none|
-
-## POST 删除标签
-
-POST /api/admin/label/delete
-
-> Body 请求参数
-
-```json
-{
-  "id": "string"
-}
-```
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 否 ||none|
-|body|body|object| 否 ||none|
-|» id|body|string| 是 ||标签Id|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-  "code": 0,
-  "message": "string",
-  "data": null
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» message|string|true|none||none|
-|» data|null|true|none||none|
-
-## POST 文件绑定标签
-
-POST /api/admin/label_file_binding/create
-
-> Body 请求参数
-
-```json
-{
-  "label_ids": "string",
-  "name": "string",
-  "id": "string",
-  "path": "string",
-  "size": 0,
-  "is_dir": true,
-  "modified": "string",
-  "created": "string",
-  "sign": "string",
-  "thumb": "string",
-  "type": 0,
-  "hashinfo": "string"
-}
-```
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 否 ||none|
-|body|body|object| 否 ||none|
-|» label_ids|body|string| 是 ||标签id，多个以英文逗号分隔|
-|» name|body|string| 是 ||文件名称|
-|» id|body|string| 是 ||none|
-|» path|body|string| 是 ||none|
-|» size|body|integer| 是 ||none|
-|» is_dir|body|boolean| 是 ||none|
-|» modified|body|string| 是 ||none|
-|» created|body|string| 是 ||none|
-|» sign|body|string| 是 ||none|
-|» thumb|body|string| 是 ||none|
-|» type|body|integer| 是 ||none|
-|» hashinfo|body|string| 是 ||none|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-  "code": 0,
-  "message": "string",
-  "data": {
-    "msg": "string"
-  }
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» message|string|true|none||none|
-|» data|object|true|none||none|
-|»» msg|string|true|none||none|
-
-## GET 根据文件名称获取对应标签
-
-GET /api/admin/label_file_binding/get
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|file_name|query|string| 否 ||文件名称|
-|Authorization|header|string| 否 ||none|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-  "code": 0,
-  "message": "string",
-  "data": [
-    {
-      "id": 0,
-      "type": 0,
-      "name": "string",
-      "create_time": "string"
-    }
-  ]
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» message|string|true|none||none|
-|» data|[object]|true|none||none|
-|»» id|integer|true|none||none|
-|»» type|integer|true|none||none|
-|»» name|string|true|none||none|
-|»» create_time|string|true|none||none|
-
-## POST 解除文件标签绑定关系
-
-POST /api/admin/label_file_binding/delete
-
-> Body 请求参数
-
-```json
-{
-  "label_id": "string",
-  "file_name": "string"
-}
-```
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 否 ||none|
-|body|body|object| 否 ||none|
-|» label_id|body|string| 是 ||标签id|
-|» file_name|body|string| 是 ||文件名称|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-    "code": 200,
-    "message": "success",
-    "data": null
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» message|string|true|none||none|
-|» data|null|true|none||none|
-
-## GET 根据标签获取文件信息
-
-GET /api/admin/label_file_binding/get_file_by_label
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|label_id|query|string| 否 ||多个逗号分隔|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-    "code": 200,
-    "message": "success",
-    "data": [
-        {
-            "id": "254070892733601",
-            "path": "/redis-desktop-manager-0.8.3-2550.dmg",
-            "name": "redis-desktop-manager-0.8.3-2550.dmg",
-            "size": 18295365,
-            "is_dir": false,
-            "modified": "2020-09-04T14:53:51+08:00",
-            "created": "2018-06-28T09:50:15+08:00",
-            "sign": "qbfCzvy-Fxi1SzUP8bpugeZHJNOHyE2Q5cq5NiYUup8=:0",
-            "thumb": "",
-            "type": 0,
-            "hashinfo": "{\"md5\":\"b72197247f28f34aab543d7eebd94c05\"}",
-            "label_list": [
-                {
-                    "id": 3,
-                    "type": 1,
-                    "name": "测试标签1",
-                    "description": "",
-                    "bg_color": "",
-                    "create_time": "2025-07-03T11:57:32.601095+08:00"
-                }
-            ]
-        },
-        {
-            "id": "103131660682597",
-            "path": "/Navicat15安装和破解.zip",
-            "name": "Navicat15安装和破解.zip",
-            "size": 73800750,
-            "is_dir": false,
-            "modified": "2022-06-27T13:21:43+08:00",
-            "created": "2020-04-30T13:53:16+08:00",
-            "sign": "SRqEXqJlqZadQ_9_Nd3KyYp8AmwT-oIpQfO_gGtK46A=:0",
-            "thumb": "",
-            "type": 0,
-            "hashinfo": "{\"md5\":\"06d2abbf9386c6cefe71ca59d56401b3\"}",
-            "label_list": [
-                {
-                    "id": 1,
-                    "type": 0,
-                    "name": "测试标签",
-                    "description": "",
-                    "bg_color": "",
-                    "create_time": "2025-07-03T15:48:03.994034+08:00"
-                }
-            ]
-        }
-    ]
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» message|string|true|none||none|
-|» data|[object]|true|none||none|
-|»» id|string|true|none||none|
-|»» path|string|true|none||none|
-|»» name|string|true|none||none|
-|»» size|integer|true|none||none|
-|»» is_dir|boolean|true|none||none|
-|»» modified|string|true|none||none|
-|»» created|string|true|none||none|
-|»» sign|string|true|none||none|
-|»» thumb|string|true|none||none|
-|»» type|integer|true|none||none|
-|»» hashinfo|string|true|none||none|
-|»» label_list|[object]|true|none||none|
-|»»» id|integer|true|none||none|
-|»»» type|integer|true|none||none|
-|»»» name|string|true|none||none|
-|»»» description|string|true|none||none|
-|»»» bg_color|string|true|none||none|
-|»»» create_time|string|true|none||none|
-
-## POST 批量设置文件标签
-
-POST /api/admin/label_file_binding/create_batch
-
-> Body 请求参数
-
-```json
-{
-    "items": [
-        {
-            "path": "/123",
-            "name": "20221226_210943.jpg",
-            "isDir": false,
-            "labelIdList": [
-                1,
-                2
-            ],
-            "size": 0,
-            "type": 0,
-            "modified": "2025-08-15T00:00:00Z",
-            "created": "2025-08-15T00:00:00Z",
-            "sign": "",
-            "thumb": "",
-            "hashInfoStr": ""
-        },
-        {
-            "path": "/123",
-            "name": "-517cde7417777ca9.jpg",
-            "isDir": false,
-            "labelIdList": [
-                1,
-                2
-            ],
-            "size": 0,
-            "type": 0,
-            "modified": "2025-08-15T00:00:00Z",
-            "created": "2025-08-15T00:00:00Z",
-            "sign": "",
-            "thumb": "",
-            "hashInfoStr": ""
-        }
-    ]
-}
-```
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-|body|body|object| 否 ||none|
-|» items|body|[object]| 是 ||none|
-|»» path|body|string| 是 ||none|
-|»» name|body|string| 是 ||none|
-|»» isDir|body|boolean| 是 ||none|
-|»» labelIdList|body|[integer]| 是 ||none|
-|»» size|body|integer| 是 ||none|
-|»» type|body|integer| 是 ||none|
-|»» modified|body|string| 是 ||none|
-|»» created|body|string| 是 ||none|
-|»» sign|body|string| 是 ||none|
-|»» thumb|body|string| 是 ||none|
-|»» hashInfoStr|body|string| 是 ||none|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-    "code": 200,
-    "message": "success",
-    "data": {
-        "failed": 0,
-        "results": [
-            {
-                "name": "20221226_210943.jpg",
-                "ok": true
-            },
-            {
-                "name": "-517cde7417777ca9.jpg",
-                "ok": true
-            }
-        ],
-        "succeed": 2,
-        "total": 2
-    }
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» message|string|true|none||none|
-|» data|object|true|none||none|
-|»» failed|integer|true|none||none|
-|»» results|[object]|true|none||none|
-|»»» name|string|true|none||none|
-|»»» ok|boolean|true|none||none|
-|»» succeed|integer|true|none||none|
-|»» total|integer|true|none||none|
-
-# admin/role
-
-## GET 获取角色列表
-
-GET /api/admin/role/list
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-    "code": 200,
-    "message": "success",
-    "data": {
-        "content": [
-            {
-                "id": 1,
-                "name": "guest",
-                "description": "Guest",
-                "permission_scopes": [
-                    {
-                        "path": "/",
-                        "permission": 0
-                    }
-                ]
-            },
-            {
-                "id": 2,
-                "name": "admin",
-                "description": "Administrator",
-                "permission_scopes": [
-                    {
-                        "path": "/",
-                        "permission": 12543
-                    }
-                ]
-            }
-        ],
-        "total": 2
-    }
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Success|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» message|string|true|none||none|
-|» data|object|true|none||none|
-|»» content|[object]|true|none||none|
-|»»» id|integer|true|none||none|
-|»»» name|string|true|none||none|
-|»»» description|string|true|none||none|
-|»»» permission_scopes|[object]|true|none||none|
-|»»»» path|string|true|none||none|
-|»»»» permission|integer|true|none||none|
-|»» total|integer|true|none||none|
-
-## GET 获取角色详情
-
-GET /api/admin/role/get
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|id|query|integer| 是 ||none|
-|Authorization|header|string| 是 ||none|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-    "code": 200,
-    "message": "success",
-    "data": {
-        "id": 1,
-        "name": "guest",
-        "description": "Guest",
-        "permission_scopes": [
-            {
-                "path": "/",
-                "permission": 0
-            }
-        ]
-    }
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Success|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» message|string|true|none||none|
-|» data|object|true|none||none|
-|»» id|integer|true|none||none|
-|»» name|string|true|none||none|
-|»» description|string|true|none||none|
-|»» permission_scopes|[object]|true|none||none|
-|»»» path|string|false|none||none|
-|»»» permission|integer|false|none||none|
-
-## POST 创建角色
-
-POST /api/admin/role/create
-
-> Body 请求参数
-
-```json
-{
-    "id": 1,
-    "name": "admin",
-    "description": "Administrator role",
-    "permission_scopes": [
-        {
-            "path": "/admin",
-            "permission": 7
-        }
-    ]
-}
-```
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 是 ||none|
-|body|body|object| 否 ||none|
-|» id|body|integer| 是 ||none|
-|» name|body|string| 是 ||none|
-|» description|body|string| 是 ||none|
-|» permission_scopes|body|[object]| 是 ||none|
-|»» path|body|string| 否 ||none|
-|»» permission|body|integer| 否 ||none|
-|» raw_permission|body|string| 否 ||none|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-    "code": 200,
-    "message": "success",
-    "data": null
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Created|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» message|string|true|none||none|
-|» data|null|true|none||none|
-
-## POST 更新角色
-
-POST /api/admin/role/update
-
-> Body 请求参数
-
-```json
-{
-    "id": 1,
-    "name": "admin",
-    "description": "Administrator role",
-    "permission_scopes": [
-        {
-            "path": "/admin",
-            "permission": 7
-        },
-        {
-            "path": "/admin",
-            "permission": 7
-        }
-    ]
-}
-```
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|Authorization|header|string| 否 ||none|
-|body|body|object| 否 ||none|
-|» id|body|integer| 是 ||none|
-|» name|body|string| 是 ||none|
-|» description|body|string| 是 ||none|
-|» permission_scopes|body|[object]| 是 ||none|
-|»» path|body|string| 是 ||none|
-|»» permission|body|integer| 是 ||none|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-    "code": 200,
-    "message": "success",
-    "data": null
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|{
-    "code": 200,
-    "message": "success",
-    "data": null
-}|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» message|string|true|none||none|
-|» data|null|true|none||none|
-
-## POST 删除角色
-
-POST /api/admin/role/delete
-
-> Body 请求参数
-
-```json
-{
-  "id": 0
-}
-```
-
-### 请求参数
-
-|名称|位置|类型|必选|中文名|说明|
-|---|---|---|---|---|---|
-|id|query|string| 是 ||none|
-|Authorization|header|string| 是 ||none|
-|body|body|object| 否 ||none|
-|» id|body|integer| 是 ||none|
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|{
-    "code": 200,
-    "message": "success",
-    "data": null
-}|None|
-
-# 数据模型
-
-<h2 id="tocS_PermissionEntry">PermissionEntry</h2>
-
-<a id="schemapermissionentry"></a>
-<a id="schema_PermissionEntry"></a>
-<a id="tocSpermissionentry"></a>
-<a id="tocspermissionentry"></a>
-
-```json
-{
-  "path": "/admin",
-  "permission": 7
-}
-
-```
-
-### 属性
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|path|string|false|none||none|
-|permission|integer|false|none||none|
-
-<h2 id="tocS_Role">Role</h2>
-
-<a id="schemarole"></a>
-<a id="schema_Role"></a>
-<a id="tocSrole"></a>
-<a id="tocsrole"></a>
-
-```json
-{
-  "id": 1,
-  "name": "admin",
-  "description": "Administrator role",
-  "permission_scopes": [
-    {
-      "path": "/admin",
-      "permission": 7
-    }
-  ],
-  "raw_permission": "[{\"path\":\"/admin\",\"permission\":7}]"
-}
-
-```
-
-### 属性
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|id|integer|false|none||none|
-|name|string|true|none||none|
-|description|string|false|none||none|
-|permission_scopes|[[PermissionEntry](#schemapermissionentry)]|false|none||none|
-|raw_permission|string|false|none||none|
+# æ°æźæšĄć
 
