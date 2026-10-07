@@ -62,7 +62,7 @@ impl<'a> super::Role<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`PageResp`](crate::schema::common::PageResp)`<`[`Role`](crate::schema::admin::role::Role)`>`。
+    /// [`PageResp`]`<`[`Role`]`>`。
     ///
     /// # Errors
     ///

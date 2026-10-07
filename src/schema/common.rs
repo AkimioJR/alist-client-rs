@@ -13,7 +13,7 @@
 //! { "code": 403, "message": "permission denied", "data": null }
 //! ```
 //!
-//! [`Client`](crate::Client::execute) 统一负责信封解码与状态检查。
+//! [`Client`](crate::Client) 统一负责信封解码与状态检查。
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 /// AList 标准 JSON 响应信封。
 ///
 /// 对应 `examples/alist/server/common/resp.go` 的 `Resp[T]`。
-/// [`Client`](crate::Client::execute) 用 [`serde_json::Value`] 解出 `data` 后再二次反序列化为端点模型，
+/// [`Client`](crate::Client) 用 [`serde_json::Value`] 解出 `data` 后再二次反序列化为端点模型，
 /// 因此 `data: null` 可以自然解码为 `()` 或 `Option<T>`。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Envelope<T> {

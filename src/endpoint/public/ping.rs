@@ -10,7 +10,7 @@
 ///
 /// 通过 [`Public::ping`](super::Public::ping) 创建。
 /// 本端点响应为纯文本，请使用 [`.send_text().await`](Request::send_text)；
-/// 构建器未实现 [`IntoFuture`](core::future::IntoFuture)，无法直接 `.await`。
+/// 构建器未实现 [`IntoFuture`]，无法直接 `.await`。
 #[must_use = "请求构建器不会自动发送请求，请调用 `.send_text().await`"]
 pub struct Request<'a> {
     client: &'a crate::Client,
@@ -24,7 +24,7 @@ impl<'a> Request<'a> {
         Self { client }
     }
 
-    /// 构建 `GET /ping` 请求；不含认证头（认证由 [`Client::execute_text`](crate::Client::execute_text)
+    /// 构建 `GET /ping` 请求；不含认证头（认证由 `Client::execute_text`
     /// 发送时注入）。语义与派生宏生成的 `build_request` 一致，`pub(crate)` 供端点模块与测试使用。
     #[inline]
     pub(crate) fn build_request(&self) -> reqwest::RequestBuilder {
@@ -33,7 +33,7 @@ impl<'a> Request<'a> {
 
     /// 发送 ping 请求并返回原始响应文本。
     ///
-    /// 正常情况下返回 `pong`。本方法走 [`Client::execute_text`](crate::Client::execute_text)：
+    /// 正常情况下返回 `pong`。本方法走 `Client::execute_text`：
     /// 与 JSON 端点一致地执行客户端限速、认证注入与 HTTP 状态检查，但**不做信封解码**，
     /// 响应体原样返回。
     ///

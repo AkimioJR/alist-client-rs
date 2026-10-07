@@ -1,7 +1,7 @@
 //! admin-user 端点：获取用户。
 //!
 //! 对应 `GET /api/admin/user/get`；以必选查询参数 `id` 指定用户，
-//! 响应 `data` 为单个用户对象（[`AdminUser`](crate::schema::admin::user::AdminUser)）。
+//! 响应 `data` 为单个用户对象（[`AdminUser`]）。
 
 use alist_client_derive::EndpointRequest;
 
@@ -48,7 +48,7 @@ impl<'a> super::User<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`AdminUser`](crate::schema::admin::user::AdminUser)。
+    /// [`AdminUser`]。
     ///
     /// # Errors
     ///

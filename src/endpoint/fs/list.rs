@@ -74,7 +74,7 @@ impl<'a> super::Fs<'a> {
     ///
     /// 对应 AList `POST /api/fs/list`；返回目录下的文件/目录条目、分页总数、
     /// 元信息（readme/header）、写权限与存储驱动名
-    /// （[`FsListResp`](crate::schema::fs::FsListResp)）。新版服务端额外返回
+    /// （[`FsListResp`]）。新版服务端额外返回
     /// `page`/`per_page`/`has_more`/`pages_total`/`filtered_total` 分页元信息，
     /// 老版本缺失时对应字段归约为零值。
     /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/fs/list` 与
@@ -88,7 +88,7 @@ impl<'a> super::Fs<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`FsListResp`](crate::schema::fs::FsListResp)。
+    /// [`FsListResp`]。
     ///
     /// 可选参数（链式 setter）：`password`（目录密码）、`page`（页码，从 1 开始）、
     /// `per_page`（每页条数，`-1` 表示全部）、`refresh`（强制刷新）。

@@ -2,7 +2,7 @@
 //!
 //! 对应 `POST /api/admin/label_file_binding/create`；成功时响应 `data` 为
 //! `{"msg":"添加成功！"}`，以
-//! [`CreateResp`](crate::schema::admin::label_file_binding::CreateResp) 作为端点模型。
+//! [`CreateResp`] 作为端点模型。
 //! 该分组未收录进 openapi 文档；路由见 `examples/alist/server/router.go:211`，
 //! 处理逻辑见 `examples/alist/server/handles/label_file_binding.go`
 //! （实现为 `handles.CreateLabelFileBinDing`，请求体为
@@ -104,7 +104,7 @@ impl<'a> super::LabelFileBinding<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`CreateResp`](crate::schema::admin::label_file_binding::CreateResp)。
+    /// [`CreateResp`]。
     ///
     /// # Errors
     ///

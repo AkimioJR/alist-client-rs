@@ -56,7 +56,7 @@ impl<'a> super::User<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`PageResp`](crate::schema::common::PageResp)`<`[`AdminUser`](crate::schema::admin::user::AdminUser)`>`。
+    /// [`PageResp`]`<`[`AdminUser`]`>`。
     ///
     /// # Errors
     ///

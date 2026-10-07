@@ -77,7 +77,7 @@ impl<'a> super::Fs<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// `Option<`[`CopyResp`](crate::schema::fs::CopyResp)`>`：
+    /// `Option<`[`CopyResp`]`>`：
     /// `Some` 携带后台复制任务列表（新版服务端），`None` 表示 `data` 为 `null`
     /// （无后台任务或老版本服务端）。
     ///

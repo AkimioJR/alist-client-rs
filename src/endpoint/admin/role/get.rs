@@ -47,7 +47,7 @@ impl<'a> super::Role<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`Role`](crate::schema::admin::role::Role)。
+    /// [`Role`]。
     ///
     /// # Errors
     ///

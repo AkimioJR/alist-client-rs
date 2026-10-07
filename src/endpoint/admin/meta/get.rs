@@ -1,7 +1,7 @@
 //! admin-meta 端点：获取元信息。
 //!
 //! 对应 `GET /api/admin/meta/get`；必选查询参数 `id`（元信息 ID），
-//! 响应 `data` 为单个 [`Meta`](crate::schema::admin::meta::Meta) 对象。
+//! 响应 `data` 为单个 [`Meta`] 对象。
 //! 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/admin/meta/get` 与
 //! `examples/alist/server/handles/meta.go`（`GetMeta` 经 `c.Query("id")` 取参）。
 

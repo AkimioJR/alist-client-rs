@@ -45,7 +45,7 @@ impl<'a> super::Fs<'a> {
     /// 获取单个文件/目录信息。
     ///
     /// 对应 AList `POST /api/fs/get`；返回对象详情
-    /// （[`FsGetResp`](crate::schema::fs::FsGetResp)）：名称、大小、时间、类型、
+    /// （[`FsGetResp`]）：名称、大小、时间、类型、
     /// 签名与哈希信息等基础字段（`obj`），外加直链 `raw_url`（目录恒为空串）、
     /// 元信息 `readme`/`header`、存储驱动 `provider`、是否 Web 代理 `web_proxy`
     /// 以及同目录同前缀的相关文件 `related`。
@@ -60,7 +60,7 @@ impl<'a> super::Fs<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`FsGetResp`](crate::schema::fs::FsGetResp)。
+    /// [`FsGetResp`]。
     ///
     /// # Errors
     ///

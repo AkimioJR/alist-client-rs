@@ -56,7 +56,7 @@ impl<'a> super::Archive<'a> {
     /// 对应 AList `POST /api/fs/archive/meta`；返回压缩包注释、是否加密、
     /// 递归文件树（`content[].children` 嵌套）、原始下载地址（`raw_url`）
     /// 与访问签名（`sign`）。压缩包密码错误时 AList 以信封 `code: 202`
-    /// 返回，[`Client::execute`](crate::Client::execute) 会将其转换为
+    /// 返回，`Client::execute` 会将其转换为
     /// [`Error::Api`](crate::Error::Api)。
     ///
     /// 数据来源：`examples/alist/server/router.go:246-248`
@@ -71,7 +71,7 @@ impl<'a> super::Archive<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`ArchiveMetaResp`](crate::schema::fs::ArchiveMetaResp)。
+    /// [`ArchiveMetaResp`]。
     ///
     /// # Errors
     ///

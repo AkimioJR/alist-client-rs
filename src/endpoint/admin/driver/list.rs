@@ -2,7 +2,7 @@
 //!
 //! 对应 `GET /api/admin/driver/list`；`data` 为「驱动名 → 驱动模板」映射。
 //! 驱动模板为异构复杂结构，按约定采用宽松模型
-//! [`DriverListResp`](crate::schema::admin::driver::DriverListResp)
+//! [`DriverListResp`]
 //! （`HashMap<String, serde_json::Value>`），条目的实际字段形状见
 //! [`crate::schema::admin::driver::DriverInfo`]。
 

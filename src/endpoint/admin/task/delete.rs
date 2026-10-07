@@ -11,7 +11,7 @@ use alist_client_derive::EndpointRequest;
 /// 删除上传任务请求构建器。
 ///
 /// 通过 [`Task::delete`](super::Task::delete) 创建。`tid` 为必选参数（经
-/// [`Request::new`] 传入，进 URL 查询串）；直接 `.await` 执行，
+/// `Request::new` 传入，进 URL 查询串）；直接 `.await` 执行，
 /// 或 [`.send().await`](Request::send) / [`.send_raw::<T>().await`](Request::send_raw)
 /// 自定义解码类型。
 #[derive(EndpointRequest)]

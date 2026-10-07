@@ -51,7 +51,7 @@ impl<'a> super::Label<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`Label`](crate::schema::admin::label::Label)。
+    /// [`Label`]。
     ///
     /// # Errors
     ///

@@ -226,11 +226,11 @@ impl<'a> Request<'a> {
     /// 附加上传头与原始字节请求体并发送。
     ///
     /// 直传成功（未启用 `as_task(true)`）时响应 `data` 为 `null`，返回 `None`；
-    /// 转后台任务时返回 [`UploadResp`](crate::schema::common::UploadResp)。
+    /// 转后台任务时返回 [`UploadResp`]。
     ///
     /// # Errors
     ///
-    /// 语义同 [`Client::execute`](crate::Client::execute)：当网络请求失败或
+    /// 语义同 `Client::execute`：当网络请求失败或
     /// AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200）时，
     /// 返回 [`crate::Error`]。注意：内存字节请求体可克隆，401/403 自动重登
     /// 重试可用；`stream` feature 的流式请求体无法克隆，401/403 自动重试

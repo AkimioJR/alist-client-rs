@@ -49,7 +49,7 @@ impl<'a> super::Public<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`PublicSettings`](crate::schema::public::PublicSettings)（`HashMap<String, String>`）。
+    /// [`PublicSettings`]（`HashMap<String, String>`）。
     ///
     /// # Errors
     ///

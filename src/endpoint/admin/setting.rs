@@ -6,6 +6,7 @@
 
 pub mod delete;
 pub mod get;
+pub mod get_by_keys;
 pub mod list;
 pub mod reset_token;
 pub mod save;
@@ -17,8 +18,6 @@ pub mod set_qbit;
 /// 作为设置端点方法的命名空间路由句柄，通过 [`Admin::setting`](super::Admin::setting) 获取。
 /// 本身不包含业务状态，无需单独声明变量持有，推荐通过链式调用直接使用。
 pub struct Setting<'a> {
-    // 端点文件实现后（此处读取 client 字段）应移除该 expect。
-    #[expect(dead_code)]
     client: &'a crate::Client,
 }
 

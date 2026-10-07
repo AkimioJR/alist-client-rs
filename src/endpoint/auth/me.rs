@@ -1,6 +1,6 @@
 //! auth 端点：获取当前用户信息。
 //!
-//! 对应 `GET /api/me`；无需请求体，返回 [`UserResp`]
+//! 对应 `GET /api/me`；无需请求体，返回 [`MeResp`]
 //! （`examples/alist/server/handles/auth.go:147-191` 的 `CurrentUser`）。
 //! 注意 Go 侧 `role` 为数组（`model.Roles []int`，user.go:33），而 openapi 示例
 //! 与老服务器返回单值 int，schema 层已做兼容；token 缺失时服务端返回游客信息。

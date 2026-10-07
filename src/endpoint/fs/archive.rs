@@ -12,8 +12,6 @@ pub mod meta;
 /// 通过 [`Fs::archive`](super::Fs::archive) 获取，例如
 /// `client.fs().archive().meta(...)`。
 pub struct Archive<'a> {
-    // 端点文件实现后（此处读取 client 字段）应移除该 expect。
-    #[expect(dead_code)]
     client: &'a crate::Client,
 }
 

@@ -15,8 +15,6 @@ pub mod update;
 /// 作为元信息端点方法的命名空间路由句柄，通过 [`Admin::meta`](super::Admin::meta) 获取。
 /// 本身不包含业务状态，无需单独声明变量持有，推荐通过链式调用直接使用。
 pub struct Meta<'a> {
-    // 端点文件实现后（此处读取 client 字段）应移除该 expect。
-    #[expect(dead_code)]
     client: &'a crate::Client,
 }
 

@@ -1,7 +1,7 @@
 //! admin-driver 端点：获取单个驱动详情。
 //!
 //! 对应 `GET /api/admin/driver/info`；查询参数 `driver` 指定目标驱动名，
-//! 响应 `data` 为该驱动的配置模板 [`DriverInfo`](crate::schema::admin::driver::DriverInfo)。
+//! 响应 `data` 为该驱动的配置模板 [`DriverInfo`]。
 
 use alist_client_derive::EndpointRequest;
 
@@ -10,7 +10,7 @@ use crate::schema::admin::driver::DriverInfo;
 /// 获取单个驱动详情请求构建器。
 ///
 /// 通过 [`Driver::info`](super::Driver::info) 创建。`driver` 为必选查询参数
-/// （只能经 [`Request::new`] 传入）；直接 `.await` 执行强类型解码，
+/// （只能经 `Request::new` 传入）；直接 `.await` 执行强类型解码，
 /// 或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]

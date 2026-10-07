@@ -13,7 +13,7 @@ use crate::schema::admin::task::TaskInfo;
 /// 查询单个上传任务请求构建器。
 ///
 /// 通过 [`Task::info`](super::Task::info) 创建。`tid` 为必选参数（经
-/// [`Request::new`] 传入，进 URL 查询串）；直接 `.await` 执行强类型解码，
+/// `Request::new` 传入，进 URL 查询串）；直接 `.await` 执行强类型解码，
 /// 或 [`.send().await`](Request::send) / [`.send_raw::<T>().await`](Request::send_raw)
 /// 自定义解码类型。
 #[derive(EndpointRequest)]
@@ -56,7 +56,7 @@ impl<'a> super::Task<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`TaskInfo`](crate::schema::admin::task::TaskInfo)。
+    /// [`TaskInfo`]。
     ///
     /// # Errors
     ///

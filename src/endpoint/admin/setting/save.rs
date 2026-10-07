@@ -3,7 +3,7 @@
 //! 对应 `POST /api/admin/setting/save`；请求体为设置项 **JSON 数组**（而非对象包装），
 //! 响应 `data` 为 `null`，以 `()` 作为端点模型。
 //!
-//! 由于 [`EndpointRequest`](alist_client_derive::EndpointRequest) 派生宏生成的请求体
+//! 由于 [`EndpointRequest`] 派生宏生成的请求体
 //! 固定为对象包装结构，本端点将载荷字段标记为 `#[endpoint(skip)]`，发送时经
 //! [`Request::send_settings`] 手动附加数组请求体（与上传特例同一处理方式，见 `docs/design.md` §4）；
 //! **请勿使用派生生成的 `send`/`.await`**——它们不携带请求体，服务端会因绑定空请求体而报错。

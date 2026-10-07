@@ -211,11 +211,11 @@ impl<'a> Request<'a> {
     /// multipart 文件字段名为 `file`；`Content-Length` 由 reqwest 按表单总长度
     /// 自动携带。直传成功（未启用 `as_task(true)`）时响应 `data` 为 `null`，
     /// 返回 `None`；转后台任务时返回
-    /// [`UploadResp`](crate::schema::common::UploadResp)。
+    /// [`UploadResp`]。
     ///
     /// # Errors
     ///
-    /// 语义同 [`Client::execute`](crate::Client::execute)：当网络请求失败或
+    /// 语义同 `Client::execute`：当网络请求失败或
     /// AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200）时，
     /// 返回 [`crate::Error`]。注意：multipart 请求体无法克隆，401/403 自动
     /// 重登重试不可用，将直接返回原始错误（见 `docs/design.md` §8）。

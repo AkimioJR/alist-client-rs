@@ -7,7 +7,7 @@
 //! - **归档（archive）**：压缩包元信息、内部列表与解压（`/api/fs/archive/*`），
 //!   模型供归档端点代理直接复用；
 //! - **上传（upload）**：`PUT /api/fs/put` / `PUT /api/fs/form` 的响应模型
-//!   [`UploadResp`](crate::schema::common::UploadResp)（上传请求载荷全部位于
+//!   [`UploadResp`]（上传请求载荷全部位于
 //!   HTTP 头与原始 body，无 JSON 请求模型）。
 //!
 //! 字段形状的数据来源（与 Go 源码冲突时以 Go 为准）：
@@ -236,7 +236,7 @@ pub struct DirResp {
 ///
 /// 对应 `examples/alist/server/handles/fsread.go` 的 `FsGetResp`（fsread.go:346-354），
 /// 即 `/api/fs/get` 响应 `data`；Go 侧嵌入 `ObjResp`（JSON 平铺），
-/// 此处以 [`serde(flatten)`] 复用 [`ObjResp`]。
+/// 此处以 `serde(flatten)` 复用 [`ObjResp`]。
 /// `web_proxy` 为新版服务端字段（老版本缺失归约为 `false`）；
 /// `related` 为同目录下同前缀的相关文件，无相关文件时服务端返回 `null`。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

@@ -2,9 +2,9 @@
 //!
 //! 对应 `POST /api/admin/label_file_binding/create_batch`；请求体为
 //! `{"items":[...]}`（每项形状见
-//! [`CreateItem`](crate::schema::admin::label_file_binding::CreateItem)），
+//! [`CreateItem`]），
 //! 响应 `data` 为 `{"total":...,"succeed":...,"failed":...,"results":[...]}`，
-//! 以 [`CreateBatchResp`](crate::schema::admin::label_file_binding::CreateBatchResp)
+//! 以 [`CreateBatchResp`]
 //! 作为端点模型。该分组未收录进 openapi 文档；路由见
 //! `examples/alist/server/router.go:212`，处理逻辑见
 //! `examples/alist/server/handles/label_file_binding.go:208`
@@ -51,7 +51,7 @@ impl<'a> super::LabelFileBinding<'a> {
     ///
     /// 对应 AList `POST /api/admin/label_file_binding/create_batch`；成功时响应
     /// `data` 为总数/成功数/失败数与逐项结果
-    /// （[`CreateBatchResp`](crate::schema::admin::label_file_binding::CreateBatchResp)）。
+    /// （[`CreateBatchResp`]）。
     /// 数据来源：`examples/alist/server/router.go:212`（路由注册）与
     /// `examples/alist/server/handles/label_file_binding.go:208`
     /// （实现为 `handles.CreateLabelFileBinDingBatch`）。
@@ -63,7 +63,7 @@ impl<'a> super::LabelFileBinding<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`CreateBatchResp`](crate::schema::admin::label_file_binding::CreateBatchResp)。
+    /// [`CreateBatchResp`]。
     ///
     /// # Errors
     ///

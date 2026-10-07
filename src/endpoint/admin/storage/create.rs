@@ -112,7 +112,7 @@ impl<'a> super::Storage<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`StorageCreateResp`](crate::schema::admin::storage::StorageCreateResp)
+    /// [`StorageCreateResp`]
     /// （新存储的 ID）。
     ///
     /// # Errors

@@ -2,8 +2,8 @@
 //!
 //! 对应 `POST /api/fs/archive/list`；响应 `data` 为
 //! `{content: [...], total: N}` 分页形状（共享模型
-//! [`PageResp`](crate::schema::common::PageResp)，元素为
-//! [`ObjResp`](crate::schema::fs::ObjResp)）。该端点未收录于
+//! [`PageResp`]，元素为
+//! [`ObjResp`]）。该端点未收录于
 //! `docs/api/alistv3.openapi.yaml`，请求/响应形状以
 //! `examples/alist/server/handles/archive.go` 的 `ArchiveListReq`/`ArchiveListResp`
 //! （archive.go:147-156）为准；分页字段与 `internal/model/req.go` 的

@@ -69,7 +69,7 @@ impl<'a> super::Fs<'a> {
     /// 对应 AList `POST /api/fs/add_offline_download`；为 `urls` 中的每个链接
     /// 使用 `tool` 创建离线下载任务，下载到临时目录后转存到 `path`。
     /// 成功时响应 `data` 为 `{"tasks": [TaskInfo]}` 任务数组
-    /// （[`OfflineDownloadResp`](crate::schema::fs::OfflineDownloadResp)；
+    /// （[`OfflineDownloadResp`]；
     /// 每个 URL 至多一个任务，单个 URL 创建失败会直接报错）。
     /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/fs/add_offline_download`
     /// 与 `examples/alist/server/handles/offline_download.go`（实现为
@@ -87,7 +87,7 @@ impl<'a> super::Fs<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`OfflineDownloadResp`](crate::schema::fs::OfflineDownloadResp)。
+    /// [`OfflineDownloadResp`]。
     ///
     /// # Errors
     ///

@@ -49,7 +49,7 @@ impl<'a> super::LabelFileBinding<'a> {
     /// 按文件名查询绑定的标签。
     ///
     /// 对应 AList `GET /api/label_file_binding/get`；成功时响应 `data` 为
-    /// [`Label`](crate::schema::admin::label_file_binding::Label) 数组，
+    /// [`Label`] 数组，
     /// 文件未绑定任何标签时为 `null`（解码为 `None`）。
     /// 数据来源：`examples/alist/server/router.go:262`（路由注册）与
     /// `examples/alist/server/handles/label_file_binding.go:32`

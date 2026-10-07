@@ -1,7 +1,7 @@
 //! admin-storage 端点：查询单个存储。
 //!
 //! 对应 `GET /api/admin/storage/get`；按 `id` 查询参数获取存储详情，
-//! 响应 `data` 为单个 [`Storage`](crate::schema::admin::storage::Storage)。
+//! 响应 `data` 为单个 [`Storage`]。
 
 use alist_client_derive::EndpointRequest;
 
@@ -47,7 +47,7 @@ impl<'a> super::Storage<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`Storage`](crate::schema::admin::storage::Storage)。
+    /// [`Storage`]。
     ///
     /// # Errors
     ///

@@ -1,7 +1,7 @@
 //! admin-driver 端点：列出驱动名称。
 //!
 //! 对应 `GET /api/admin/driver/names`；`data` 为已注册驱动的名称数组
-//! [`DriverNamesResp`](crate::schema::admin::driver::DriverNamesResp)
+//! [`DriverNamesResp`]
 //! （`Vec<String>`）。
 
 use alist_client_derive::EndpointRequest;

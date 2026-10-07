@@ -139,7 +139,7 @@ pub struct CreateItem {
     /// 缩略图链接（可选）。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub thumb: Option<String>,
-    /// 文件类型枚举值（可选；取值含义见 [`ObjLabelResp::r#type`]）。
+    /// 文件类型枚举值（可选；取值含义见 [`ObjLabelResp`] 的 `type` 字段）。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub r#type: Option<i32>,
     /// 哈希信息字符串（可选；JSON 键为 `hashinfo`，对应 Go `HashInfoStr`）。

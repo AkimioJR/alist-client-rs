@@ -69,7 +69,7 @@ impl<'a> super::Label<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`Label`](crate::schema::admin::label::Label)。
+    /// [`Label`]。
     /// 可选字段（标签类型 `type`、描述 `description`、背景色 `bg_color`）
     /// 通过 [`Request`] 的链式 setter 设置。
     ///
