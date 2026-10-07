@@ -1,38 +1,44 @@
-//! Error types for AList API responses and client-side failures.
+//! AList 客户端错误类型。
+//!
+//! AList 的 JSON 信封（`code`/`message`/`data`）承载业务状态码，HTTP 状态码仅反映传输层结果，
+//! 因此错误分类同时覆盖两个层面：[`Error::HttpStatus`]（HTTP 非 2xx）与
+//! [`Error::Api`]（HTTP 200 但信封 `code` 非 200）。
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use thiserror::Error;
 
-/// AList logical status codes carried in the JSON response envelope.
+/// AList JSON 信封中的逻辑状态码。
+///
+/// 参考实现见 `examples/alist/server/common/resp.go` 与 `internal/errs`。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ApiStatusCode {
-    /// Successful response.
+    /// 成功响应（信封 `code` 为 `200` 或 `0`）。
     Ok,
-    /// Archive password is wrong or archive metadata is not ready.
+    /// 归档密码错误或归档元信息尚未就绪（`202`）。
     Accepted,
-    /// Bad request or validation error.
+    /// 请求参数或校验错误（`400`）。
     BadRequest,
-    /// Authentication required or token invalid.
+    /// 需要认证或 token 无效（`401`）。
     Unauthorized,
-    /// 2FA code required/invalid in login flow.
+    /// 登录流程中需要/校验失败的两步验证码（`402`）。
     TwoFactor,
-    /// Permission denied.
+    /// 权限不足（`403`）。
     Forbidden,
-    /// Resource not found.
+    /// 资源不存在（`404`）。
     NotFound,
-    /// Method or operation not allowed.
+    /// 方法或操作不被允许（`405`）。
     MethodNotAllowed,
-    /// Login throttled.
+    /// 登录请求被限流（`429`）。
     TooManyRequests,
-    /// Server-side error.
+    /// 服务端内部错误（`500`）。
     InternalServerError,
-    /// Any server code not known to this client version.
+    /// 当前客户端版本未知的其他状态码。
     Unknown(i32),
 }
 
 impl ApiStatusCode {
-    /// Convert a raw AList response code into a typed status.
+    /// 将 AList 信封中的原始状态码转换为类型化状态。
     pub fn from_code(code: i32) -> Self {
         match code {
             0 | 200 => Self::Ok,
@@ -49,7 +55,7 @@ impl ApiStatusCode {
         }
     }
 
-    /// Return the numeric code used by AList.
+    /// 返回 AList 使用的数字状态码。
     pub fn as_i32(self) -> i32 {
         match self {
             Self::Ok => 200,
@@ -66,7 +72,7 @@ impl ApiStatusCode {
         }
     }
 
-    /// Whether this code represents a successful API response.
+    /// 该状态码是否表示成功的 API 响应。
     pub fn is_success(self) -> bool {
         matches!(self, Self::Ok)
     }
@@ -78,72 +84,73 @@ impl From<i32> for ApiStatusCode {
     }
 }
 
-/// Stable names for constant errors in `alist/internal/errs`.
+/// `alist/internal/errs` 中常量错误信息的稳定命名。
+///
+/// AList 响应不携带符号化错误 ID，因此只能按 `internal/errs` 的常量文本做子串匹配分类。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum InternalErrorKind {
-    /// `not implement`.
+    /// `not implement`。
     NotImplement,
-    /// `not support`.
+    /// `not support`。
     NotSupport,
-    /// `access using relative path is not allowed`.
+    /// `access using relative path is not allowed`。
     RelativePath,
-    /// `can't move files between two storages, try to copy`.
+    /// `can't move files between two storages, try to copy`。
     MoveBetweenTwoStorages,
-    /// `upload not supported`.
+    /// `upload not supported`。
     UploadNotSupported,
-    /// `meta not found`.
+    /// `meta not found`。
     MetaNotFound,
-    /// `storage not found`.
+    /// `storage not found`。
     StorageNotFound,
-    /// `upload/download stream incomplete, possible network issue`.
+    /// `upload/download stream incomplete, possible network issue`。
     StreamIncomplete,
-    /// `StreamPeekFail`.
+    /// `StreamPeekFail`。
     StreamPeekFail,
-    /// `unknown archive format`.
+    /// `unknown archive format`。
     UnknownArchiveFormat,
-    /// `wrong archive password`.
+    /// `wrong archive password`。
     WrongArchivePassword,
-    /// `driver extraction not supported`.
+    /// `driver extraction not supported`。
     DriverExtractNotSupported,
-    /// `object not found`.
+    /// `object not found`。
     ObjectNotFound,
-    /// `not a folder`.
+    /// `not a folder`。
     NotFolder,
-    /// `not a file`.
+    /// `not a file`。
     NotFile,
-    /// `username is empty`.
+    /// `username is empty`。
     EmptyUsername,
-    /// `password is empty`.
+    /// `password is empty`。
     EmptyPassword,
-    /// `password is incorrect`.
+    /// `password is incorrect`。
     WrongPassword,
-    /// `cannot delete admin or guest`.
+    /// `cannot delete admin or guest`。
     DeleteAdminOrGuest,
-    /// `search not available`.
+    /// `search not available`。
     SearchNotAvailable,
-    /// `build index is running, please try later`.
+    /// `build index is running, please try later`。
     BuildIndexIsRunning,
-    /// `permission denied`.
+    /// `permission denied`。
     PermissionDenied,
-    /// `invalid file name`.
+    /// `invalid file name`。
     InvalidName,
-    /// `empty token`.
+    /// `empty token`。
     EmptyToken,
-    /// `link is dir`.
+    /// `link is dir`。
     LinkIsDir,
-    /// `cannot modify admin role`.
+    /// `cannot modify admin role`。
     ErrChangeDefaultRole,
-    /// `too many active devices`.
+    /// `too many active devices`。
     TooManyDevices,
-    /// `session inactive`.
+    /// `session inactive`。
     SessionInactive,
 }
 
 impl InternalErrorKind {
-    /// Classify an AList error message by matching the constant error text.
+    /// 按常量错误文本对 AList 的错误消息做尽力分类。
     ///
-    /// AList responses do not include a symbolic error id, so this intentionally
-    /// matches exact substrings from `alist/internal/errs`.
+    /// 匹配规则为大小写不敏感的子串匹配，命中多个时取映射表中最先出现的条目。
     pub fn from_message(message: &str) -> Option<Self> {
         let normalized = message.to_ascii_lowercase();
         const MAPPINGS: &[(&str, InternalErrorKind)] = &[
@@ -216,55 +223,51 @@ impl InternalErrorKind {
     }
 }
 
-/// Result alias used by the client.
-pub type Result<T> = std::result::Result<T, ClientError>;
+/// crate 统一的 [`Result`](std::result::Result) 别名。
+pub type Result<T> = std::result::Result<T, Error>;
 
-/// All errors produced by this crate.
+/// 本 crate 产生的全部错误。
 #[derive(Debug, Error)]
-pub enum ClientError {
-    /// Failed to build or parse a URL.
+pub enum Error {
+    /// URL 构建或解析失败。
     #[error("invalid url: {0}")]
     Url(#[from] url::ParseError),
-    /// HTTP transport error from reqwest.
+    /// reqwest 传输层错误。
     #[error("http error: {0}")]
     Http(#[from] reqwest::Error),
-    /// JSON serialization or deserialization error with HTTP request context.
-    #[error(
-        "json error at {method} {path}: {source}; request_body={request_body:?}; response_body={response_body:?}"
-    )]
+    /// JSON 序列化/反序列化失败，附带最佳努力的请求上下文。
+    #[error("json error at {method} {url}: {source}; response_body={response_body:?}")]
     Json {
-        /// JSON parser/serializer error.
+        /// 底层 JSON 解析错误。
         source: serde_json::Error,
-        /// HTTP method.
+        /// HTTP 方法（无法还原时为 `"?"`）。
         method: String,
-        /// API path.
-        path: String,
-        /// Serialized request body or request metadata.
-        request_body: Option<String>,
-        /// Raw response body when available.
+        /// 请求 URL（无法还原时为 `"?"`）。
+        url: String,
+        /// 可用时为原始响应体。
         response_body: Option<String>,
     },
-    /// I/O error, typically from upload body construction.
+    /// I/O 错误，通常来自上传请求体构建。
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
-    /// Non-success HTTP status before AList JSON decoding.
+    /// 信封解码前的非 2xx HTTP 状态。
     #[error("http status {status}: {body}")]
     HttpStatus {
-        /// HTTP status code.
+        /// HTTP 状态码。
         status: reqwest::StatusCode,
-        /// Response body text.
+        /// 响应体文本。
         body: String,
     },
-    /// AList JSON envelope had a non-200 logical code.
+    /// HTTP 200 但 AList 信封 `code` 非 200。
     #[error("alist api error {code:?}: {message}")]
     Api {
-        /// Typed AList status code.
+        /// 类型化的 AList 状态码。
         code: ApiStatusCode,
-        /// Server message.
+        /// 服务端消息。
         message: String,
-        /// Best-effort classification from `alist/internal/errs`.
+        /// 按 `alist/internal/errs` 常量文本做的尽力分类。
         kind: Option<InternalErrorKind>,
-        /// Raw `data` from the error envelope.
+        /// 错误信封中的原始 `data`。
         data: Value,
     },
 }
@@ -297,6 +300,8 @@ mod tests {
         );
         assert_eq!(ApiStatusCode::from_code(599), ApiStatusCode::Unknown(599));
         assert_eq!(ApiStatusCode::Forbidden.as_i32(), 403);
+        assert!(ApiStatusCode::Ok.is_success());
+        assert!(!ApiStatusCode::Forbidden.is_success());
     }
 
     #[test]
@@ -368,5 +373,6 @@ mod tests {
         for (message, expected) in cases {
             assert_eq!(InternalErrorKind::from_message(message), Some(expected));
         }
+        assert_eq!(InternalErrorKind::from_message("其他未知错误"), None);
     }
 }
