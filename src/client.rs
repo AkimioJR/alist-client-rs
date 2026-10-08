@@ -100,6 +100,10 @@ fn request_context(builder: &RequestBuilder) -> RequestContext {
         })
 }
 
+/// 实例构造与建造者（Builder）链式配置。
+///
+/// 包含客户端初始化入口 [`Client::new`] 以及遵循建造者模式的不可变链式配置方法。
+/// 适用于在创建客户端后立即以流式链式调用完成凭据登记与限速配置。
 impl Client {
     /// 从 AList 站点地址创建客户端。
     ///
@@ -123,6 +127,26 @@ impl Client {
         })
     }
 
+    /// 以建造者风格设置相邻请求之间的最小间隔。
+    #[must_use]
+    pub fn with_api_request_interval(mut self, interval: impl Into<Option<Duration>>) -> Self {
+        self.set_api_request_interval(interval);
+        self
+    }
+
+    /// 以建造者风格设置用于刷新 token 的认证凭据。
+    #[must_use]
+    pub fn with_authentication(mut self, authentication: Authentication) -> Self {
+        self.set_authentication(authentication);
+        self
+    }
+}
+
+/// 属性访问器（Getters）与就地修改器（Setters）。
+///
+/// 提供对站点基址、请求限速间隔与认证状态的只读查询，
+/// 以及在客户端持有可变借用（`&mut self`）时动态更新或清除配置的就地修改接口。
+impl Client {
     /// 返回站点基址。
     #[must_use]
     pub fn base_url(&self) -> &Url {
@@ -145,13 +169,6 @@ impl Client {
             .map(RequestRateLimit::new);
     }
 
-    /// 以建造者风格设置相邻请求之间的最小间隔。
-    #[must_use]
-    pub fn with_api_request_interval(mut self, interval: impl Into<Option<Duration>>) -> Self {
-        self.set_api_request_interval(interval);
-        self
-    }
-
     /// 设置用于刷新 token 的认证凭据。
     ///
     /// 传入 [`Authentication::Token`] 时会立即将其登记为当前 token。
@@ -171,13 +188,6 @@ impl Client {
         }
     }
 
-    /// 以建造者风格设置用于刷新 token 的认证凭据。
-    #[must_use]
-    pub fn with_authentication(mut self, authentication: Authentication) -> Self {
-        self.set_authentication(authentication);
-        self
-    }
-
     /// 返回当前 token（内部状态，供端点与测试使用）。
     pub(crate) fn token(&self) -> Option<String> {
         self.token.read().ok().and_then(|token| token.clone())
@@ -190,7 +200,19 @@ impl Client {
             .ok()
             .and_then(|authentication| authentication.clone())
     }
+}
 
+/// 请求构建、发送与底层协议支撑（Crate 内部基础设施）。
+///
+/// 统一承载所有 HTTP 请求的发送管道，由各功能域的端点请求构建器（[`crate::endpoint`]）调用。
+/// 核心职责包括：
+///
+/// - URL 路径相对拼接（保留反向代理前缀）；
+/// - 请求限速排队与客户端侧速率保护；
+/// - 发送时动态注入最新的 `Authorization` 认证头；
+/// - HTTP 状态码与 AList 业务响应 `code` 的统一校验与反序列化；
+/// - 收到 401/403 时基于用户名密码凭据的自动重新登录与透明重试机制。
+impl Client {
     /// 构建指向指定 API 路径的请求构建器。
     ///
     /// `path` 为自站点根起算的完整路径（如 `/api/fs/list`；`/ping` 等非 `/api` 路径同样直接传入）。
