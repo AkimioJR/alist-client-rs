@@ -12,6 +12,8 @@
 //! 端点模块通过 `pub(crate) request`/`execute` 组合出具体 API 调用，
 //! 见 `src/endpoint.rs` 与 `docs/design.md`。
 
+mod auth;
+mod context;
 mod rate_limit;
 
 use std::{sync::RwLock, time::Duration};
@@ -20,47 +22,12 @@ use reqwest::{Method, RequestBuilder, Url, header::AUTHORIZATION};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 
+pub use self::auth::Authentication;
+use self::{context::RequestContext, rate_limit::RequestRateLimit};
 use crate::{
-    client::rate_limit::RequestRateLimit,
     error::{ApiStatusCode, Error, InternalErrorKind, Result},
     schema::common::Response,
 };
-
-/// 用于刷新当前 token 的认证凭据。
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Authentication {
-    /// 当前 token 缺失或被拒绝时，使用用户名密码重新登录。
-    UsernamePassword {
-        /// 用户名。
-        username: String,
-        /// 密码。
-        password: String,
-        /// 可选的两步验证码。
-        otp_code: Option<String>,
-    },
-    /// 当前 token 缺失或被拒绝时，重新套用该 token（不会自动登录）。
-    Token(String),
-}
-
-impl Authentication {
-    /// 构造用户名密码认证。
-    pub fn username_password(
-        username: impl Into<String>,
-        password: impl Into<String>,
-        otp_code: impl Into<Option<String>>,
-    ) -> Self {
-        Self::UsernamePassword {
-            username: username.into(),
-            password: password.into(),
-            otp_code: otp_code.into(),
-        }
-    }
-
-    /// 构造 token 认证。
-    pub fn token(token: impl Into<String>) -> Self {
-        Self::Token(token.into())
-    }
-}
 
 /// AList 异步 API 客户端。
 #[derive(Debug)]
@@ -70,29 +37,6 @@ pub struct Client {
     token: RwLock<Option<String>>,
     authentication: RwLock<Option<Authentication>>,
     api_request_rate_limit: Option<RequestRateLimit>,
-}
-
-/// 请求上下文（用于 JSON 错误的最佳努力定位）。
-struct RequestContext {
-    method: String,
-    url: String,
-}
-
-impl RequestContext {
-    /// 从请求构建器提取方法与 URL（流式请求体等无法克隆时返回占位符）。
-    fn from_builder(builder: &RequestBuilder) -> Self {
-        builder
-            .try_clone()
-            .and_then(|builder| builder.build().ok())
-            .map(|request| RequestContext {
-                method: request.method().to_string(),
-                url: request.url().to_string(),
-            })
-            .unwrap_or_else(|| RequestContext {
-                method: "?".to_string(),
-                url: "?".to_string(),
-            })
-    }
 }
 
 /// 实例构造与建造者（Builder）链式配置。
