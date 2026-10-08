@@ -1,7 +1,7 @@
 //! auth 端点：生成两步验证密钥。
 //!
 //! 对应 `POST /api/auth/2fa/generate`；无需请求体，返回二维码 data URL 与
-//! TOTP 密钥（`examples/alist/server/handles/auth.go:216-243` 的 `Generate2FA`）。
+//! TOTP 密钥（AList 服务端 auth 模块的 `Generate2FA`）。
 //! 生成的密钥须经 [`super::verify_2fa`] 校验后才正式启用。游客账号调用返回 403。
 
 use alist_client_derive::EndpointRequest;
@@ -34,9 +34,8 @@ impl<'a> super::Auth<'a> {
     /// 生成两步验证密钥与二维码。
     ///
     /// 对应 AList `POST /api/auth/2fa/generate`（数据来源：
-    /// `docs/api/alistv3.openapi.yaml` 的 `auth/2fa/generate` 与
-    /// `examples/alist/server/handles/auth.go` 的 `Generate2FA`，
-    /// 实现于 auth.go:216-243）。成功时返回 [`Generate2FaResponse`]：
+    /// AList OpenAPI 规范的 `auth/2fa/generate` 与
+    /// AList 服务端 auth 模块的 `Generate2FA`）。成功时返回 [`Generate2FaResponse`]：
     /// `qr` 为 PNG 二维码的 data URL，`secret` 为 TOTP 密钥。
     /// 密钥需经 [`verify_2fa`](super::Auth::verify_2fa) 校验后才会绑定到账号。
     ///

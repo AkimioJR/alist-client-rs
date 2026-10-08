@@ -1,7 +1,7 @@
 //! public 公共端点句柄。
 //!
 //! 覆盖无需认证的站点设置与连通性检测端点，
-//! API 路径见 `docs/api/alistv3.openapi.yaml` 的 `public` 分组。
+//! API 路径见 AList OpenAPI 规范的 `public` 分组。
 //!
 //! 通过 [`Client::public`](crate::Client::public) 获取句柄，推荐即建即用。
 

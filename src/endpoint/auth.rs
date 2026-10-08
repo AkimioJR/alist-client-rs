@@ -1,7 +1,7 @@
 //! auth 认证端点句柄。
 //!
 //! 覆盖登录（明文/哈希）、注册、两步验证与当前用户信息等端点，
-//! API 路径见 `docs/api/alistv3.openapi.yaml` 的 `auth` 分组。
+//! API 路径见 AList OpenAPI 规范的 `auth` 分组。
 //!
 //! 通过 [`Client::auth`](crate::Client::auth) 获取句柄，推荐即建即用：
 //!

@@ -1,9 +1,8 @@
 //! auth 端点：注册新用户。
 //!
 //! 对应 `POST /api/auth/register`；请求体为用户名与明文密码（服务端注册时
-//! 自行加盐哈希，`examples/alist/server/handles/auth.go:139` 的 `SetPassword`），
-//! 成功时响应 `data: null`，以 `()` 作为端点模型。该端点不在 openapi 中，
-//! 路径以 `examples/alist/server/router.go:75` 为准；仅当站点开启
+//! 自行加盐哈希），成功时响应 `data: null`，以 `()` 作为端点模型。该端点不在 AList OpenAPI 规范中，
+//! 路径以 AList 服务端路由定义为准；仅当站点开启
 //! `allow_register` 设置时可用，否则返回响应 403。
 
 use alist_client_derive::EndpointRequest;
@@ -19,9 +18,11 @@ use alist_client_derive::EndpointRequest;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 新用户名（必选）。
+    /// 新用户名（必选参数）。
     username: String,
-    /// 明文密码（必选；服务端注册时自行加盐哈希）。
+    /// 明文密码（必选参数）。
+    ///
+    /// 服务端注册时自行加盐哈希。
     password: String,
 }
 
@@ -46,8 +47,7 @@ impl<'a> super::Auth<'a> {
     /// 注册新用户。
     ///
     /// 对应 AList `POST /api/auth/register`（数据来源：
-    /// `examples/alist/server/router.go:75` 与 `examples/alist/server/handles/auth.go`
-    /// 的 `Register`，实现于 auth.go:124-145；该端点不在 openapi 中）。
+    /// AList 服务端路由定义与 AList 服务端 auth 模块的 `Register`；该端点不在 AList OpenAPI 规范中）。
     /// 服务端以默认角色创建用户并自行对明文密码加盐哈希；成功时响应 `data`
     /// 为 `null`。站点未开启注册时返回响应 403（`registration is disabled`）。
     ///

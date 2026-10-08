@@ -1,8 +1,8 @@
 //! auth 端点：验证并启用两步验证。
 //!
 //! 对应 `POST /api/auth/2fa/verify`；请求体为 TOTP 验证码与
-//! [`generate_2fa`](super::generate_2fa) 返回的密钥（`examples/alist/server/handles/auth.go`
-//! 的 `Verify2FAReq`，auth.go:245-248），校验通过后服务端把密钥绑定到当前账号，
+//! [`generate_2fa`](super::generate_2fa) 返回的密钥（AList 服务端 auth 模块
+//! 的两步验证请求），校验通过后服务端把密钥绑定到当前账号，
 //! 成功时响应 `data: null`，以 `()` 作为端点模型。
 
 use alist_client_derive::EndpointRequest;
@@ -18,9 +18,9 @@ use alist_client_derive::EndpointRequest;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 当前 TOTP 验证码（必选）。
+    /// 当前 TOTP 验证码（必选参数）。
     code: String,
-    /// 待启用的 2FA 密钥（必选）。
+    /// 待启用的 2FA 密钥（必选参数）。
     secret: String,
 }
 
@@ -45,9 +45,8 @@ impl<'a> super::Auth<'a> {
     /// 验证两步验证码并启用 2FA。
     ///
     /// 对应 AList `POST /api/auth/2fa/verify`（数据来源：
-    /// `docs/api/alistv3.openapi.yaml` 的 `auth/2fa/verify` 与
-    /// `examples/alist/server/handles/auth.go` 的 `Verify2FA`，
-    /// 实现于 auth.go:250-271）。校验通过后服务端将密钥写入当前账号，
+    /// AList OpenAPI 规范的 `auth/2fa/verify` 与
+    /// AList 服务端 auth 模块的 `Verify2FA`）。校验通过后服务端将密钥写入当前账号，
     /// 成功时响应 `data` 为 `null`；验证码错误返回响应 400。
     ///
     /// # Arguments

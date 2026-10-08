@@ -1,10 +1,9 @@
 //! public端点：获取站点设置。
 //!
 //! 对应 `GET /api/public/settings`；响应 `data` 为字符串键值映射
-//! （服务端 `op.GetPublicSettingsMap()` 以 `map[string]string` 返回全部公共设置项，
-//! 所有值均为字符串形式），端点模型为 [`PublicSettings`]。
-//! 端点文件模板与命名约定见 `docs/design.md`；
-//! API 路径以 `docs/api/alistv3.openapi.yaml` 与 `examples/alist/server/router.go` 为准。
+//! （服务端以字符串键值映射返回全部公共设置项，所有值均为字符串形式），
+//! 端点模型为 [`PublicSettings`]。
+//! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -37,10 +36,9 @@ impl<'a> super::Public<'a> {
     ///
     /// 对应 AList `GET /api/public/settings`；无需认证，返回站点全部公共设置的
     /// 字符串键值映射（布尔值是 `"true"`/`"false"`，数字是 `"30"` 这样的十进制文本）。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `public/settings`、
-    /// `examples/alist/server/router.go:102-103`
-    /// （`public.Any("/settings", handles.PublicSettings)`，读端点按 GET 处理）与
-    /// `examples/alist/server/handles/setting.go:223-225`（`op.GetPublicSettingsMap()`）。
+    /// 数据来源：AList OpenAPI 规范的 `public/settings`、
+    /// AList 服务端路由定义（读端点按 GET 处理）与
+    /// AList 服务端 setting 模块。
     ///
     /// # Arguments
     ///

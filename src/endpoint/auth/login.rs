@@ -1,8 +1,7 @@
 //! auth 端点：登录获取 token。
 //!
 //! 对应 `POST /api/auth/login`；请求体为用户名、明文密码（服务端会做静态盐
-//! SHA-256 哈希，`examples/alist/server/handles/auth.go:47` 的 `model.StaticHash`）
-//! 与可选两步验证码，成功返回 token 等登录信息。
+//! SHA-256 哈希）与可选两步验证码，成功返回 token 等登录信息。
 //! 哈希登录变体见 [`super::login_hash`]。
 
 use alist_client_derive::EndpointRequest;
@@ -20,11 +19,15 @@ use crate::schema::auth::LoginResponse;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 用户名（必选）。
+    /// 用户名（必选参数）。
     username: String,
-    /// 明文密码（必选；服务端做静态盐 SHA-256 哈希）。
+    /// 明文密码（必选参数）。
+    ///
+    /// 服务端做静态盐 SHA-256 哈希。
     password: String,
-    /// 两步验证码（可选）；账号启用 2FA 时必填。
+    /// 两步验证码（可选参数）。
+    ///
+    /// 账号启用 2FA 时必填。
     otp_code: Option<String>,
 }
 
@@ -51,8 +54,8 @@ impl<'a> super::Auth<'a> {
     /// 登录获取临时 token。
     ///
     /// 对应 AList `POST /api/auth/login`；密码以明文发送，由服务端做静态盐
-    /// SHA-256 哈希（数据来源：`docs/api/alistv3.openapi.yaml` 的 `auth/login`
-    /// 与 `examples/alist/server/handles/auth.go` 的 `Login`，实现于 auth.go:41-49）。
+    /// SHA-256 哈希（数据来源：AList OpenAPI 规范的 `auth/login`
+    /// 与 AList 服务端 auth 模块的 `Login`）。
     /// 成功时返回 [`LoginResponse`]（含 token；新版本服务端还返回 `device_key`）。
     /// 该端点是 [`Client`](crate::Client) 内部自动刷新 token 所用登录的公开入口。
     /// 预哈希密码的变体见 [`login_hash`](super::Auth::login_hash)。

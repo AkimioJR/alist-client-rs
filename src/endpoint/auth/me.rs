@@ -1,8 +1,8 @@
 //! auth 端点：获取当前用户信息。
 //!
 //! 对应 `GET /api/me`；无需请求体，返回 [`MeResponse`]
-//! （`examples/alist/server/handles/auth.go:147-191` 的 `CurrentUser`）。
-//! 注意 Go 侧 `role` 为数组（`model.Roles []int`，user.go:33），而 openapi 示例
+//! （AList 服务端 auth 模块的 `CurrentUser`）。
+//! 注意服务端 `role` 为数组，而部分旧版文档示例
 //! 与老服务器返回单值 int，schema 层已做兼容；token 缺失时服务端返回游客信息。
 
 use alist_client_derive::EndpointRequest;
@@ -34,13 +34,12 @@ impl<'a> Request<'a> {
 impl<'a> super::Auth<'a> {
     /// 获取当前用户信息。
     ///
-    /// 对应 AList `GET /api/me`（数据来源：`docs/api/alistv3.openapi.yaml` 的
-    /// `/api/me` 与 `examples/alist/server/handles/auth.go` 的 `CurrentUser`，
-    /// 实现于 auth.go:156-191）。成功时返回 [`MeResponse`]：用户 ID、用户名、
+    /// 对应 AList `GET /api/me`（数据来源：AList OpenAPI 规范的
+    /// `/api/me` 与 AList 服务端 auth 模块的 `CurrentUser`）。成功时返回 [`MeResponse`]：用户 ID、用户名、
     /// 根目录、角色 ID 列表（`role` 兼容数组/单值/`null` 三种历史形状）、
     /// 聚合权限位掩码、是否启用 2FA，以及新服务器的 `role_names`/`permissions`
     /// 字段（老服务器缺失或为 `null` 时归约为空值）。
-    /// 响应中的 `password` 字段恒为空字符串（handler 置空，auth.go:162）。
+    /// 响应中的 `password` 字段恒为空字符串（服务端 handler 置空）。
     ///
     /// # Arguments
     ///
@@ -91,7 +90,7 @@ mod tests {
         assert!(built.body().is_none(), "本端点不应携带请求体");
     }
 
-    /// 收发路径：mock 服务器返回 openapi `/api/me` 示例（老服务器单值 role 形状），
+    /// 收发路径：mock 服务器返回规范 `/api/me` 示例（老服务器单值 role 形状），
     /// 断言 GET 方法、认证头注入与 schema 兼容解码。
     #[tokio::test]
     async fn send_gets_me_and_decodes_user_response() {

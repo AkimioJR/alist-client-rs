@@ -1,10 +1,10 @@
 //! public端点：连通性检测。
 //!
-//! 对应 `GET /ping`；服务端以纯文本 `pong` 应答（`examples/alist/server/router.go:30-32`
-//! 直接 `c.String(200, "pong")`），**不走 JSON 响应**，因此本端点手写实现、不使用
+//! 对应 `GET /ping`；服务端以纯文本 `pong` 应答（AList 服务端路由定义的
+//! `/ping` 路由直接返回 `"pong"`），**不走 JSON 响应**，因此本端点手写实现、不使用
 //! [`EndpointRequest`](alist_client_derive::EndpointRequest) 派生宏：
 //! 仅提供 [`Request::send_text`] 返回原始响应文本，不生成语义错误的
-//! `send`/`IntoFuture`。端点文件模板与命名约定见 `docs/design.md`。
+//! `send`/`IntoFuture`。
 
 /// ping 连通性检测请求构建器。
 ///
@@ -62,9 +62,8 @@ impl<'a> super::Public<'a> {
     /// ping 连通性检测。
     ///
     /// 对应 AList `GET /ping`；响应为**纯文本** `pong`，不经过 JSON 响应。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/ping`（示例响应 `pong`）与
-    /// `examples/alist/server/router.go:30-32`（`g.Any("/ping", ...)`，
-    /// 读端点按 GET 处理）。
+    /// 数据来源：AList OpenAPI 规范的 `/ping`（示例响应 `pong`）与
+    /// AList 服务端路由定义（读端点按 GET 处理）。
     ///
     /// # Arguments
     ///

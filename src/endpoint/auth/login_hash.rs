@@ -2,9 +2,8 @@
 //!
 //! 对应 `POST /api/auth/login/hash`；与 [`super::login`] 的唯一差别是请求体中的
 //! `password` 必须是预哈希值：先拼接 `-https://github.com/alist-org/alist` 后缀，
-//! 再取 SHA-256 十六进制字符串（盐常量见 `examples/alist/internal/model/user.go:23`
-//! 的 `StaticHashSalt`，哈希方式见 user.go:183-185 的 `StaticHash`）。
-//! 服务端对两种登录的处理逻辑一致（auth.go:41-59）。
+//! 再取 SHA-256 十六进制字符串（盐常量为 `StaticHashSalt`）。
+//! 服务端对两种登录的处理逻辑一致。
 
 use alist_client_derive::EndpointRequest;
 
@@ -21,11 +20,15 @@ use crate::schema::auth::LoginResponse;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 用户名（必选）。
+    /// 用户名（必选参数）。
     username: String,
-    /// 预哈希密码（必选）：`sha256(密码-https://github.com/alist-org/alist)`。
+    /// 预哈希密码（必选参数）。
+    ///
+    /// 计算方式：`sha256(密码-https://github.com/alist-org/alist)`。
     password: String,
-    /// 两步验证码（可选）；账号启用 2FA 时必填。
+    /// 两步验证码（可选参数）。
+    ///
+    /// 账号启用 2FA 时必填。
     otp_code: Option<String>,
 }
 
@@ -53,9 +56,9 @@ impl<'a> super::Auth<'a> {
     ///
     /// 对应 AList `POST /api/auth/login/hash`；请求体中的 `password` 必须为
     /// `sha256(密码-https://github.com/alist-org/alist)` 的十六进制字符串
-    /// （数据来源：`docs/api/alistv3.openapi.yaml` 的 `auth/login/hash` 与
-    /// `examples/alist/server/handles/auth.go` 的 `LoginHash`，实现于 auth.go:52-59，
-    /// 盐常量为 `examples/alist/internal/model/user.go:23` 的 `StaticHashSalt`）。
+    /// （数据来源：AList OpenAPI 规范的 `auth/login/hash` 与
+    /// AList 服务端 auth 模块的 `LoginHash`，
+    /// 盐常量为 `StaticHashSalt`）。
     /// 成功时返回 [`LoginResponse`]。
     /// 明文密码的变体见 [`login`](super::Auth::login)。
     ///
