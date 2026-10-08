@@ -19,7 +19,7 @@
 //! 直传成功时响应 `data` 为 `null`，转后台任务时为 `{"task": ...}`，
 //! 因此端点模型为 `Option<UploadResponse>`。本端点**手写**请求构建器
 //! （不走 [`EndpointRequest`](alist_client_derive::EndpointRequest) 派生宏，
-//! 不生成无请求体的 `send`/`IntoFuture`），发送必须调用
+//! 采用消费式请求体），支持直接 `.await` 或调用
 //! [`send_upload`](Request::send_upload)。
 
 use bytes::Bytes;
@@ -30,8 +30,8 @@ use crate::schema::common::UploadResponse;
 /// 表单上传请求构建器。
 ///
 /// 通过 [`Upload::form`](super::Upload::form) 创建。可选参数使用链式 setter，
-/// 发送必须调用 [`send_upload`](Request::send_upload)。
-#[must_use = "请求构建器不会自动发送请求，请调用 `.send_upload().await`"]
+/// 可直接 `.await` 或调用 [`send_upload`](Request::send_upload)。
+#[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send_upload().await`"]
 pub struct Request<'a> {
     client: &'a crate::Client,
     /// 目标绝对路径（`File-Path` 头，发送时 URL 编码）。
@@ -222,6 +222,23 @@ impl<'a> Request<'a> {
     pub async fn send_upload(self) -> crate::Result<Option<UploadResponse>> {
         self.client.execute(self.into_builder()?).await
     }
+
+    /// 发送上传请求（[`send_upload`](Self::send_upload) 的别名，与其他端点的 `send` 保持一致）。
+    #[inline]
+    pub async fn send(self) -> crate::Result<Option<UploadResponse>> {
+        self.send_upload().await
+    }
+}
+
+impl<'a> core::future::IntoFuture for Request<'a> {
+    type Output = crate::Result<Option<UploadResponse>>;
+    type IntoFuture =
+        core::pin::Pin<Box<dyn core::future::Future<Output = Self::Output> + Send + 'a>>;
+
+    #[inline]
+    fn into_future(self) -> Self::IntoFuture {
+        Box::pin(self.send_upload())
+    }
 }
 
 impl<'a> super::Upload<'a> {
@@ -242,8 +259,8 @@ impl<'a> super::Upload<'a> {
     ///
     /// # Returns
     ///
-    /// 返回 [`Request`] 请求构建器；可选参数链式设置后调用
-    /// [`send_upload`](Request::send_upload) 发送。
+    /// 返回 [`Request`] 请求构建器；可选参数链式设置后可直接 `.await`，
+    /// 或调用 [`send_upload`](Request::send_upload) 发送。
     ///
     /// # Errors
     ///
@@ -263,7 +280,6 @@ impl<'a> super::Upload<'a> {
     ///     .upload()
     ///     .form("/data/demo.zip", vec![0u8; 16])
     ///     .as_task(true) // 可选：转为后台上传任务
-    ///     .send_upload()
     ///     .await?;
     /// if let Some(resp) = resp {
     ///     println!("上传任务: {}", resp.task.id);
@@ -454,5 +470,37 @@ mod tests {
         let task = resp.expect("As-Task 上传应返回任务信息").task;
         assert_eq!(task.id, "sdH2LbjyWRk");
         assert_eq!(task.status, "uploading");
+    }
+
+    /// 3) IntoFuture 支持直接 `.await` 发送请求。
+    #[tokio::test]
+    async fn request_is_awaitable_via_into_future() {
+        use std::sync::{Arc, Mutex};
+
+        use crate::test_support::{ok_json, spawn_mock_server};
+
+        let requests = Arc::new(Mutex::new(Vec::new()));
+        let base_url = spawn_mock_server(
+            vec![ok_json(r#"{"code":200,"message":"success","data":null}"#)],
+            Some(Arc::clone(&requests)),
+        )
+        .await;
+        let client = crate::Client::new(base_url).unwrap();
+
+        let resp = client
+            .fs()
+            .upload()
+            .form("/data/await.zip", vec![0u8; 8])
+            .await
+            .unwrap();
+        assert!(resp.is_none());
+
+        let recorded = requests.lock().unwrap();
+        assert!(recorded[0].contains("PUT /api/fs/form "), "{}", recorded[0]);
+        assert!(
+            recorded[0].contains("file-path: %2Fdata%2Fawait.zip"),
+            "{}",
+            recorded[0]
+        );
     }
 }

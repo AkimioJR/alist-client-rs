@@ -38,7 +38,6 @@
 //!     .upload()
 //!     .put("/data/demo.txt", b"hello alist".to_vec())
 //!     .as_task(true)
-//!     .send_upload()
 //!     .await?;
 //! if let Some(resp) = resp {
 //!     println!("后台上传任务 ID: {}", resp.task.id);
