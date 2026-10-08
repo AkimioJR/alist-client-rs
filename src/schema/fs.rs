@@ -353,6 +353,44 @@ pub struct RenameObject {
     pub new_name: String,
 }
 
+/// 聚合移动冲突处理策略。
+///
+/// 对应 AList `POST /api/fs/recursive_move` 请求体中的 `conflict_policy` 字段（Go `handles` 常量，
+/// `examples/alist/server/handles/const.go:4-6` 与 `handles/fsbatch.go:117-126`）：
+/// - `overwrite`: 直接覆盖已存在的目标文件；
+/// - `cancel`: 目标已存在时取消操作并返回 403；
+/// - `skip`: 跳过已存在的目标文件。
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ConflictPolicy {
+    /// 直接覆盖已存在的目标文件。
+    Overwrite,
+    /// 目标已存在时取消操作并返回 403。
+    Cancel,
+    /// 跳过已存在的目标文件。
+    Skip,
+}
+
+impl ConflictPolicy {
+    /// 返回对应 AList 协议的字符串切片（`"overwrite"` / `"cancel"` / `"skip"`）。
+    #[inline]
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Overwrite => "overwrite",
+            Self::Cancel => "cancel",
+            Self::Skip => "skip",
+        }
+    }
+}
+
+impl AsRef<str> for ConflictPolicy {
+    #[inline]
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
 /// 复制端点的响应数据。
 ///
 /// 对应 `examples/alist/server/handles/fsmanage.go` 的 `FsCopy` 返回的
@@ -898,5 +936,46 @@ mod tests {
         // 非法数值反序列化报错
         assert!(serde_json::from_value::<SearchScope>(serde_json::json!(3)).is_err());
         assert!(serde_json::from_value::<SearchScope>(serde_json::json!(-1)).is_err());
+    }
+
+    /// 钉扎：`ConflictPolicy` 序列化与反序列化形状符合 AList 服务端小写字符串约定（overwrite, cancel, skip）。
+    #[test]
+    fn conflict_policy_serde_matches_lowercase_string_contract() {
+        assert_eq!(ConflictPolicy::Overwrite.as_str(), "overwrite");
+        assert_eq!(ConflictPolicy::Cancel.as_str(), "cancel");
+        assert_eq!(ConflictPolicy::Skip.as_str(), "skip");
+        assert_eq!(ConflictPolicy::Overwrite.as_ref(), "overwrite");
+
+        // 序列化
+        assert_eq!(
+            serde_json::to_value(ConflictPolicy::Overwrite).unwrap(),
+            serde_json::json!("overwrite")
+        );
+        assert_eq!(
+            serde_json::to_value(ConflictPolicy::Cancel).unwrap(),
+            serde_json::json!("cancel")
+        );
+        assert_eq!(
+            serde_json::to_value(ConflictPolicy::Skip).unwrap(),
+            serde_json::json!("skip")
+        );
+
+        // 反序列化
+        assert_eq!(
+            serde_json::from_value::<ConflictPolicy>(serde_json::json!("overwrite")).unwrap(),
+            ConflictPolicy::Overwrite
+        );
+        assert_eq!(
+            serde_json::from_value::<ConflictPolicy>(serde_json::json!("cancel")).unwrap(),
+            ConflictPolicy::Cancel
+        );
+        assert_eq!(
+            serde_json::from_value::<ConflictPolicy>(serde_json::json!("skip")).unwrap(),
+            ConflictPolicy::Skip
+        );
+
+        // 非法字符串反序列化报错
+        assert!(serde_json::from_value::<ConflictPolicy>(serde_json::json!("other")).is_err());
+        assert!(serde_json::from_value::<ConflictPolicy>(serde_json::json!("OVERWRITE")).is_err());
     }
 }

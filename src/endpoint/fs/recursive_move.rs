@@ -9,6 +9,8 @@
 
 use alist_client_derive::EndpointRequest;
 
+pub use crate::schema::fs::ConflictPolicy;
+
 /// 聚合移动请求构建器。
 ///
 /// 通过 [`Fs::recursive_move`](super::Fs::recursive_move) 创建。可选参数使用链式
@@ -24,11 +26,10 @@ pub struct Request<'a> {
     src_dir: String,
     /// 目标目录（必选）。
     dst_dir: String,
-    /// 冲突处理策略（可选；对应 Go `handles` 常量，fsbatch.go:12-16 与
-    /// fsbatch.go:117-126 的判断逻辑）：
-    /// `overwrite` 直接覆盖、`cancel` 目标已存在时取消并返回 403、
-    /// `skip` 跳过已存在文件；缺省时非 `overwrite` 策略同样先检查目标。
-    conflict_policy: Option<String>,
+    /// 冲突处理策略（可选）：直接覆盖（[`ConflictPolicy::Overwrite`]）、
+    /// 目标已存在时取消并返回 403（[`ConflictPolicy::Cancel`]）、
+    /// 跳过已存在文件（[`ConflictPolicy::Skip`]）；缺省时非 `overwrite` 策略同样先检查目标。
+    conflict_policy: Option<ConflictPolicy>,
 }
 
 impl<'a> Request<'a> {
@@ -69,22 +70,29 @@ impl<'a> super::Fs<'a> {
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回 `()`。
     ///
+    /// 可选参数（链式 setter）：`conflict_policy`
+    /// （[`ConflictPolicy::Overwrite`] 直接覆盖 / [`ConflictPolicy::Cancel`] 取消 /
+    /// [`ConflictPolicy::Skip`] 跳过）。
+    ///
     /// # Errors
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）
-    /// 时，返回 [`crate::Error`]；`conflict_policy = "cancel"` 且目标已存在时
+    /// 时，返回 [`crate::Error`]；`conflict_policy = ConflictPolicy::Cancel` 且目标已存在时
     /// 服务端以 403 返回。
     ///
     /// # Examples
     ///
     /// ```no_run
-    /// use alist_client::{Authentication, Client};
+    /// use alist_client::{
+    ///     Authentication, Client,
+    ///     schema::fs::ConflictPolicy,
+    /// };
     ///
     /// # async fn example() -> alist_client::Result<()> {
     /// let client = Client::new("https://alist.example.com")?
     ///     .with_authentication(Authentication::token("TOKEN".to_owned()));
     /// client.fs().recursive_move("/m1", "/m2")
-    ///     .conflict_policy("overwrite") // 可选：overwrite / cancel / skip
+    ///     .conflict_policy(ConflictPolicy::Overwrite) // 可选：overwrite / cancel / skip
     ///     .await?;
     /// # Ok(())
     /// # }
@@ -109,7 +117,7 @@ mod tests {
     fn build_request_composes_method_url_and_body() {
         let client = crate::Client::new("https://alist.example").unwrap();
         let built = Request::new(&client, "/m1", "/m2")
-            .conflict_policy("overwrite".to_owned())
+            .conflict_policy(ConflictPolicy::Overwrite)
             .build_request()
             .build()
             .unwrap();
