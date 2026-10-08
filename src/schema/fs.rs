@@ -281,6 +281,66 @@ pub struct SearchResponse {
     pub r#type: i32,
 }
 
+/// 搜索范围类型。
+///
+/// 对应 AList `POST /api/fs/search` 请求体中的 `scope` 字段（Go `model.SearchReq.Scope`，
+/// `internal/model/search.go:19`；OpenAPI `0-全部 1-文件夹 2-文件`）：
+/// - `0` 为全部（文件与文件夹，默认值）；
+/// - `1` 为仅文件夹 / 目录；
+/// - `2` 为仅文件。
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub enum SearchScope {
+    /// 搜索全部（文件与文件夹，服务端默认值）。
+    #[default]
+    All = 0,
+    /// 仅搜索文件夹 / 目录。
+    Folder = 1,
+    /// 仅搜索文件。
+    File = 2,
+}
+
+impl SearchScope {
+    /// 转换为 AList 服务端对应的整数值。
+    #[inline]
+    #[must_use]
+    pub const fn as_i32(self) -> i32 {
+        self as i32
+    }
+}
+
+impl From<SearchScope> for i32 {
+    #[inline]
+    fn from(scope: SearchScope) -> Self {
+        scope.as_i32()
+    }
+}
+
+impl Serialize for SearchScope {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_i32(self.as_i32())
+    }
+}
+
+impl<'de> Deserialize<'de> for SearchScope {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let val = i32::deserialize(deserializer)?;
+        match val {
+            0 => Ok(Self::All),
+            1 => Ok(Self::Folder),
+            2 => Ok(Self::File),
+            other => Err(serde::de::Error::custom(format!(
+                "invalid search scope {other}, expected 0 (all), 1 (folder), or 2 (file)"
+            ))),
+        }
+    }
+}
+
 /// 批量重命名的单项。
 ///
 /// 对应 `examples/alist/server/handles/fsbatch.go` 的 `BatchRenameReq.RenameObjects`
@@ -796,5 +856,47 @@ mod tests {
         .unwrap();
         assert_eq!(resp.data.task.id, "sdH2LbjyWRk");
         assert_eq!(resp.data.task.status, "uploading");
+    }
+
+    /// 钉扎：`SearchScope` 序列化与反序列化形状符合 AList 服务端整数约定（0=全部, 1=文件夹, 2=文件）。
+    #[test]
+    fn search_scope_serde_matches_integer_contract() {
+        assert_eq!(SearchScope::default(), SearchScope::All);
+        assert_eq!(SearchScope::All.as_i32(), 0);
+        assert_eq!(SearchScope::Folder.as_i32(), 1);
+        assert_eq!(SearchScope::File.as_i32(), 2);
+        assert_eq!(i32::from(SearchScope::File), 2);
+
+        // 序列化为整数
+        assert_eq!(
+            serde_json::to_value(SearchScope::All).unwrap(),
+            serde_json::json!(0)
+        );
+        assert_eq!(
+            serde_json::to_value(SearchScope::Folder).unwrap(),
+            serde_json::json!(1)
+        );
+        assert_eq!(
+            serde_json::to_value(SearchScope::File).unwrap(),
+            serde_json::json!(2)
+        );
+
+        // 反序列化自整数
+        assert_eq!(
+            serde_json::from_value::<SearchScope>(serde_json::json!(0)).unwrap(),
+            SearchScope::All
+        );
+        assert_eq!(
+            serde_json::from_value::<SearchScope>(serde_json::json!(1)).unwrap(),
+            SearchScope::Folder
+        );
+        assert_eq!(
+            serde_json::from_value::<SearchScope>(serde_json::json!(2)).unwrap(),
+            SearchScope::File
+        );
+
+        // 非法数值反序列化报错
+        assert!(serde_json::from_value::<SearchScope>(serde_json::json!(3)).is_err());
+        assert!(serde_json::from_value::<SearchScope>(serde_json::json!(-1)).is_err());
     }
 }

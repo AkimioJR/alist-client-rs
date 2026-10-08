@@ -11,6 +11,7 @@
 
 use alist_client_derive::EndpointRequest;
 
+pub use crate::schema::fs::SearchScope;
 use crate::schema::{common::PageResponse, fs::SearchResponse};
 
 /// 搜索文件或文件夹请求构建器。
@@ -40,8 +41,9 @@ pub struct Request<'a> {
     /// 服务端 `Validate` 要求 ≥ 1，缺省时会被拒绝，故默认以第 1 页发送；
     /// 启用 `into-stream` feature 时，[`Request::into_stream`] 会自动逐页递增。
     page: Option<i32>,
-    /// 搜索范围（可选）：`0` 全部（服务端缺省值）、`1` 仅文件夹、`2` 仅文件。
-    scope: Option<i32>,
+    /// 搜索范围（可选）：全部（[`SearchScope::All`]，服务端缺省值）、
+    /// 仅文件夹（[`SearchScope::Folder`]）、仅文件（[`SearchScope::File`]）。
+    scope: Option<SearchScope>,
     /// 搜索目录的密码（可选；目录受密码保护时必填）。
     password: Option<String>,
 }
@@ -93,7 +95,8 @@ impl<'a> super::Fs<'a> {
     /// [`PageResponse<SearchResponse>`](crate::schema::common::PageResponse)。
     ///
     /// 可选参数（链式 setter）：`page`（页码，默认第 1 页）、`scope`
-    /// （`0` 全部 / `1` 仅文件夹 / `2` 仅文件）、`password`（目录密码）。
+    /// （[`SearchScope::All`] 全部 / [`SearchScope::Folder`] 仅文件夹 /
+    /// [`SearchScope::File`] 仅文件）、`password`（目录密码）。
     /// 启用 `into-stream` feature 时可调用 [`Request::into_stream`] 获得
     /// 自动翻页的结果流：从当前页逐页请求，结果耗尽后 `content` 为空时终止
     /// （对应分页 `total` 计数用尽）。
@@ -118,7 +121,12 @@ impl<'a> super::Fs<'a> {
     ///     println!("{}{}", hit.parent, hit.name);
     /// }
     /// // 仅搜索文件、跳到第 2 页
-    /// let files = client.fs().search("/local", "test", 20).scope(2).page(2).await?;
+    /// let files = client
+    ///     .fs()
+    ///     .search("/local", "test", 20)
+    ///     .scope(alist_client::schema::fs::SearchScope::File)
+    ///     .page(2)
+    ///     .await?;
     /// # let _ = files;
     /// # Ok(())
     /// # }
@@ -144,7 +152,7 @@ mod tests {
     fn build_request_composes_method_url_and_body() {
         let client = crate::Client::new("https://alist.example").unwrap();
         let built = Request::new(&client, "/local", "test", 20)
-            .scope(2)
+            .scope(SearchScope::File)
             .password("secret".to_owned())
             .build_request()
             .build()
