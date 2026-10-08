@@ -6,6 +6,7 @@
 use alist_client_derive::EndpointRequest;
 
 use crate::schema::admin::setting::Setting;
+pub use crate::schema::admin::setting::SettingKeys;
 
 /// 按多个键批量查询设置请求构建器。
 ///
@@ -20,16 +21,16 @@ pub struct Request<'a> {
     client: &'a crate::Client,
     /// 逗号分隔的多个设置键（必选参数）。
     ///
-    /// 例如 `site_title,announcements`。
+    /// 支持直接传入数组（如 `["site_title", "announcements"]`）、切片或逗号分隔的字符串。
     #[query]
-    keys: String,
+    keys: SettingKeys,
 }
 
 impl<'a> Request<'a> {
     /// `Request::new` 只接收**必选**参数。
     #[inline]
     #[must_use = "仅构造请求构建器，不会自动发送请求"]
-    pub(crate) fn new(client: &'a crate::Client, keys: impl Into<String>) -> Self {
+    pub(crate) fn new(client: &'a crate::Client, keys: impl Into<SettingKeys>) -> Self {
         Self {
             client,
             keys: keys.into(),
@@ -51,7 +52,7 @@ impl<'a> super::Setting<'a> {
     ///
     /// # Arguments
     ///
-    /// * `keys` - 逗号分隔的多个设置键，例如 `site_title,announcements`。
+    /// * `keys` - 多个设置键（支持数组、切片或逗号分隔的字符串，例如 `["site_title", "announcements"]`）。
     ///
     /// # Returns
     ///
@@ -74,7 +75,7 @@ impl<'a> super::Setting<'a> {
     /// let settings = client
     ///     .admin()
     ///     .setting()
-    ///     .get_by_keys("site_title,announcements")
+    ///     .get_by_keys(["site_title", "announcements"])
     ///     .await?;
     /// println!("{settings:?}");
     /// # Ok(())
@@ -82,7 +83,7 @@ impl<'a> super::Setting<'a> {
     /// ```
     #[inline]
     #[must_use = "该方法仅返回请求构建器，不会自动发送请求"]
-    pub fn get_by_keys(&self, keys: impl Into<String>) -> Request<'a> {
+    pub fn get_by_keys(&self, keys: impl Into<SettingKeys>) -> Request<'a> {
         Request::new(self.client, keys)
     }
 }
@@ -96,7 +97,7 @@ mod tests {
     #[test]
     fn build_request_composes_method_url_and_keys_query() {
         let client = crate::Client::new("https://alist.example").unwrap();
-        let built = Request::new(&client, "site_title,announcements")
+        let built = Request::new(&client, ["site_title", "announcements"])
             .build_request()
             .build()
             .unwrap();
@@ -130,7 +131,7 @@ mod tests {
         .await;
         let client = crate::Client::new(base_url).unwrap();
 
-        let settings = Request::new(&client, "site_title,announcements")
+        let settings = Request::new(&client, ["site_title", "announcements"])
             .send()
             .await
             .unwrap();

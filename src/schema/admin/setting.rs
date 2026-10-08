@@ -311,6 +311,116 @@ impl From<Vec<SettingGroup>> for SettingGroups {
     }
 }
 
+/// 设置键名集合（用于 `get_by_keys` 端点的 `keys` 查询参数）。
+///
+/// 内部自动格式化为 AList 服务端期望的逗号分隔字符串（如 `"site_title,announcements"`）。
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct SettingKeys(String);
+
+impl SettingKeys {
+    /// 以逗号分隔的字符串直接构造。
+    #[inline]
+    pub fn new(s: impl Into<String>) -> Self {
+        Self(s.into())
+    }
+
+    /// 从键名迭代器构造逗号分隔的集合。
+    pub fn from_keys<S: AsRef<str>>(keys: impl IntoIterator<Item = S>) -> Self {
+        let s = keys
+            .into_iter()
+            .map(|k| k.as_ref().to_owned())
+            .collect::<Vec<_>>()
+            .join(",");
+        Self(s)
+    }
+
+    /// 返回底层逗号分隔的字符串切片。
+    #[inline]
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl AsRef<str> for SettingKeys {
+    #[inline]
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl std::ops::Deref for SettingKeys {
+    type Target = str;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        self.as_str()
+    }
+}
+
+impl std::fmt::Display for SettingKeys {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl Serialize for SettingKeys {
+    #[inline]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.0)
+    }
+}
+
+impl<'de> Deserialize<'de> for SettingKeys {
+    #[inline]
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        Ok(Self(s))
+    }
+}
+
+impl From<&str> for SettingKeys {
+    #[inline]
+    fn from(s: &str) -> Self {
+        Self(s.to_owned())
+    }
+}
+
+impl From<String> for SettingKeys {
+    #[inline]
+    fn from(s: String) -> Self {
+        Self(s)
+    }
+}
+
+impl<S: AsRef<str>> From<&[S]> for SettingKeys {
+    #[inline]
+    fn from(keys: &[S]) -> Self {
+        Self::from_keys(keys)
+    }
+}
+
+impl<S: AsRef<str>, const N: usize> From<[S; N]> for SettingKeys {
+    #[inline]
+    fn from(keys: [S; N]) -> Self {
+        Self::from_keys(keys)
+    }
+}
+
+impl<S: AsRef<str>> From<Vec<S>> for SettingKeys {
+    #[inline]
+    fn from(keys: Vec<S>) -> Self {
+        Self::from_keys(keys)
+    }
+}
+
 /// AList 设置条目。
 ///
 /// 对应 AList 服务端 model.Setting 数据模型中的 `SettingItem`：
@@ -606,6 +716,34 @@ mod tests {
                 .unwrap()
                 .as_str(),
             "5,0"
+        );
+    }
+
+    /// 钉扎：`SettingKeys` 从切片、数组、字符串构造并序列化为逗号分隔字符串。
+    #[test]
+    fn setting_keys_conversions_and_serde_match_contract() {
+        let from_slice = SettingKeys::from(["site_title", "announcements"].as_slice());
+        assert_eq!(from_slice.as_str(), "site_title,announcements");
+        assert_eq!(&*from_slice, "site_title,announcements");
+
+        let from_array = SettingKeys::from(["site_title", "announcements"]);
+        assert_eq!(from_array.as_str(), "site_title,announcements");
+
+        let from_vec = SettingKeys::from(vec!["site_title".to_owned(), "announcements".to_owned()]);
+        assert_eq!(from_vec.as_str(), "site_title,announcements");
+
+        let from_str: SettingKeys = "site_title,announcements".into();
+        assert_eq!(from_str.as_str(), "site_title,announcements");
+
+        assert_eq!(
+            serde_json::to_value(&from_array).unwrap(),
+            serde_json::json!("site_title,announcements")
+        );
+        assert_eq!(
+            serde_json::from_value::<SettingKeys>(serde_json::json!("site_title,announcements"))
+                .unwrap()
+                .as_str(),
+            "site_title,announcements"
         );
     }
 }
