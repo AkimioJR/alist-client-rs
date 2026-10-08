@@ -8,6 +8,7 @@
 use alist_client_derive::EndpointRequest;
 
 use crate::schema::admin::storage::StorageCreateResponse;
+pub use crate::schema::admin::storage::WebdavPolicy;
 
 /// 更新存储请求构建器。
 ///
@@ -77,8 +78,8 @@ pub struct Request<'a> {
     web_proxy: Option<bool>,
     /// WebDAV 策略（可选参数）。
     ///
-    /// 可选值包括 `302_redirect`、`use_proxy_url` 或 `native_proxy`。
-    webdav_policy: Option<String>,
+    /// 可选值包括 `302_redirect`、`use_proxy_url` 或 `native_proxy`（见 [`WebdavPolicy`]）。
+    webdav_policy: Option<WebdavPolicy>,
     /// 是否代理 Range 请求（可选参数）。
     ///
     /// 新版本服务端字段。

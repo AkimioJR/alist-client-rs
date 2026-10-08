@@ -7,6 +7,7 @@
 use alist_client_derive::EndpointRequest;
 
 use crate::schema::admin::storage::StorageCreateResponse;
+pub use crate::schema::admin::storage::WebdavPolicy;
 
 /// 创建存储请求构建器。
 ///
@@ -72,8 +73,8 @@ pub struct Request<'a> {
     web_proxy: Option<bool>,
     /// WebDAV 策略（可选参数）。
     ///
-    /// 可选值包括 `302_redirect`、`use_proxy_url` 或 `native_proxy`。
-    webdav_policy: Option<String>,
+    /// 可选值包括 `302_redirect`、`use_proxy_url` 或 `native_proxy`（见 [`WebdavPolicy`]）。
+    webdav_policy: Option<WebdavPolicy>,
     /// 是否代理 Range 请求（可选参数）。
     ///
     /// 新版本服务端字段。
@@ -150,7 +151,10 @@ impl<'a> super::Storage<'a> {
     /// # Examples
     ///
     /// ```no_run
-    /// use alist_client::{Authentication, Client};
+    /// use alist_client::{
+    ///     Authentication, Client,
+    ///     schema::admin::storage::WebdavPolicy,
+    /// };
     ///
     /// # async fn example() -> alist_client::Result<()> {
     /// let client = Client::new("https://alist.example.com")?
@@ -160,7 +164,7 @@ impl<'a> super::Storage<'a> {
     ///     .storage()
     ///     .create("/spam", "Local", r#"{"root_folder_path":"/data"}"#)
     ///     .cache_expiration(30)
-    ///     .webdav_policy("native_proxy")
+    ///     .webdav_policy(WebdavPolicy::NativeProxy)
     ///     .extract_folder("front")
     ///     .await?;
     /// println!("新存储 ID: {}", resp.id);
@@ -228,7 +232,7 @@ mod tests {
             .order_direction("asc")
             .extract_folder("front")
             .web_proxy(false)
-            .webdav_policy("native_proxy")
+            .webdav_policy(WebdavPolicy::NativeProxy)
             .proxy_range(true)
             .down_proxy_url("https://proxy.example.com")
             .down_proxy_sign(true)

@@ -11,6 +11,48 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+/// WebDAV 代理策略。
+///
+/// 对应 AList 存储配置中的 `webdav_policy` 字段（Go `internal/model/storage.go:50-60`）：
+/// - `302_redirect`: 302 重定向到文件直链；
+/// - `use_proxy_url`: 使用配置的外部下载代理 URL；
+/// - `native_proxy`: AList 本地中转原生代理（默认行为）。
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
+pub enum WebdavPolicy {
+    /// 302 重定向到直链（`"302_redirect"`）。
+    #[serde(rename = "302_redirect")]
+    Redirect302,
+
+    /// 使用配置的下载代理 URL（`"use_proxy_url"`）。
+    #[serde(rename = "use_proxy_url")]
+    UseProxyUrl,
+
+    /// AList 本地中转原生代理（`"native_proxy"`，默认值）。
+    #[default]
+    #[serde(rename = "native_proxy")]
+    NativeProxy,
+}
+
+impl WebdavPolicy {
+    /// 返回对应 AList 协议的字符串切片。
+    #[inline]
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Redirect302 => "302_redirect",
+            Self::UseProxyUrl => "use_proxy_url",
+            Self::NativeProxy => "native_proxy",
+        }
+    }
+}
+
+impl AsRef<str> for WebdavPolicy {
+    #[inline]
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
 /// 存储驱动实例。
 ///
 /// 对应 AList 服务端 model.Storage 数据模型；
@@ -66,8 +108,9 @@ pub struct Storage {
     pub web_proxy: bool,
     /// WebDAV 策略。
     ///
-    /// 可选值包括 `302_redirect`、`use_proxy_url` 或 `native_proxy`。
-    pub webdav_policy: String,
+    /// 可选值包括 `302_redirect`、`use_proxy_url` 或 `native_proxy`（见 [`WebdavPolicy`]）。
+    #[serde(default)]
+    pub webdav_policy: WebdavPolicy,
     /// 是否代理 Range 请求。
     ///
     /// 新版本服务端新增字段，老版本缺失时为 `false`。
@@ -141,7 +184,7 @@ mod tests {
         assert_eq!(storage.order_direction, "asc");
         assert_eq!(storage.extract_folder, "front");
         assert!(!storage.web_proxy);
-        assert_eq!(storage.webdav_policy, "native_proxy");
+        assert_eq!(storage.webdav_policy, WebdavPolicy::NativeProxy);
         assert_eq!(storage.down_proxy_url, "");
         // OpenAPI 规范示例尚未收录的新版本字段缺失 → 默认 false
         assert!(!storage.disable_index);
@@ -180,7 +223,7 @@ mod tests {
         assert_eq!(storage.id, 2);
         assert_eq!(storage.driver, "Aliyundrive");
         assert_eq!(storage.cache_expiration, 30);
-        assert_eq!(storage.webdav_policy, "302_redirect");
+        assert_eq!(storage.webdav_policy, WebdavPolicy::Redirect302);
         assert!(storage.disable_index);
         assert!(!storage.proxy_range);
         assert!(storage.down_proxy_sign);
@@ -229,5 +272,46 @@ mod tests {
             serde_json::to_value(&resp).unwrap(),
             serde_json::json!({ "id": 7 })
         );
+    }
+
+    /// 钉扎：`WebdavPolicy` 序列化与反序列化形状符合 AList 服务端约定。
+    #[test]
+    fn webdav_policy_serde_matches_contract() {
+        assert_eq!(WebdavPolicy::default(), WebdavPolicy::NativeProxy);
+        assert_eq!(WebdavPolicy::Redirect302.as_str(), "302_redirect");
+        assert_eq!(WebdavPolicy::UseProxyUrl.as_str(), "use_proxy_url");
+        assert_eq!(WebdavPolicy::NativeProxy.as_str(), "native_proxy");
+        assert_eq!(WebdavPolicy::Redirect302.as_ref(), "302_redirect");
+
+        // 序列化
+        assert_eq!(
+            serde_json::to_value(WebdavPolicy::Redirect302).unwrap(),
+            serde_json::json!("302_redirect")
+        );
+        assert_eq!(
+            serde_json::to_value(WebdavPolicy::UseProxyUrl).unwrap(),
+            serde_json::json!("use_proxy_url")
+        );
+        assert_eq!(
+            serde_json::to_value(WebdavPolicy::NativeProxy).unwrap(),
+            serde_json::json!("native_proxy")
+        );
+
+        // 反序列化
+        assert_eq!(
+            serde_json::from_value::<WebdavPolicy>(serde_json::json!("302_redirect")).unwrap(),
+            WebdavPolicy::Redirect302
+        );
+        assert_eq!(
+            serde_json::from_value::<WebdavPolicy>(serde_json::json!("use_proxy_url")).unwrap(),
+            WebdavPolicy::UseProxyUrl
+        );
+        assert_eq!(
+            serde_json::from_value::<WebdavPolicy>(serde_json::json!("native_proxy")).unwrap(),
+            WebdavPolicy::NativeProxy
+        );
+
+        // 非法字符串反序列化报错
+        assert!(serde_json::from_value::<WebdavPolicy>(serde_json::json!("invalid")).is_err());
     }
 }
