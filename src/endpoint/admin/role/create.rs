@@ -1,9 +1,9 @@
 //! admin-role 端点：创建角色。
 //!
-//! 对应 `POST /api/admin/role/create`（openapi 未收录该分组，路由见
-//! `examples/alist/server/router.go:152`）。处理函数 `handles.CreateRole`
-//! 绑定 `model.Role`（`name` 带 `binding:"required"`，角色 ID 由数据库自增分配），
-//! 成功时响应 `data: null`（见 `examples/alist/server/handles/role.go:45-56`）。
+//! 对应 `POST /api/admin/role/create`（AList OpenAPI 规范未收录该分组，路由见
+//! AList 服务端路由定义）。处理函数 `handles.CreateRole`
+//! 绑定角色模型（`name` 必填，角色 ID 由数据库自增分配），
+//! 成功时响应 `data: null`（见 AList 服务端 role 模块）。
 
 use alist_client_derive::EndpointRequest;
 
@@ -20,13 +20,21 @@ use crate::schema::admin::role::PermissionEntry;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 角色名（必选；服务端要求唯一，Go 侧 `binding:"required"`）。
+    /// 角色名（必选参数）。
+    ///
+    /// 服务端要求唯一。
     name: String,
-    /// 角色描述（可选；缺省为空字符串）。
+    /// 角色描述（可选参数）。
+    ///
+    /// 缺省为空字符串。
     description: Option<String>,
-    /// 是否为默认角色（可选；缺省为 `false`，新用户注册时自动绑定默认角色）。
+    /// 是否为默认角色（可选参数）。
+    ///
+    /// 缺省为 `false`，新用户注册时自动绑定默认角色。
     default: Option<bool>,
-    /// 各路径前缀上的权限条目（可选；缺省时角色不含任何权限）。
+    /// 各路径前缀上的权限条目（可选参数）。
+    ///
+    /// 缺省时角色不含任何权限。
     permission_scopes: Option<Vec<PermissionEntry>>,
 }
 
@@ -48,9 +56,9 @@ impl<'a> super::Role<'a> {
     /// 创建角色。
     ///
     /// 对应 AList `POST /api/admin/role/create`；成功时响应 `data` 为 `null`。
-    /// 数据来源：`examples/alist/server/router.go:152`（`handles.CreateRole`）与
-    /// `examples/alist/server/handles/role.go:45-56`（绑定 `model.Role`）；
-    /// 该分组不在 openapi 中，以 Go 源码为准。
+    /// 数据来源：AList 服务端路由定义（`handles.CreateRole`）与
+    /// AList 服务端 role 模块（绑定角色模型）；
+    /// 该分组不在 AList OpenAPI 规范中，以 AList 服务端实现为准。
     ///
     /// # Arguments
     ///

@@ -1,7 +1,7 @@
 //! admin-label 端点：列出标签。
 //!
-//! 对应 `GET /api/label/list`（openapi 未收录该分组，路由以
-//! `examples/alist/server/router.go` 的 `_label` 为准；实现为 `handles.ListLabel`）。
+//! 对应 `GET /api/label/list`（AList OpenAPI 规范未收录该分组，路由以
+//! AList 服务端路由定义的 `_label` 为准；实现为 `handles.ListLabel`）。
 //! 注意：列表/详情两个读取端点挂在 `/api/label` 而非 `/api/admin/label` 下。
 //! 响应 `data` 为 `{ "content": [Label], "total": N }` 分页结构，以
 //! `PageResponse<Label>` 解码。
@@ -25,10 +25,14 @@ use crate::schema::{admin::label::Label, common::PageResponse};
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 页码（可选，从 1 开始；缺省时服务端按第 1 页处理）。
+    /// 页码（可选参数）。
+    ///
+    /// 从 1 开始；缺省时服务端按第 1 页处理。
     #[query]
     page: Option<i32>,
-    /// 每页条数（可选；缺省时服务端返回全部标签）。
+    /// 每页条数（可选参数）。
+    ///
+    /// 缺省时服务端返回全部标签。
     #[query]
     per_page: Option<i32>,
 }
@@ -54,9 +58,9 @@ impl<'a> super::Label<'a> {
     /// `per_page` 缺省时返回全部标签（`handles.ListLabel` 中 `PageRequest.Validate` 的语义）。
     /// 成功时响应 `data` 为 `{ "content": [Label], "total": N }`，解码为
     /// [`PageResponse<Label>`](crate::schema::common::PageResponse)。
-    /// 数据来源：`examples/alist/server/router.go` 的 `_label` 路由与
-    /// `examples/alist/server/handles/label.go`（实现为 `ListLabel`）；
-    /// openapi 文档未收录该分组。
+    /// 数据来源：AList 服务端路由定义的 `_label` 路由与
+    /// AList 服务端 label 模块（实现为 `ListLabel`）；
+    /// AList OpenAPI 规范未收录该分组。
     ///
     /// # Arguments
     ///
@@ -99,7 +103,7 @@ impl<'a> super::Label<'a> {
 mod tests {
     use super::*;
 
-    /// 标签条目示例 JSON（按 `examples/alist/internal/model/label.go` 的 JSON tag 构造）。
+    /// 标签条目示例 JSON（按 AList 服务端标签模型字段构造）。
     const LABEL_JSON: &str = r##"{"id":1,"type":2,"name":"电影","description":"电影相关文件","bg_color":"#FF0000","create_time":"2024-06-01T12:00:00Z"}"##;
 
     /// 1) 纯 URL/方法断言：build_request().build() 检查 method 与 URL（含查询串）。

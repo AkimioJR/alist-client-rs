@@ -18,10 +18,14 @@ use crate::schema::admin::setting::Setting;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 单个设置分组编号（可选），例如 `"1"`（站点）。
+    /// 单个设置分组编号（可选参数）。
+    ///
+    /// 例如 `"1"`（站点）。
     #[query]
     group: Option<String>,
-    /// 逗号分隔的多个设置分组编号（可选），例如 `"5,0"`；与 `group` 同时设置时服务端优先使用本参数。
+    /// 逗号分隔的多个设置分组编号（可选参数）。
+    ///
+    /// 例如 `"5,0"`；与 `group` 同时设置时服务端优先使用本参数。
     #[query]
     groups: Option<String>,
 }
@@ -44,8 +48,8 @@ impl<'a> super::Setting<'a> {
     ///
     /// 对应 AList `GET /api/admin/setting/list`；成功时响应 `data` 为设置项数组
     /// （直接为数组，非分页结构）。不设置分组时返回全部设置。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `admin/setting/list` 与
-    /// `examples/alist/server/handles/setting.go`（实现为 `ListSettings`）。
+    /// 数据来源：AList OpenAPI 规范的 `admin/setting/list` 与
+    /// AList 服务端 handles.Setting 模块（实现为 `ListSettings`）。
     ///
     /// # Arguments
     ///

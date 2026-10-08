@@ -1,9 +1,9 @@
 //! admin-storage 端点：更新存储。
 //!
 //! 对应 `POST /api/admin/storage/update`；请求体为 `model.Storage` 形状
-//! （`examples/alist/server/handles/storage.go` 的 `UpdateStorage` 直接绑定），
-//! `id` 用于定位目标存储且驱动名不可变更；成功时 Go 实现返回 `data: null`，
-//! openapi 示例则记载 `{"id": N}`，故以 `Option<StorageCreateResponse>` 建模。
+//! （AList 服务端 handles.Storage 模块的 `UpdateStorage` 直接绑定），
+//! `id` 用于定位目标存储且驱动名不可变更；成功时服务端返回 `data: null`，
+//! AList OpenAPI 规范示例则记载 `{"id": N}`，故以 `Option<StorageCreateResponse>` 建模。
 
 use alist_client_derive::EndpointRequest;
 
@@ -21,43 +21,73 @@ use crate::schema::admin::storage::StorageCreateResponse;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 目标存储 ID（必选）；服务端按该 ID 更新记录。
+    /// 目标存储 ID（必选参数）。
+    ///
+    /// 服务端按该 ID 更新记录。
     id: u64,
-    /// 挂载路径（必选）；重命名挂载路径时服务端会同步迁移内存中的存储实例。
+    /// 挂载路径（必选参数）。
+    ///
+    /// 重命名挂载路径时服务端会同步迁移内存中的存储实例。
     mount_path: String,
-    /// 驱动名称（必选）；必须与原存储一致，否则服务端报 `driver cannot be changed`。
+    /// 驱动名称（必选参数）。
+    ///
+    /// 必须与原存储一致，否则服务端报 `driver cannot be changed`。
     driver: String,
-    /// 驱动特定的附加信息（必选），JSON 字符串，字段由各驱动定义。
+    /// 驱动特定的附加信息（必选参数）。
+    ///
+    /// JSON 字符串，字段由各驱动定义。
     addition: String,
-    /// 排序值（可选）。
+    /// 排序值（可选参数）。
     order: Option<i32>,
-    /// 备注名（可选）。
+    /// 备注名（可选参数）。
     remark: Option<String>,
-    /// 缓存过期时间，单位秒（可选）。
+    /// 缓存过期时间（可选参数）。
+    ///
+    /// 单位为秒。
     cache_expiration: Option<i32>,
-    /// 存储状态（可选）；通常留空由服务端维护（如 `work`）。
+    /// 存储状态（可选参数）。
+    ///
+    /// 通常留空由服务端维护（如 `work`）。
     status: Option<String>,
-    /// 是否禁用（可选）；置 `true` 时服务端更新数据库后不会重新挂载驱动。
+    /// 是否禁用（可选参数）。
+    ///
+    /// 置 `true` 时服务端更新数据库后不会重新挂载驱动。
     disabled: Option<bool>,
-    /// 是否禁止建立索引（可选）；新版本服务端字段。
+    /// 是否禁止建立索引（可选参数）。
+    ///
+    /// 新版本服务端字段。
     disable_index: Option<bool>,
-    /// 是否启用签名（可选）；新版本服务端字段。
+    /// 是否启用签名（可选参数）。
+    ///
+    /// 新版本服务端字段。
     enable_sign: Option<bool>,
-    /// 对象排序字段（可选），例如 `name`。
+    /// 对象排序字段（可选参数）。
+    ///
+    /// 例如 `name`。
     order_by: Option<String>,
-    /// 对象排序方向（可选），例如 `asc`。
+    /// 对象排序方向（可选参数）。
+    ///
+    /// 例如 `asc`。
     order_direction: Option<String>,
-    /// 列目录时文件夹的展开时机（可选），例如 `front`。
+    /// 列目录时文件夹的展开时机（可选参数）。
+    ///
+    /// 例如 `front`。
     extract_folder: Option<String>,
-    /// 是否启用 Web 代理（可选）。
+    /// 是否启用 Web 代理（可选参数）。
     web_proxy: Option<bool>,
-    /// WebDAV 策略（可选）：`302_redirect`、`use_proxy_url` 或 `native_proxy`。
+    /// WebDAV 策略（可选参数）。
+    ///
+    /// 可选值包括 `302_redirect`、`use_proxy_url` 或 `native_proxy`。
     webdav_policy: Option<String>,
-    /// 是否代理 Range 请求（可选）；新版本服务端字段。
+    /// 是否代理 Range 请求（可选参数）。
+    ///
+    /// 新版本服务端字段。
     proxy_range: Option<bool>,
-    /// 下载代理 URL（可选）。
+    /// 下载代理 URL（可选参数）。
     down_proxy_url: Option<String>,
-    /// 下载代理 URL 是否附加签名（可选）；新版本服务端字段。
+    /// 下载代理 URL 是否附加签名（可选参数）。
+    ///
+    /// 新版本服务端字段。
     down_proxy_sign: Option<bool>,
 }
 
@@ -102,10 +132,10 @@ impl<'a> super::Storage<'a> {
     ///
     /// 对应 AList `POST /api/admin/storage/update`；请求体为完整 `model.Storage`
     /// 形状（服务端整体覆写记录），`driver` 不可变更。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/admin/storage/update` 与
-    /// `examples/alist/server/handles/storage.go`（实现为 `UpdateStorage`）。
-    /// 注意：成功响应的 `data` 两种服务端行为不同——Go 实现
-    /// （`UpdateStorage` 内 `common.SuccessResp(c)`）返回 `null`，openapi 示例
+    /// 数据来源：AList OpenAPI 规范的 `/api/admin/storage/update` 与
+    /// AList 服务端 handles.Storage 模块（实现为 `UpdateStorage`）。
+    /// 注意：成功响应的 `data` 两种服务端行为不同——服务端实现
+    /// （`UpdateStorage` 内 `common.SuccessResp(c)`）返回 `null`，AList OpenAPI 规范示例
     /// 返回 `{ "id": N }`，故模型为 `Option<StorageCreateResponse>`。
     ///
     /// # Arguments
@@ -200,7 +230,7 @@ mod tests {
     async fn send_decodes_null_data_as_none() {
         use crate::test_support::{ok_json, spawn_mock_server};
 
-        // 响应形状：examples/alist/server/handles/storage.go UpdateStorage → SuccessResp(c)
+        // 响应形状：AList 服务端 handles.Storage 模块 UpdateStorage → SuccessResp(c)
         let base_url = spawn_mock_server(
             vec![ok_json(r#"{"code":200,"message":"success","data":null}"#)],
             None,
@@ -223,7 +253,7 @@ mod tests {
         use crate::test_support::{ok_json, spawn_mock_server};
 
         let requests = Arc::new(Mutex::new(Vec::new()));
-        // 响应示例：docs/api/alistv3.openapi.yaml /api/admin/storage/update（data: {"id": 7}）
+        // 响应示例：AList OpenAPI 规范 /api/admin/storage/update（data: {"id": 7}）
         let base_url = spawn_mock_server(
             vec![ok_json(
                 r#"{"code":200,"message":"success","data":{"id":7}}"#,

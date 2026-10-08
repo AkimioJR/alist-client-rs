@@ -5,9 +5,9 @@
 //! [`crate::schema::common::PageResponse`]，元素类型为
 //! [`crate::schema::admin::user::AdminUser`]。
 //!
-//! 说明：当前服务端实现（`examples/alist/server/handles/user.go` 的 `ListUsers`）
-//! 会绑定可选的 `page`/`per_page` 查询参数（`model.PageRequest`），但缺省
-//! （不传参数，`per_page` 回退为 `MaxInt`）即返回全部用户，且 openapi 文档
+//! 说明：当前服务端实现（AList 服务端 user 模块的 `ListUsers`）
+//! 会绑定可选的 `page`/`per_page` 查询参数，但缺省
+//! （不传参数）即返回全部用户，且 AList OpenAPI 规范
 //! 未列出这两个参数；因此本端点按文档语义不暴露分页参数。
 
 use alist_client_derive::EndpointRequest;
@@ -41,13 +41,11 @@ impl<'a> super::User<'a> {
     ///
     /// 对应 AList `GET /api/admin/user/list`；成功时响应 `data` 为
     /// `{"content": [用户数组], "total": 总数}` 分页形态。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `admin/user/list`、
-    /// `docs/api/alistv3.md` 的 `# admin/user` 分组与
-    /// `examples/alist/server/handles/user.go`（实现为 `ListUsers`）。
+    /// 数据来源：AList OpenAPI 规范的 `admin/user/list` 与
+    /// AList 服务端 user 模块（实现为 `ListUsers`）。
     ///
     /// 当前服务端实现另接受可选的 `page`/`per_page` 查询参数，但缺省即返回
-    /// 全部用户（`internal/model/req.go` 的 `PageRequest::Validate` 将 `per_page`
-    /// 回退为 `MaxInt`），且 openapi 文档未列出这两个参数，故本客户端不提供。
+    /// 全部用户，且 AList OpenAPI 规范未列出这两个参数，故本客户端不提供。
     ///
     /// # Arguments
     ///

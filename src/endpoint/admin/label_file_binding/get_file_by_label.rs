@@ -2,10 +2,10 @@
 //!
 //! 对应 `GET /api/label_file_binding/get_file_by_label`；响应 `data` 为带标签的
 //! 文件条目数组（无结果时为 `null`），因此以 `Option<Vec<ObjLabelResponse>>` 作为端点模型。
-//! 该分组未收录进 openapi 文档；路由见 `examples/alist/server/router.go:263`
-//! （挂载在 `auth.Group("/label_file_binding")` 下，非 `/api/admin` 前缀），
-//! 处理逻辑见 `examples/alist/server/handles/label_file_binding.go:106`
-//! （实现为 `handles.GetFileByLabel`，返回 `op.GetFileByLabel` 的 `[]op.ObjLabelResp`）。
+//! 该分组未收录进 AList OpenAPI 规范；路由见 AList 服务端路由定义
+//! （挂载在用户认证路由组下，非 `/api/admin` 前缀），
+//! 处理逻辑见 AList 服务端 label_file_binding 模块
+//! （实现为 `handles.GetFileByLabel`）。
 
 use alist_client_derive::EndpointRequest;
 
@@ -26,9 +26,9 @@ use crate::schema::admin::label_file_binding::ObjLabelResponse;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 标签 ID（必选；支持逗号分隔多个标签，如 `"1,2"`）。
+    /// 标签 ID（必选参数）。
     ///
-    /// 服务端在 `label_id` 为空时返回 400。
+    /// 支持逗号分隔多个标签，如 `"1,2"`。服务端在 `label_id` 为空时返回 400。
     #[query]
     label_id: String,
 }
@@ -51,8 +51,8 @@ impl<'a> super::LabelFileBinding<'a> {
     /// 对应 AList `GET /api/label_file_binding/get_file_by_label`；成功时响应 `data`
     /// 为 [`ObjLabelResponse`] 数组，
     /// 无结果时为 `null`（解码为 `None`）。
-    /// 数据来源：`examples/alist/server/router.go:263`（路由注册）与
-    /// `examples/alist/server/handles/label_file_binding.go:106`
+    /// 数据来源：AList 服务端路由定义（路由注册）与
+    /// AList 服务端 label_file_binding 模块
     /// （实现为 `handles.GetFileByLabel`）。
     ///
     /// # Arguments

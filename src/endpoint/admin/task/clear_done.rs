@@ -2,8 +2,7 @@
 //!
 //! 对应 `POST /api/admin/task/upload/clear_done`；响应 `data: null`，
 //! 以 `()` 作为端点模型。
-//! 端点文件模板与命名约定见 `docs/design.md`；
-//! API 路径以 `docs/api/alistv3.openapi.yaml` 与 `examples/alist/server/router.go` 为准。
+//! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -33,9 +32,8 @@ impl<'a> super::Task<'a> {
     /// 清空已完成（已取消/已失败/已成功）的上传任务。
     ///
     /// 对应 AList `POST /api/admin/task/upload/clear_done`；服务端按状态
-    /// 条件批量移除任务（数据来源：`docs/api/alistv3.openapi.yaml` 的
-    /// `admin/task/upload/clear_done` 与 `examples/alist/server/handles/task.go:176-188`
-    /// 的 `manager.RemoveByCondition(...)`），成功时响应 `data` 为 `null`。
+    /// 条件批量移除任务（数据来源：AList OpenAPI 规范的
+    /// `admin/task/upload/clear_done` 与 AList 服务端 task 模块），成功时响应 `data` 为 `null`。
     ///
     /// # Returns
     ///

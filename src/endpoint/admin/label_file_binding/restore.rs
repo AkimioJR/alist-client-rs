@@ -4,11 +4,10 @@
 //! `{"keep_ids":bool,"override":bool,"bindings":[LabelFileBinding]}`，
 //! 响应 `data` 为 `{"msg":"restored N rows"}`，以
 //! [`RestoreResponse`]
-//! 作为端点模型。该分组未收录进 openapi 文档；路由见
-//! `examples/alist/server/router.go:214`，处理逻辑见
-//! `examples/alist/server/handles/label_file_binding.go:172`
-//! （实现为 `handles.RestoreLabelFileBinding`，请求体为文件内
-//! `restoreLabelBindingsReq{keep_ids, override, bindings}`，handler:26-30）。
+//! 作为端点模型。该分组未收录进 AList OpenAPI 规范；路由见
+//! AList 服务端路由定义，处理逻辑见
+//! AList 服务端 label_file_binding 模块
+//! （实现为 `handles.RestoreLabelFileBinding`）。
 
 use alist_client_derive::EndpointRequest;
 
@@ -30,15 +29,18 @@ use crate::schema::admin::label_file_binding::{LabelFileBinding, RestoreResponse
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 要恢复的绑定记录列表（必选；服务端要求 `bindings` 非空）。
+    /// 要恢复的绑定记录列表（必选参数）。
     ///
-    /// 每条记录的 `user_id` 为 0 时服务端以当前认证用户填充；
+    /// 服务端要求 `bindings` 非空。每条记录的 `user_id` 为 0 时服务端以当前认证用户填充；
     /// `label_id` 为 0 或 `file_name` 为空的记录会被服务端整体拒绝（返回 400）。
     bindings: Vec<LabelFileBinding>,
-    /// 是否沿用记录中的绑定 ID（可选，缺省 `false`；对应 Go `KeepIDs`）。
+    /// 是否沿用记录中的绑定 ID（可选参数）。
+    ///
+    /// 缺省 `false`。
     keep_ids: Option<bool>,
-    /// 是否覆盖既有同名绑定（可选，缺省 `false`；对应 Go `Override`，
-    /// JSON 键为 `override`，Rust 中为保留字故写作 `r#override`）。
+    /// 是否覆盖既有同名绑定（可选参数）。
+    ///
+    /// 缺省 `false`；JSON 键为 `override`，Rust 中为保留字故写作 `r#override`。
     r#override: Option<bool>,
 }
 
@@ -61,8 +63,8 @@ impl<'a> super::LabelFileBinding<'a> {
     ///
     /// 对应 AList `POST /api/admin/label_file_binding/restore`；成功时响应 `data`
     /// 为 `{"msg":"restored N rows"}`（N 为提交的记录条数）。
-    /// 数据来源：`examples/alist/server/router.go:214`（路由注册）与
-    /// `examples/alist/server/handles/label_file_binding.go:172`
+    /// 数据来源：AList 服务端路由定义（路由注册）与
+    /// AList 服务端 label_file_binding 模块
     /// （实现为 `handles.RestoreLabelFileBinding`）。
     ///
     /// # Arguments
@@ -128,7 +130,7 @@ mod tests {
     use super::*;
     use crate::test_support::{ok_json, spawn_mock_server};
 
-    /// 构造一条绑定记录（按 `model.LabelFileBinding` 形状）。
+    /// 构造一条绑定记录（按服务端标签绑定模型形状）。
     fn sample_binding(file_name: &str, label_id: u64) -> LabelFileBinding {
         LabelFileBinding {
             id: 7,

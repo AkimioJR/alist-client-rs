@@ -16,7 +16,9 @@ use alist_client_derive::EndpointRequest;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 目标用户 ID（必选，作为 URL 查询参数 `id` 发送）。
+    /// 目标用户 ID（必选参数）。
+    ///
+    /// 作为 URL 查询参数 `id` 发送。
     #[query]
     id: i64,
 }
@@ -34,9 +36,8 @@ impl<'a> super::User<'a> {
     /// 删除指定用户。
     ///
     /// 对应 AList `POST /api/admin/user/delete`；成功时响应 `data` 为 `null`。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `admin/user/delete`、
-    /// `docs/api/alistv3.md` 的 `# admin/user` 分组与
-    /// `examples/alist/server/handles/user.go`（实现为 `DeleteUser`，读取 `id`
+    /// 数据来源：AList OpenAPI 规范的 `admin/user/delete` 与
+    /// AList 服务端 user 模块（实现为 `DeleteUser`，读取 `id`
     /// 查询参数后按 ID 删除）。
     ///
     /// # Arguments

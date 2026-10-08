@@ -2,10 +2,10 @@
 //!
 //! 对应 `GET /api/label_file_binding/get`；响应 `data` 为标签数组
 //! （文件未绑定任何标签时为 `null`），因此以 `Option<Vec<Label>>` 作为端点模型。
-//! 该分组未收录进 openapi 文档；路由见 `examples/alist/server/router.go:262`
-//! （挂载在 `auth.Group("/label_file_binding")` 下，非 `/api/admin` 前缀），
-//! 处理逻辑见 `examples/alist/server/handles/label_file_binding.go:32`
-//! （实现为 `handles.GetLabelByFileName`，返回 `op.GetLabelByFileName` 的 `[]model.Label`）。
+//! 该分组未收录进 AList OpenAPI 规范；路由见 AList 服务端路由定义
+//! （挂载在用户认证路由组下，非 `/api/admin` 前缀），
+//! 处理逻辑见 AList 服务端 label_file_binding 模块
+//! （实现为 `handles.GetLabelByFileName`）。
 
 use alist_client_derive::EndpointRequest;
 
@@ -26,7 +26,7 @@ use crate::schema::admin::label_file_binding::Label;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 目标文件名（必选）。
+    /// 目标文件名（必选参数）。
     ///
     /// 服务端在 `file_name` 为空时返回 400。
     #[query]
@@ -51,8 +51,8 @@ impl<'a> super::LabelFileBinding<'a> {
     /// 对应 AList `GET /api/label_file_binding/get`；成功时响应 `data` 为
     /// [`Label`] 数组，
     /// 文件未绑定任何标签时为 `null`（解码为 `None`）。
-    /// 数据来源：`examples/alist/server/router.go:262`（路由注册）与
-    /// `examples/alist/server/handles/label_file_binding.go:32`
+    /// 数据来源：AList 服务端路由定义（路由注册）与
+    /// AList 服务端 label_file_binding 模块
     /// （实现为 `handles.GetLabelByFileName`）。
     ///
     /// # Arguments

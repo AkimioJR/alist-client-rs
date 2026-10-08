@@ -1,11 +1,10 @@
 //! admin-role 端点：列出角色。
 //!
-//! 对应 `GET /api/admin/role/list`（openapi 未收录该分组，路由见
-//! `examples/alist/server/router.go:150`）。处理函数 `handles.ListRoles`
-//! 绑定 `model.PageRequest`（查询串 `page`/`per_page`），返回
-//! `common.PageResponse{Content: roles, Total: total}`；
-//! `per_page` 缺省（或小于 1）时服务端返回全部角色
-//! （见 `examples/alist/server/handles/role.go:14-28` 与 `internal/model/req.go:13-19`）。
+//! 对应 `GET /api/admin/role/list`（AList OpenAPI 规范未收录该分组，路由见
+//! AList 服务端路由定义）。处理函数 `handles.ListRoles`
+//! 绑定通用分页请求参数（查询串 `page`/`per_page`），返回
+//! 分页响应数据；`per_page` 缺省（或小于 1）时服务端返回全部角色
+//! （见 AList 服务端 role 模块）。
 
 use alist_client_derive::EndpointRequest;
 
@@ -26,10 +25,14 @@ use crate::schema::{admin::role::Role, common::PageResponse};
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 页码，从 1 开始；缺省时服务端按第 1 页处理。
+    /// 页码（可选参数）。
+    ///
+    /// 从 1 开始；缺省时服务端按第 1 页处理。
     #[query]
     page: Option<i32>,
-    /// 每页条数；缺省（或小于 1）时服务端返回全部角色。
+    /// 每页条数（可选参数）。
+    ///
+    /// 缺省（或小于 1）时服务端返回全部角色。
     #[query]
     per_page: Option<i32>,
 }
@@ -51,8 +54,8 @@ impl<'a> super::Role<'a> {
     ///
     /// 对应 AList `GET /api/admin/role/list`；响应 `data` 为
     /// `{ "content": [角色...], "total": 总数 }` 分页结构。
-    /// 数据来源：`examples/alist/server/router.go:150`（`handles.ListRoles`）与
-    /// `examples/alist/server/handles/role.go:14-28`；该分组不在 openapi 中，以 Go 源码为准。
+    /// 数据来源：AList 服务端路由定义（`handles.ListRoles`）与
+    /// AList 服务端 role 模块；该分组不在 AList OpenAPI 规范中，以 AList 服务端实现为准。
     ///
     /// # Arguments
     ///
@@ -131,7 +134,7 @@ mod tests {
         use crate::test_support::{ok_json, spawn_mock_server};
 
         let requests = Arc::new(Mutex::new(Vec::new()));
-        // 示例形状取自 handles/role.go 返回的 PageResponse 与 internal/model/role.go 的 JSON 标签
+        // 示例形状取自服务端返回的 PageResponse 与服务端角色模型的 JSON 字段
         let body = r#"{"code":200,"message":"success","data":{"content":[{"id":1,"name":"admin","description":"","default":true,"permission_scopes":[{"path":"/","permission":65535}]}],"total":1}}"#;
         let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
         let client = crate::Client::new(base_url).unwrap();

@@ -16,7 +16,9 @@ use alist_client_derive::EndpointRequest;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 目标存储 ID（必选）。
+    /// 目标存储 ID（必选参数）。
+    ///
+    /// 经 URL 查询参数传递。
     #[query]
     id: u64,
 }
@@ -35,8 +37,8 @@ impl<'a> super::Storage<'a> {
     ///
     /// 对应 AList `POST /api/admin/storage/enable`；`id` 经 URL 查询串传递，
     /// 成功时响应 `data` 为 `null`。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/admin/storage/enable` 与
-    /// `examples/alist/server/handles/storage.go`（实现为 `EnableStorage`）。
+    /// 数据来源：AList OpenAPI 规范的 `/api/admin/storage/enable` 与
+    /// AList 服务端 handles.Storage 模块（实现为 `EnableStorage`）。
     ///
     /// # Arguments
     ///

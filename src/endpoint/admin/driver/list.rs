@@ -41,9 +41,9 @@ impl<'a> super::Driver<'a> {
     ///
     /// 对应 AList `GET /api/admin/driver/list`；`data` 为「驱动名 → 驱动模板」映射，
     /// 每个模板含 `common`（通用配置项）、`additional`（驱动专有配置项）与 `config`
-    /// （驱动行为开关）三部分。数据来源：`docs/api/alistv3.openapi.yaml` 的
-    /// `admin/driver/list`、`examples/alist/server/handles/driver.go`（`ListDriverInfo`）
-    /// 与 `examples/alist/internal/op/driver.go`（`GetDriverInfoMap`）。
+    /// （驱动行为开关）三部分。数据来源：AList OpenAPI 规范的
+    /// `admin/driver/list`、AList 服务端 handles.Driver 模块（`ListDriverInfo`）
+    /// 与 op.Driver 模块（`GetDriverInfoMap`）。
     ///
     /// 响应为异构复杂结构（键为任意驱动名、条目随驱动种类与 AList 版本演进），
     /// 因此保持宽松模型 [`DriverListResponse`]（`HashMap<String, serde_json::Value>`）；

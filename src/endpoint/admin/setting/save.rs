@@ -5,7 +5,7 @@
 //!
 //! 由于 [`EndpointRequest`] 派生宏生成的请求体
 //! 固定为对象包装结构，本端点将载荷字段标记为 `#[endpoint(skip)]`，发送时经
-//! [`Request::send_settings`] 手动附加数组请求体（与上传特例同一处理方式，见 `docs/design.md` §4）；
+//! [`Request::send_settings`] 手动附加数组请求体（与上传特例同一处理方式）；
 //! **请勿使用派生生成的 `send`/`.await`**——它们不携带请求体，服务端会因绑定空请求体而报错。
 
 use alist_client_derive::EndpointRequest;
@@ -22,7 +22,9 @@ use crate::schema::admin::setting::Setting;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 待保存的设置项数组（必选；经 [`Request::send_settings`] 以 JSON 数组附加到请求体）。
+    /// 待保存的设置项数组（必选参数）。
+    ///
+    /// 经 [`Request::send_settings`] 以 JSON 数组附加到请求体。
     #[endpoint(skip)]
     settings: Vec<Setting>,
 }
@@ -38,7 +40,7 @@ impl<'a> Request<'a> {
     /// 附加设置项数组请求体并发送。
     ///
     /// 请求体为设置项 JSON 数组（对应服务端 `c.ShouldBind(&[]model.SettingItem)` 的绑定形态，
-    /// 见 `examples/alist/server/handles/setting.go` 的 `SaveSettings`）；
+    /// 见 AList 服务端 handles.Setting 模块的 `SaveSettings`）；
     /// 成功时响应 `data` 为 `null`。
     ///
     /// # Errors
@@ -56,8 +58,8 @@ impl<'a> super::Setting<'a> {
     ///
     /// 对应 AList `POST /api/admin/setting/save`；请求体为设置项数组，
     /// 成功时响应 `data` 为 `null`。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `admin/setting/save` 与
-    /// `examples/alist/server/handles/setting.go`（实现为 `SaveSettings`）。
+    /// 数据来源：AList OpenAPI 规范的 `admin/setting/save` 与
+    /// AList 服务端 handles.Setting 模块（实现为 `SaveSettings`）。
     ///
     /// # Arguments
     ///

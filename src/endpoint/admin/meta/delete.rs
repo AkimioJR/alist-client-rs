@@ -2,8 +2,8 @@
 //!
 //! 对应 `POST /api/admin/meta/delete`；必选查询参数 `id`（元信息 ID），
 //! 响应 `data: null`，以 `()` 作为端点模型。
-//! 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/admin/meta/delete` 与
-//! `examples/alist/server/handles/meta.go`（`DeleteMeta` 经 `c.Query("id")` 取参）。
+//! 数据来源：AList OpenAPI 规范的 `/api/admin/meta/delete` 与
+//! AList 服务端 handles.Meta 模块（`DeleteMeta` 经 `c.Query("id")` 取参）。
 
 use alist_client_derive::EndpointRequest;
 
@@ -18,7 +18,9 @@ use alist_client_derive::EndpointRequest;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 待删除的元信息 ID（必选，作为 `id` 查询参数发送）。
+    /// 待删除的元信息 ID（必选参数）。
+    ///
+    /// 作为 `id` 查询参数发送。
     #[query]
     id: u64,
 }
@@ -37,8 +39,8 @@ impl<'a> super::Meta<'a> {
     ///
     /// 对应 AList `POST /api/admin/meta/delete?id=<id>`；成功时响应 `data` 为 `null`
     /// （ID 不存在时服务端返回 `code` 非 200 的错误响应）。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/admin/meta/delete` 与
-    /// `examples/alist/server/handles/meta.go`（实现为 `DeleteMeta`，经 `op.DeleteMetaById` 删除）。
+    /// 数据来源：AList OpenAPI 规范的 `/api/admin/meta/delete` 与
+    /// AList 服务端 handles.Meta 模块（实现为 `DeleteMeta`，经 `op.DeleteMetaById` 删除）。
     ///
     /// # Arguments
     ///
@@ -94,7 +96,7 @@ mod tests {
         );
     }
 
-    /// 收发路径断言：`docs/api/alistv3.openapi.yaml` `/api/admin/meta/delete`
+    /// 收发路径断言：AList OpenAPI 规范 `/api/admin/meta/delete`
     /// 的 200 响应示例（`data: null`）应解码为 `()`。
     #[tokio::test]
     async fn send_decodes_null_data() {

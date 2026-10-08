@@ -32,8 +32,8 @@ impl<'a> super::Storage<'a> {
     ///
     /// 对应 AList `POST /api/admin/storage/load_all`；服务端在后台协程中逐个
     /// 卸载并重挂存储（`LoadAllStorages`），本请求立即返回。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/admin/storage/load_all` 与
-    /// `examples/alist/server/handles/storage.go`（实现为 `LoadAllStorages`）。
+    /// 数据来源：AList OpenAPI 规范的 `/api/admin/storage/load_all` 与
+    /// AList 服务端 handles.Storage 模块（实现为 `LoadAllStorages`）。
     ///
     /// # Arguments
     ///

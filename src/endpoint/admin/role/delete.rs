@@ -1,10 +1,10 @@
 //! admin-role 端点：删除角色。
 //!
-//! 对应 `POST /api/admin/role/delete`（openapi 未收录该分组，路由见
-//! `examples/alist/server/router.go:154`）。处理函数 `handles.DeleteRole`
+//! 对应 `POST /api/admin/role/delete`（AList OpenAPI 规范未收录该分组，路由见
+//! AList 服务端路由定义）。处理函数 `handles.DeleteRole`
 //! 从查询串读取 `id`（缺失或非数字时返回 400），内置 `admin`/`guest`
 //! 角色被服务端以 403 拒绝，成功时响应 `data: null`
-//! （见 `examples/alist/server/handles/role.go:96-117`）。
+//! （见 AList 服务端 role 模块）。
 
 use alist_client_derive::EndpointRequest;
 
@@ -19,7 +19,7 @@ use alist_client_derive::EndpointRequest;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 目标角色 ID（必选）。
+    /// 目标角色 ID（必选参数）。
     #[query]
     id: u64,
 }
@@ -37,8 +37,8 @@ impl<'a> super::Role<'a> {
     ///
     /// 对应 AList `POST /api/admin/role/delete`；成功时响应 `data` 为 `null`。
     /// 内置 `admin`/`guest` 角色不可删除（服务端返回 403 错误响应）。
-    /// 数据来源：`examples/alist/server/router.go:154`（`handles.DeleteRole`）与
-    /// `examples/alist/server/handles/role.go:96-117`；该分组不在 openapi 中，以 Go 源码为准。
+    /// 数据来源：AList 服务端路由定义（`handles.DeleteRole`）与
+    /// AList 服务端 role 模块；该分组不在 AList OpenAPI 规范中，以 AList 服务端实现为准。
     ///
     /// # Arguments
     ///

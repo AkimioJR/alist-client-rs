@@ -1,7 +1,7 @@
 //! admin-storage 端点：创建存储。
 //!
 //! 对应 `POST /api/admin/storage/create`；请求体为 `model.Storage` 形状
-//! （`examples/alist/server/handles/storage.go` 的 `CreateStorage` 直接绑定），
+//! （AList 服务端 handles.Storage 模块的 `CreateStorage` 直接绑定），
 //! 其中 `addition` 为驱动特定的 JSON 字符串；响应 `data` 为 `{ "id": N }`。
 
 use alist_client_derive::EndpointRequest;
@@ -20,42 +20,69 @@ use crate::schema::admin::storage::StorageCreateResponse;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 挂载路径（必选）；服务端唯一，例如 `/spam`。
+    /// 挂载路径（必选参数）。
+    ///
+    /// 服务端全局唯一，例如 `/spam`。
     mount_path: String,
-    /// 驱动名称（必选），例如 `Local`；创建后不可变更。
+    /// 驱动名称（必选参数）。
+    ///
+    /// 例如 `Local`，创建后不可变更。
     driver: String,
-    /// 驱动特定的附加信息（必选），JSON 字符串，字段由各驱动定义，
-    /// 例如 `{"root_folder_path":"/data"}`。
+    /// 驱动特定的附加信息（必选参数）。
+    ///
+    /// JSON 字符串，字段由各驱动定义，例如 `{"root_folder_path":"/data"}`。
     addition: String,
-    /// 排序值（可选）。
+    /// 排序值（可选参数）。
     order: Option<i32>,
-    /// 备注名（可选）。
+    /// 备注名（可选参数）。
     remark: Option<String>,
-    /// 缓存过期时间，单位秒（可选）。
+    /// 缓存过期时间（可选参数）。
+    ///
+    /// 单位为秒。
     cache_expiration: Option<i32>,
-    /// 存储状态（可选）；通常留空由服务端维护（如 `work`）。
+    /// 存储状态（可选参数）。
+    ///
+    /// 通常留空由服务端维护（如 `work`）。
     status: Option<String>,
-    /// 创建后是否立即禁用（可选）；新版本服务端字段。
+    /// 创建后是否立即禁用（可选参数）。
+    ///
+    /// 新版本服务端字段。
     disabled: Option<bool>,
-    /// 是否禁止建立索引（可选）；新版本服务端字段。
+    /// 是否禁止建立索引（可选参数）。
+    ///
+    /// 新版本服务端字段。
     disable_index: Option<bool>,
-    /// 是否启用签名（可选）；新版本服务端字段。
+    /// 是否启用签名（可选参数）。
+    ///
+    /// 新版本服务端字段。
     enable_sign: Option<bool>,
-    /// 对象排序字段（可选），例如 `name`。
+    /// 对象排序字段（可选参数）。
+    ///
+    /// 例如 `name`。
     order_by: Option<String>,
-    /// 对象排序方向（可选），例如 `asc`。
+    /// 对象排序方向（可选参数）。
+    ///
+    /// 例如 `asc`。
     order_direction: Option<String>,
-    /// 列目录时文件夹的展开时机（可选），例如 `front`。
+    /// 列目录时文件夹的展开时机（可选参数）。
+    ///
+    /// 例如 `front`。
     extract_folder: Option<String>,
-    /// 是否启用 Web 代理（可选）。
+    /// 是否启用 Web 代理（可选参数）。
     web_proxy: Option<bool>,
-    /// WebDAV 策略（可选）：`302_redirect`、`use_proxy_url` 或 `native_proxy`。
+    /// WebDAV 策略（可选参数）。
+    ///
+    /// 可选值包括 `302_redirect`、`use_proxy_url` 或 `native_proxy`。
     webdav_policy: Option<String>,
-    /// 是否代理 Range 请求（可选）；新版本服务端字段。
+    /// 是否代理 Range 请求（可选参数）。
+    ///
+    /// 新版本服务端字段。
     proxy_range: Option<bool>,
-    /// 下载代理 URL（可选）。
+    /// 下载代理 URL（可选参数）。
     down_proxy_url: Option<String>,
-    /// 下载代理 URL 是否附加签名（可选）；新版本服务端字段。
+    /// 下载代理 URL 是否附加签名（可选参数）。
+    ///
+    /// 新版本服务端字段。
     down_proxy_sign: Option<bool>,
 }
 
@@ -100,8 +127,8 @@ impl<'a> super::Storage<'a> {
     /// 响应 `data` 为 `{ "id": N }`（`CreateStorage` 的 `gin.H{"id": id}`）。
     /// `addition` 为驱动特定的 JSON 字符串，字段模板可经
     /// `client.admin().driver()` 相关端点查询。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/admin/storage/create` 与
-    /// `examples/alist/server/handles/storage.go`（实现为 `CreateStorage`）。
+    /// 数据来源：AList OpenAPI 规范的 `/api/admin/storage/create` 与
+    /// AList 服务端 handles.Storage 模块（实现为 `CreateStorage`）。
     ///
     /// # Arguments
     ///
@@ -235,7 +262,7 @@ mod tests {
         use crate::test_support::{ok_json, spawn_mock_server};
 
         let requests = Arc::new(Mutex::new(Vec::new()));
-        // 响应示例：docs/api/alistv3.openapi.yaml /api/admin/storage/create（data: {"id": 7}）
+        // 响应示例：AList OpenAPI 规范 /api/admin/storage/create（data: {"id": 7}）
         let base_url = spawn_mock_server(
             vec![ok_json(
                 r#"{"code":200,"message":"success","data":{"id":7}}"#,

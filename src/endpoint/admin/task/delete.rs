@@ -2,9 +2,8 @@
 //!
 //! 对应 `POST /api/admin/task/upload/delete`；目标任务经查询参数 `tid` 指定，
 //! 响应 `data: null`，以 `()` 作为端点模型。
-//! 端点文件模板与命名约定见 `docs/design.md`；
-//! API 路径与参数位置以 `docs/api/alistv3.openapi.yaml` 与
-//! `examples/alist/server/handles/task.go` 为准。
+//! API 路径与参数位置以 AList OpenAPI 规范与
+//! AList 服务端 task 模块为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -20,7 +19,9 @@ use alist_client_derive::EndpointRequest;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 目标任务 ID（必选；进 URL 查询串）。
+    /// 目标任务 ID（必选参数）。
+    ///
+    /// 作为 URL 查询参数传递。
     #[query]
     tid: String,
 }
@@ -41,10 +42,8 @@ impl<'a> super::Task<'a> {
     /// 删除指定上传任务（从任务列表中移除）。
     ///
     /// 对应 AList `POST /api/admin/task/upload/delete`；目标任务经**查询参数**
-    /// `tid` 指定（数据来源：`docs/api/alistv3.openapi.yaml` 的
-    /// `admin/task/upload/delete` 与 `examples/alist/server/handles/task.go:86`
-    /// 的 `manager.GetByID(c.Query("tid"))`），成功时响应 `data` 为 `null`
-    /// （`task.go:159-162` 的 `manager.Remove(...)` + `common.SuccessResp(c)`）。
+    /// `tid` 指定（数据来源：AList OpenAPI 规范的
+    /// `admin/task/upload/delete` 与 AList 服务端 task 模块），成功时响应 `data` 为 `null`。
     /// 任务不存在时服务端返回 404 语义错误。
     ///
     /// # Arguments

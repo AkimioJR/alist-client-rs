@@ -19,7 +19,9 @@ use crate::schema::admin::driver::DriverInfo;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 目标驱动名称（必选查询参数，如 `Local`、`115 Cloud`）。
+    /// 目标驱动名称（必选参数）。
+    ///
+    /// 作为查询参数传递，如 `Local`、`115 Cloud`。
     #[query]
     driver: String,
 }
@@ -43,8 +45,8 @@ impl<'a> super::Driver<'a> {
     /// 对应 AList `GET /api/admin/driver/info?driver=<名称>`；`data` 为该驱动的
     /// 配置模板（`common` 通用配置项、`additional` 驱动专有配置项、`config`
     /// 驱动行为开关），形状与 [`crate::schema::admin::driver::DriverListResponse`]
-    /// 中同名键的条目一致。数据来源：`docs/api/alistv3.openapi.yaml` 的
-    /// `admin/driver/info`、`examples/alist/server/handles/driver.go`
+    /// 中同名键的条目一致。数据来源：AList OpenAPI 规范的
+    /// `admin/driver/info`、AList 服务端 handles.Driver 模块
     /// （`GetDriverInfo`，按查询参数 `driver` 查找）。
     ///
     /// # Arguments
@@ -60,7 +62,7 @@ impl<'a> super::Driver<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。驱动不存在时 AList 以 HTTP 200 + 响应 `code: 404`
-    /// 返回 `driver [<名称>] not found`（见 `server/handles/driver.go`）。
+    /// 返回 `driver [<名称>] not found`（见 AList 服务端 handles.Driver 模块）。
     ///
     /// # Examples
     ///

@@ -18,7 +18,9 @@ use crate::schema::admin::setting::Setting;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 逗号分隔的多个设置键（必选），例如 `site_title,announcements`。
+    /// 逗号分隔的多个设置键（必选参数）。
+    ///
+    /// 例如 `site_title,announcements`。
     #[query]
     keys: String,
 }
@@ -43,9 +45,9 @@ impl<'a> super::Setting<'a> {
     /// 逐键查询并整体返回；任一键不存在时整个请求返回非成功响应（不会部分返回）。
     /// 与 [`Setting::get`](super::Setting::get) 的单键形态互斥：本端点只发送 `keys`，
     /// 不携带 `key` 参数。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `admin/setting/get`（`keys` 参数）与
-    /// `examples/alist/server/handles/setting.go`（实现为 `GetSetting`，批量分支见
-    /// setting.go:85-101，经 `op.GetSettingItemInKeys` 逐键查询）。
+    /// 数据来源：AList OpenAPI 规范的 `admin/setting/get`（`keys` 参数）与
+    /// AList 服务端 handles.Setting 模块（实现为 `GetSetting`，批量分支经
+    /// `op.GetSettingItemInKeys` 逐键查询）。
     ///
     /// # Arguments
     ///

@@ -1,10 +1,10 @@
 //! admin-meta 端点：更新元信息。
 //!
 //! 对应 `POST /api/admin/meta/update`；请求体为完整 Meta 对象（服务端
-//! `UpdateMeta` 直接 `ShouldBind` 到 `model.Meta`，见 `examples/alist/server/handles/meta.go:54`），
+//! `UpdateMeta` 直接绑定至 `model.Meta`，见 AList 服务端 handles.Meta 模块），
 //! 响应 `data: null`，以 `()` 作为端点模型。
-//! 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/admin/meta/update` 与
-//! `examples/alist/server/handles/meta.go`、`examples/alist/internal/db/meta.go`（`db.Save` 全量覆盖）。
+//! 数据来源：AList OpenAPI 规范的 `/api/admin/meta/update` 与
+//! AList 服务端 handles.Meta 模块、db.Meta 模块（`db.Save` 全量覆盖）。
 
 use alist_client_derive::EndpointRequest;
 
@@ -22,29 +22,39 @@ use crate::schema::admin::meta::Meta;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 待更新元信息的 ID；服务端以其为主键定位记录。
+    /// 待更新元信息的 ID（必选参数）。
+    ///
+    /// 服务端以其为主键定位记录。
     id: u64,
-    /// 规则作用的目录路径（服务端要求非空）。
+    /// 规则作用的目录路径（必选参数）。
+    ///
+    /// 服务端要求非空。
     path: String,
-    /// 目录密码；空字符串表示不设密码。
+    /// 目录密码（可选参数）。
+    ///
+    /// 空字符串表示不设密码。
     password: Option<String>,
-    /// 密码是否应用于子目录。
+    /// 密码是否应用于子目录（可选参数）。
     p_sub: Option<bool>,
-    /// 是否允许访客写入该目录。
+    /// 是否允许访客写入该目录（可选参数）。
     write: Option<bool>,
-    /// 写权限是否应用于子目录。
+    /// 写权限是否应用于子目录（可选参数）。
     w_sub: Option<bool>,
-    /// 隐藏条目的匹配规则（正则表达式，多条以 `\n` 分隔；服务端逐条校验合法性）。
+    /// 隐藏条目的匹配规则（可选参数）。
+    ///
+    /// 正则表达式，多条以 `\n` 分隔，服务端逐条校验合法性。
     hide: Option<String>,
-    /// 隐藏规则是否应用于子目录。
+    /// 隐藏规则是否应用于子目录（可选参数）。
     h_sub: Option<bool>,
-    /// 目录说明内容。
+    /// 目录说明内容（可选参数）。
     readme: Option<String>,
-    /// 说明是否应用于子目录。
+    /// 说明是否应用于子目录（可选参数）。
     r_sub: Option<bool>,
-    /// 自定义响应头（每行一条 `Header: Value`）。
+    /// 自定义响应头（可选参数）。
+    ///
+    /// 每行一条 `Header: Value`。
     header: Option<String>,
-    /// 自定义响应头是否应用于子目录。
+    /// 自定义响应头是否应用于子目录（可选参数）。
     header_sub: Option<bool>,
 }
 
@@ -79,9 +89,9 @@ impl<'a> super::Meta<'a> {
     /// 服务端（`op.UpdateMeta` → `db.Save`）按 `id` **全量覆盖**整条记录——
     /// 因此推荐先 [`get`](super::Meta::get) 取回完整对象、修改需要的字段后整体提交，
     /// 直接以零值对象提交会把未填写的字段清空。成功时响应 `data` 为 `null`。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/admin/meta/update` 与
-    /// `examples/alist/server/handles/meta.go`（实现为 `UpdateMeta`；`hide` 经
-    /// `validHide` 做正则校验）、`examples/alist/internal/db/meta.go`（`db.Save`）。
+    /// 数据来源：AList OpenAPI 规范的 `/api/admin/meta/update` 与
+    /// AList 服务端 handles.Meta 模块（实现为 `UpdateMeta`；`hide` 经
+    /// `validHide` 做正则校验）、db.Meta 模块（`db.Save`）。
     ///
     /// # Arguments
     ///
@@ -146,7 +156,7 @@ mod tests {
             built.url()
         );
 
-        // 请求体应为平铺的完整 Meta 对象（对应 openapi update 请求示例 + Go model.Meta 全字段）
+        // 请求体应为平铺的完整 Meta 对象（对应 AList OpenAPI update 请求示例与服务端 model.Meta 全字段）
         let body = built.body().unwrap().as_bytes().unwrap();
         let body = std::str::from_utf8(body).unwrap();
         let body: serde_json::Value = serde_json::from_str(body).unwrap();

@@ -18,7 +18,9 @@ use crate::schema::admin::setting::Setting;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 设置键（必选），例如 `site_title`。
+    /// 设置键（必选参数）。
+    ///
+    /// 例如 `site_title`。
     #[query]
     key: String,
 }
@@ -41,8 +43,8 @@ impl<'a> super::Setting<'a> {
     /// 对应 AList `GET /api/admin/setting/get`（`key` 查询参数形态）；成功时响应
     /// `data` 为单个设置项。按逗号分隔的多个键批量查询请使用
     /// [`Setting::get_by_keys`](super::Setting::get_by_keys)。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `admin/setting/get` 与
-    /// `examples/alist/server/handles/setting.go`（实现为 `GetSetting`）。
+    /// 数据来源：AList OpenAPI 规范的 `admin/setting/get` 与
+    /// AList 服务端 handles.Setting 模块（实现为 `GetSetting`）。
     ///
     /// # Arguments
     ///

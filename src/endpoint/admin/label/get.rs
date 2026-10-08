@@ -1,8 +1,8 @@
 //! admin-label 端点：获取标签。
 //!
-//! 对应 `GET /api/label/get`（openapi 未收录该分组，路由以
-//! `examples/alist/server/router.go` 的 `_label` 为准；实现为 `handles.GetLabel`）。
-//! 标签 ID 通过 URL 查询参数 `id` 传递（Go 侧 `c.Query("id")`），响应 `data` 为标签条目。
+//! 对应 `GET /api/label/get`（AList OpenAPI 规范未收录该分组，路由以
+//! AList 服务端路由定义的 `_label` 为准；实现为 `handles.GetLabel`）。
+//! 标签 ID 通过 URL 查询参数 `id` 传递（服务端读取查询参数 `id`），响应 `data` 为标签条目。
 
 use alist_client_derive::EndpointRequest;
 
@@ -19,7 +19,9 @@ use crate::schema::admin::label::Label;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 标签 ID（必选）；以 URL 查询参数 `id` 传递。
+    /// 标签 ID（必选参数）。
+    ///
+    /// 以 URL 查询参数 `id` 传递。
     #[query]
     id: u64,
 }
@@ -38,11 +40,11 @@ impl<'a> super::Label<'a> {
     /// 按 ID 获取单个标签。
     ///
     /// 对应 AList `GET /api/label/get`；标签 ID 以查询参数 `id` 传递
-    /// （`handles.GetLabel` 通过 `c.Query("id")` 读取，非请求体）。
+    /// （`handles.GetLabel` 通过查询参数 `id` 读取，非请求体）。
     /// 成功时响应 `data` 为标签条目，解码为 [`Label`]。
-    /// 数据来源：`examples/alist/server/router.go` 的 `_label` 路由与
-    /// `examples/alist/server/handles/label.go`（实现为 `GetLabel`）；
-    /// openapi 文档未收录该分组。
+    /// 数据来源：AList 服务端路由定义的 `_label` 路由与
+    /// AList 服务端 label 模块（实现为 `GetLabel`）；
+    /// AList OpenAPI 规范未收录该分组。
     ///
     /// # Arguments
     ///
@@ -81,7 +83,7 @@ impl<'a> super::Label<'a> {
 mod tests {
     use super::*;
 
-    /// 标签条目示例 JSON（按 `examples/alist/internal/model/label.go` 的 JSON tag 构造）。
+    /// 标签条目示例 JSON（按 AList 服务端标签模型字段构造）。
     const LABEL_JSON: &str = r##"{"id":1,"type":2,"name":"电影","description":"电影相关文件","bg_color":"#FF0000","create_time":"2024-06-01T12:00:00Z"}"##;
 
     /// 1) 纯 URL/方法断言：build_request().build() 检查 method 与 URL（含查询参数）。

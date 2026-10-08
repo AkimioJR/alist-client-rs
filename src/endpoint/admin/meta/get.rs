@@ -2,8 +2,8 @@
 //!
 //! 对应 `GET /api/admin/meta/get`；必选查询参数 `id`（元信息 ID），
 //! 响应 `data` 为单个 [`Meta`] 对象。
-//! 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/admin/meta/get` 与
-//! `examples/alist/server/handles/meta.go`（`GetMeta` 经 `c.Query("id")` 取参）。
+//! 数据来源：AList OpenAPI 规范的 `/api/admin/meta/get` 与
+//! AList 服务端 handles.Meta 模块（`GetMeta` 经 `c.Query("id")` 取参）。
 
 use alist_client_derive::EndpointRequest;
 
@@ -20,7 +20,9 @@ use crate::schema::admin::meta::Meta;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 元信息 ID（必选，作为 `id` 查询参数发送）。
+    /// 元信息 ID（必选参数）。
+    ///
+    /// 作为 `id` 查询参数发送。
     #[query]
     id: u64,
 }
@@ -39,8 +41,8 @@ impl<'a> super::Meta<'a> {
     ///
     /// 对应 AList `GET /api/admin/meta/get?id=<id>`；成功时响应 `data` 为
     /// [`Meta`] 对象（ID 不存在时服务端返回 `code` 非 200 的错误响应）。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/admin/meta/get` 与
-    /// `examples/alist/server/handles/meta.go`（实现为 `GetMeta`，经 `op.GetMetaById` 查询）。
+    /// 数据来源：AList OpenAPI 规范的 `/api/admin/meta/get` 与
+    /// AList 服务端 handles.Meta 模块（实现为 `GetMeta`，经 `op.GetMetaById` 查询）。
     ///
     /// # Arguments
     ///
@@ -90,7 +92,7 @@ mod tests {
         assert!(url.contains("id=1"), "URL 应包含 id 查询参数: {url}");
     }
 
-    /// 收发路径断言：`docs/api/alistv3.openapi.yaml` `/api/admin/meta/get`
+    /// 收发路径断言：AList OpenAPI 规范 `/api/admin/meta/get`
     /// 的 200 响应示例应能解码为 [`Meta`]。
     #[tokio::test]
     async fn send_decodes_openapi_get_example() {

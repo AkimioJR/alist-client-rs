@@ -2,7 +2,7 @@
 //!
 //! 对应 `GET /api/admin/storage/list`；响应 `data` 为 `PageResponse<Storage>`
 //! 分页包裹结构（`{"content": [...], "total": N}`）。不传分页参数时服务端
-//! 一次返回全部存储（`examples/alist/internal/model/req.go` 的 `PageRequest::Validate`
+//! 一次返回全部存储（AList 服务端的 `PageRequest::Validate`
 //! 会把缺省 `per_page` 放大为最大整数值）。
 
 use alist_client_derive::EndpointRequest;
@@ -21,10 +21,14 @@ use crate::schema::{admin::storage::Storage, common::PageResponse};
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 页码（可选）。缺省时服务端按第 1 页、不限条数处理，即返回全部存储。
+    /// 页码（可选参数）。
+    ///
+    /// 缺省时服务端按第 1 页、不限条数处理，即返回全部存储。
     #[query]
     page: Option<i32>,
-    /// 每页条数（可选）。缺省时服务端返回全部存储。
+    /// 每页条数（可选参数）。
+    ///
+    /// 缺省时服务端返回全部存储。
     #[query]
     per_page: Option<i32>,
 }
@@ -48,8 +52,8 @@ impl<'a> super::Storage<'a> {
     /// 对应 AList `GET /api/admin/storage/list`；响应 `data` 为
     /// `{ "content": [Storage], "total": N }` 分页包裹结构，不传 `page`/`per_page`
     /// 时服务端一次返回全部存储。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/admin/storage/list` 与
-    /// `examples/alist/server/handles/storage.go`（实现为 `ListStorages`）。
+    /// 数据来源：AList OpenAPI 规范的 `/api/admin/storage/list` 与
+    /// AList 服务端 handles.Storage 模块（实现为 `ListStorages`）。
     ///
     /// # Arguments
     ///
@@ -133,7 +137,7 @@ mod tests {
         use crate::test_support::{ok_json, spawn_mock_server};
 
         let requests = Arc::new(Mutex::new(Vec::new()));
-        // 示例 JSON：docs/api/alistv3.openapi.yaml /api/admin/storage/list 响应 example
+        // 示例 JSON：AList OpenAPI 规范 /api/admin/storage/list 响应示例
         let base_url = spawn_mock_server(
             vec![ok_json(
                 r#"{"code":200,"message":"success","data":{"content":[{"id":1,"mount_path":"/lll","order":0,"driver":"Local","cache_expiration":0,"status":"work","addition":"{}","remark":"","modified":"2023-07-19T09:46:38.868739912+08:00","disabled":false,"enable_sign":false,"order_by":"name","order_direction":"asc","extract_folder":"front","web_proxy":false,"webdav_policy":"native_proxy","down_proxy_url":""}],"total":5}}"#,

@@ -32,8 +32,8 @@ impl<'a> super::Setting<'a> {
     ///
     /// 对应 AList `POST /api/admin/setting/reset_token`；成功时响应 `data` 为
     /// 新生成的令牌字符串。重置后旧令牌立即失效，请及时更新客户端认证凭据。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `admin/setting/reset_token` 与
-    /// `examples/alist/server/handles/setting.go`（实现为 `ResetToken`）。
+    /// 数据来源：AList OpenAPI 规范的 `admin/setting/reset_token` 与
+    /// AList 服务端 handles.Setting 模块（实现为 `ResetToken`）。
     ///
     /// # Arguments
     ///

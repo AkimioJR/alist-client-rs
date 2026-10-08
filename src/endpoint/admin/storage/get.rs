@@ -18,7 +18,9 @@ use crate::schema::admin::storage::Storage;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 目标存储 ID（必选）。
+    /// 目标存储 ID（必选参数）。
+    ///
+    /// 经 URL 查询参数传递。
     #[query]
     id: u64,
 }
@@ -37,8 +39,8 @@ impl<'a> super::Storage<'a> {
     ///
     /// 对应 AList `GET /api/admin/storage/get`；`id` 经 URL 查询串传递
     /// （服务端按 `strconv.Atoi` 解析）。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/admin/storage/get` 与
-    /// `examples/alist/server/handles/storage.go`（实现为 `GetStorage`）。
+    /// 数据来源：AList OpenAPI 规范的 `/api/admin/storage/get` 与
+    /// AList 服务端 handles.Storage 模块（实现为 `GetStorage`）。
     ///
     /// # Arguments
     ///
@@ -92,7 +94,7 @@ mod tests {
         assert!(url.contains("id=5"), "URL 应包含存储 ID 查询参数: {url}");
     }
 
-    /// 收发路径断言：mock 服务器返回 openapi get 示例，解码 `Storage`。
+    /// 收发路径断言：mock 服务器返回 AList OpenAPI 获取存储详情示例，解码 `Storage`。
     #[tokio::test]
     async fn send_decodes_storage_detail() {
         use std::sync::{Arc, Mutex};
@@ -100,7 +102,7 @@ mod tests {
         use crate::test_support::{ok_json, spawn_mock_server};
 
         let requests = Arc::new(Mutex::new(Vec::new()));
-        // 示例 JSON：docs/api/alistv3.openapi.yaml /api/admin/storage/get 响应 example
+        // 示例 JSON：AList OpenAPI 规范 /api/admin/storage/get 响应示例
         let base_url = spawn_mock_server(
             vec![ok_json(
                 r#"{"code":200,"message":"success","data":{"id":2,"mount_path":"/aa","order":1,"driver":"Aliyundrive","cache_expiration":30,"status":"work","addition":"{\"root_folder_id\":\"\",\"refresh_token\":\"\"}","remark":"","modified":"2022-11-26T21:50:44.142348853+08:00","disabled":false,"order_by":"","order_direction":"","extract_folder":"front","web_proxy":false,"webdav_policy":"302_redirect","down_proxy_url":""}}"#,

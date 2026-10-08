@@ -1,11 +1,10 @@
 //! admin-label-file-binding 端点：删除标签绑定。
 //!
 //! 对应 `POST /api/admin/label_file_binding/delete`；成功时响应 `data` 为 `null`，
-//! 以 `()` 作为端点模型。该分组未收录进 openapi 文档；路由见
-//! `examples/alist/server/router.go:213`，处理逻辑见
-//! `examples/alist/server/handles/label_file_binding.go:83`
-//! （实现为 `handles.DelLabelByFileName`，请求体为文件内
-//! `DelLabelFileBinDingReq{file_name, label_id}`，其中 `label_id` 是字符串形态的标签 ID）。
+//! 以 `()` 作为端点模型。该分组未收录进 AList OpenAPI 规范；路由见
+//! AList 服务端路由定义，处理逻辑见
+//! AList 服务端 label_file_binding 模块
+//! （实现为 `handles.DelLabelByFileName`，其中 `label_id` 是字符串形态的标签 ID）。
 
 use alist_client_derive::EndpointRequest;
 
@@ -24,9 +23,13 @@ use alist_client_derive::EndpointRequest;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 目标文件名（必选；与标签 ID 共同定位要删除的绑定记录）。
+    /// 目标文件名（必选参数）。
+    ///
+    /// 与标签 ID 共同定位要删除的绑定记录。
     file_name: String,
-    /// 标签 ID（必选；JSON 中为字符串，服务端按 64 位无符号整数解析）。
+    /// 标签 ID（必选参数）。
+    ///
+    /// JSON 中为字符串，服务端按 64 位无符号整数解析。
     label_id: String,
 }
 
@@ -52,8 +55,8 @@ impl<'a> super::LabelFileBinding<'a> {
     ///
     /// 对应 AList `POST /api/admin/label_file_binding/delete`；成功时响应 `data`
     /// 为 `null`。
-    /// 数据来源：`examples/alist/server/router.go:213`（路由注册）与
-    /// `examples/alist/server/handles/label_file_binding.go:83`
+    /// 数据来源：AList 服务端路由定义（路由注册）与
+    /// AList 服务端 label_file_binding 模块
     /// （实现为 `handles.DelLabelByFileName`）。
     ///
     /// # Arguments

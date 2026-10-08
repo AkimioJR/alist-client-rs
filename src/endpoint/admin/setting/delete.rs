@@ -1,8 +1,8 @@
 //! admin-setting 端点：删除设置。
 //!
 //! 对应 `POST /api/admin/setting/delete`；`key` 为查询参数，响应 `data` 为 `null`，
-//! 以 `()` 作为端点模型。openapi 示例未含标准响应（仅 `{}`），此处以 Go
-//! `common.SuccessResp`（`examples/alist/server/common/resp.go`）为准。
+//! 以 `()` 作为端点模型。AList OpenAPI 规范示例未含标准响应（仅 `{}`），此处以 AList 服务端
+//! `common.SuccessResp`（common.resp 模块）为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -17,7 +17,9 @@ use alist_client_derive::EndpointRequest;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 要删除的设置键（必选，经查询参数传递）。
+    /// 要删除的设置键（必选参数）。
+    ///
+    /// 经查询参数传递。
     #[query]
     key: String,
 }
@@ -39,8 +41,8 @@ impl<'a> super::Setting<'a> {
     ///
     /// 对应 AList `POST /api/admin/setting/delete`（`key` 查询参数）；成功时响应
     /// `data` 为 `null`。该端点仅用于删除弃用的设置项。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `admin/setting/delete` 与
-    /// `examples/alist/server/handles/setting.go`（实现为 `DeleteSetting`）。
+    /// 数据来源：AList OpenAPI 规范的 `admin/setting/delete` 与
+    /// AList 服务端 handles.Setting 模块（实现为 `DeleteSetting`）。
     ///
     /// # Arguments
     ///

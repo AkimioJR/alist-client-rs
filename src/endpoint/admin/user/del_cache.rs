@@ -3,9 +3,8 @@
 //! 对应 `POST /api/admin/user/del_cache`；以必选查询参数 **`username`**（用户名，
 //! 而非用户 ID）指定目标，响应 `data: null`，以 `()` 作为端点模型。
 //!
-//! 注意：openapi 与 Go 源码（`examples/alist/server/handles/user.go` 的
-//! `DelUserCache`，读取 `username` 查询参数）均以用户名定位，
-//! 与同组其余端点的 `id` 参数不同。
+//! 注意：AList OpenAPI 规范与 AList 服务端 user 模块（`DelUserCache`，读取
+//! `username` 查询参数）均以用户名定位，与同组其余端点的 `id` 参数不同。
 
 use alist_client_derive::EndpointRequest;
 
@@ -20,7 +19,9 @@ use alist_client_derive::EndpointRequest;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 目标用户名（必选，作为 URL 查询参数 `username` 发送；非用户 ID）。
+    /// 目标用户名（必选参数）。
+    ///
+    /// 作为 URL 查询参数 `username` 发送，非数字用户 ID。
     #[query]
     username: String,
 }
@@ -41,9 +42,8 @@ impl<'a> super::User<'a> {
     /// 清理指定用户的缓存。
     ///
     /// 对应 AList `POST /api/admin/user/del_cache`；成功时响应 `data` 为 `null`。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `admin/user/del_cache`、
-    /// `docs/api/alistv3.md` 的 `# admin/user` 分组与
-    /// `examples/alist/server/handles/user.go`（实现为 `DelUserCache`，
+    /// 数据来源：AList OpenAPI 规范的 `admin/user/del_cache` 与
+    /// AList 服务端 user 模块（实现为 `DelUserCache`，
     /// 读取 `username` 查询参数后清除该用户的内存缓存）。
     ///
     /// 注意：本端点以**用户名**（而非用户 ID）定位目标。

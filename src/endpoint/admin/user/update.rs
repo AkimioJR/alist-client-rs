@@ -3,9 +3,9 @@
 //! 对应 `POST /api/admin/user/update`；请求体为用户对象（JSON，`id` 与
 //! `username` 必填，其余字段可选），响应 `data: null`，以 `()` 作为端点模型。
 //!
-//! 请求体 `role` 按当前服务端（Go `model.Roles []int`）以数组发送；
-//! openapi 文档示例中的 `"role": 0` 为老版本单值形状（服务端旧模型 `Role int`），
-//! 两者不兼容时以 `examples/alist` Go 源码为准。
+//! 请求体 `role` 按当前服务端以数组发送；
+//! AList OpenAPI 规范中的示例 `"role": 0` 为老版本单值形状，
+//! 两者不兼容时以 AList 服务端实现为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -20,33 +20,33 @@ use alist_client_derive::EndpointRequest;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 目标用户 ID（必选，定位待更新的用户）。
-    id: i64,
-    /// 用户名（必选）。
-    username: String,
-    /// 新密码（可选）。
+    /// 目标用户 ID（必选参数）。
     ///
-    /// 为空或缺省时服务端保留原密码哈希
-    /// （`examples/alist/server/handles/user.go` 的 `UpdateUser`）。
+    /// 定位待更新的用户。
+    id: i64,
+    /// 用户名（必选参数）。
+    username: String,
+    /// 新密码（可选参数）。
+    ///
+    /// 为空或缺省时服务端保留原密码哈希。
     password: Option<String>,
-    /// 用户根目录路径（可选）。
+    /// 用户根目录路径（可选参数）。
     base_path: Option<String>,
-    /// 角色 ID 列表（可选）。
+    /// 角色 ID 列表（可选参数）。
     ///
     /// 内置角色：`0` 普通用户、`1` 访客、`2` 管理员；服务端禁止把 admin/guest
     /// 角色授予普通用户，也禁止修改 admin 用户自身的角色。
     role: Option<Vec<i32>>,
-    /// 权限位掩码（可选）。
+    /// 权限位掩码（可选参数）。
     ///
     /// 按位控制可见隐藏文件、免密码访问、离线下载、上传、重命名/移动/复制/删除、
-    /// WebDAV 与 FTP 读写、压缩包读取与解压、路径限制、MCP 读写等能力，
-    /// 位定义见 `examples/alist/internal/model/user.go` 的 `Can*` 系列方法。
+    /// WebDAV 与 FTP 读写、压缩包读取与解压、路径限制、MCP 读写等能力。
     permission: Option<i32>,
-    /// 是否禁用该用户（可选）。
+    /// 是否禁用该用户（可选参数）。
     ///
     /// 服务端保证至少保留一个启用的管理员账号。
     disabled: Option<bool>,
-    /// SSO 平台唯一标识（可选）。
+    /// SSO 平台唯一标识（可选参数）。
     sso_id: Option<String>,
 }
 
@@ -73,12 +73,11 @@ impl<'a> super::User<'a> {
     /// 更新用户信息。
     ///
     /// 对应 AList `POST /api/admin/user/update`；成功时响应 `data` 为 `null`。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `admin/user/update`、
-    /// `docs/api/alistv3.md` 的 `# admin/user` 分组与
-    /// `examples/alist/server/handles/user.go`（实现为 `UpdateUser`）。
+    /// 数据来源：AList OpenAPI 规范的 `admin/user/update` 与
+    /// AList 服务端 user 模块（实现为 `UpdateUser`）。
     ///
-    /// 注意：服务端按整体覆盖保存（`internal/db/user.go` 的 `UpdateUser` 落库为
-    /// `db.Save`），请求中缺省的可选字段会以零值覆盖原值（仅 `password` 为空时
+    /// 注意：服务端按整体覆盖保存（服务端数据库实现中的 `UpdateUser`），
+    /// 请求中缺省的可选字段会以零值覆盖原值（仅 `password` 为空时
     /// 保留原密码哈希）；因此调用方应传入完整的目标状态。此外服务端禁止修改
     /// admin 用户的角色、禁止把 admin/guest 角色授予普通用户，且保证至少保留
     /// 一个启用的管理员账号。
@@ -154,7 +153,7 @@ mod tests {
             .as_bytes()
             .expect("请求体应为字节缓冲");
         let json: serde_json::Value = serde_json::from_slice(body).unwrap();
-        // 键名钉扎：与 docs/api/alistv3.md `# admin/user` POST update 的 Body 示例一致
+        // 键名钉扎：与 AList OpenAPI 规范中 POST update 的 Body 示例一致
         assert_eq!(json["id"], 3);
         assert_eq!(json["username"], "alice");
         assert_eq!(json["base_path"], "/data");

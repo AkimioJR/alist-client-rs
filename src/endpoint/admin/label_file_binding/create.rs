@@ -3,10 +3,10 @@
 //! 对应 `POST /api/admin/label_file_binding/create`；成功时响应 `data` 为
 //! `{"msg":"添加成功！"}`，以
 //! [`CreateResponse`] 作为端点模型。
-//! 该分组未收录进 openapi 文档；路由见 `examples/alist/server/router.go:211`，
-//! 处理逻辑见 `examples/alist/server/handles/label_file_binding.go`
+//! 该分组未收录进 AList OpenAPI 规范；路由见 AList 服务端路由定义，
+//! 处理逻辑见 AList 服务端 label_file_binding 模块
 //! （实现为 `handles.CreateLabelFileBinDing`，请求体为
-//! `examples/alist/internal/op/label_file_binding.go:13` 的 `op.CreateLabelFileBinDingReq`）。
+//! 服务端创建标签绑定请求模型）。
 
 use alist_client_derive::EndpointRequest;
 use chrono::{DateTime, Utc};
@@ -29,37 +29,46 @@ use crate::schema::admin::label_file_binding::CreateResponse;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 目标文件名（必选）。
+    /// 目标文件名（必选参数）。
     ///
     /// 服务端以文件名定位绑定：创建前会先删除该文件的全部既有绑定，
-    /// 再按标签列表重建（见 `op.CreateLabelFileBinDing`）。
+    /// 再按标签列表重建。
     name: String,
-    /// 文件 ID（可选；对应 Go `model.ObjFile.Id`）。
+    /// 文件 ID（可选参数）。
+    ///
+    /// 对应服务端文件对象 ID。
     id: Option<String>,
-    /// 文件完整路径（可选）。
+    /// 文件完整路径（可选参数）。
     path: Option<String>,
-    /// 文件大小（字节，可选）。
+    /// 文件大小（可选参数）。
+    ///
+    /// 单位为字节。
     size: Option<i64>,
-    /// 是否为目录（可选）。
+    /// 是否为目录（可选参数）。
     ///
     /// 服务端拒绝为目录创建绑定：返回 400「Unable to bind folder」。
     is_dir: Option<bool>,
-    /// 文件修改时间（可选）。
+    /// 文件修改时间（可选参数）。
     modified: Option<DateTime<Utc>>,
-    /// 文件创建时间（可选）。
+    /// 文件创建时间（可选参数）。
     created: Option<DateTime<Utc>>,
-    /// 签名字符串（可选；启用签名保护的非空）。
-    sign: Option<String>,
-    /// 缩略图链接（可选）。
-    thumb: Option<String>,
-    /// 文件类型枚举值（可选；0 未指定、1 目录、2 视频、3 音频、4 文本、5 图片，
-    /// 见 `examples/alist/internal/conf/const.go:165`）。
-    r#type: Option<i32>,
-    /// 哈希信息字符串（可选；JSON 键为 `hashinfo`，对应 Go `HashInfoStr`）。
-    hashinfo: Option<String>,
-    /// 逗号分隔的标签 ID 列表（可选，如 `"1,2,3"`）。
+    /// 签名字符串（可选参数）。
     ///
-    /// Go 侧请求体同时存在数组形态的 `labelIdList` 键（`LabelIDs []uint64`），
+    /// 启用签名保护时为非空字符串。
+    sign: Option<String>,
+    /// 缩略图链接（可选参数）。
+    thumb: Option<String>,
+    /// 文件类型枚举值（可选参数）。
+    ///
+    /// 取值定义：0 未指定、1 目录、2 视频、3 音频、4 文本、5 图片。
+    r#type: Option<i32>,
+    /// 哈希信息字符串（可选参数）。
+    ///
+    /// JSON 键为 `hashinfo`。
+    hashinfo: Option<String>,
+    /// 逗号分隔的标签 ID 列表（可选参数）。
+    ///
+    /// 例如 `"1,2,3"`。服务端请求体同时兼容数组形态的 `labelIdList` 键，
     /// 两种形态服务端解析行为一致，本构建器统一使用字符串形态。
     /// 不设置或为空时，服务端仅清除该文件的既有绑定、不新建（即「清空标签」语义）。
     label_ids: Option<String>,
@@ -93,8 +102,8 @@ impl<'a> super::LabelFileBinding<'a> {
     ///
     /// 对应 AList `POST /api/admin/label_file_binding/create`；成功时响应 `data`
     /// 为 `{"msg":"添加成功！"}`。
-    /// 数据来源：`examples/alist/server/router.go:211`（路由注册）与
-    /// `examples/alist/server/handles/label_file_binding.go:58`
+    /// 数据来源：AList 服务端路由定义（路由注册）与
+    /// AList 服务端 label_file_binding 模块
     /// （实现为 `handles.CreateLabelFileBinDing`）。
     ///
     /// # Arguments

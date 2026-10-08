@@ -17,9 +17,13 @@ use alist_client_derive::EndpointRequest;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// qBittorrent WebUI 地址（必选，可内嵌凭据），例如 `http://user:pass@localhost:8080/`。
+    /// qBittorrent WebUI 地址（必选参数）。
+    ///
+    /// 可内嵌凭据，例如 `http://user:pass@localhost:8080/`。
     url: String,
-    /// 做种时间（必选，字符串形式的数值），例如 `"30"`。
+    /// 做种时间（必选参数）。
+    ///
+    /// 字符串形式的数值，例如 `"30"`。
     seedtime: String,
 }
 
@@ -46,9 +50,9 @@ impl<'a> super::Setting<'a> {
     /// 对应 AList `POST /api/admin/setting/set_qbit`；保存 `qbittorrent_url`/
     /// `qbittorrent_seedtime` 设置项后，服务端会立即初始化 qBittorrent 连接，
     /// 成功时响应 `data` 为 `"ok"` 字符串，连接失败时返回非成功响应。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `admin/setting/set_qbit` 与
-    /// `examples/alist/server/handles/offline_download.go`（实现为 `SetQbittorrent`，
-    /// 请求体 Go `SetQbittorrentReq`（对应客户端模型 [`SetQbitRequest`](crate::schema::admin::setting::SetQbitRequest)） 仅含 `url`/`seedtime` 两字段）。
+    /// 数据来源：AList OpenAPI 规范的 `admin/setting/set_qbit` 与
+    /// AList 服务端 handles.OfflineDownload 模块（实现为 `SetQbittorrent`，
+    /// 请求体服务端 `SetQbittorrentReq`（对应客户端模型 [`SetQbitRequest`](crate::schema::admin::setting::SetQbitRequest)）仅含 `url`/`seedtime` 两字段）。
     ///
     /// # Arguments
     ///

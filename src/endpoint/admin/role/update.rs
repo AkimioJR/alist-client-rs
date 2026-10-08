@@ -1,10 +1,10 @@
 //! admin-role 端点：更新角色。
 //!
-//! 对应 `POST /api/admin/role/update`（openapi 未收录该分组，路由见
-//! `examples/alist/server/router.go:153`）。处理函数 `handles.UpdateRole`
+//! 对应 `POST /api/admin/role/update`（AList OpenAPI 规范未收录该分组，路由见
+//! AList 服务端路由定义）。处理函数 `handles.UpdateRole`
 //! 先按 `id` 读取现角色再整体覆盖（内置 `admin` 角色被服务端拒绝，
 //! `guest` 角色不可改名），成功时响应 `data: null`
-//! （见 `examples/alist/server/handles/role.go:58-94`）。
+//! （见 AList 服务端 role 模块）。
 
 use alist_client_derive::EndpointRequest;
 
@@ -21,23 +21,26 @@ use crate::schema::admin::role::PermissionEntry;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 目标角色 ID（必选；服务端据此读取现角色）。
+    /// 目标角色 ID（必选参数）。
+    ///
+    /// 服务端据此读取现角色。
     id: u64,
-    /// 新角色名（必选；服务端 `binding:"required"`，`guest` 角色不可改名）。
+    /// 新角色名（必选参数）。
+    ///
+    /// `guest` 角色不可改名。
     name: String,
-    /// 新角色描述（可选）。
+    /// 新角色描述（可选参数）。
     ///
-    /// 注意：省略时服务端会将描述置为空字符串（Go 零值整体覆盖，非增量更新）。
+    /// 注意：省略时服务端会将描述置为空字符串（零值整体覆盖，非增量更新）。
     description: Option<String>,
-    /// 新的路径级权限条目（可选）。
+    /// 新的路径级权限条目（可选参数）。
     ///
-    /// 注意：省略或传空数组时服务端都会**清空**该角色的全部权限条目
-    /// （Go 侧以请求切片整体覆盖后 `BeforeSave` 置空存储）；
+    /// 注意：省略或传空数组时服务端都会**清空**该角色的全部权限条目；
     /// 增量修改请先 [`Role::get`](super::Role::get) 读取现值，合并后再提交完整列表。
     permission_scopes: Option<Vec<PermissionEntry>>,
-    /// 是否设为默认角色（可选）。
+    /// 是否设为默认角色（可选参数）。
     ///
-    /// 该字段在服务端为三态指针（Go `*bool`）：省略时保持现值不变。
+    /// 省略时保持现值不变。
     default: Option<bool>,
 }
 
@@ -62,8 +65,8 @@ impl<'a> super::Role<'a> {
     /// 对应 AList `POST /api/admin/role/update`；成功时响应 `data` 为 `null`。
     /// 服务端按 `id` 读取现角色后整体覆盖：`default` 省略时保持现值，
     /// `description`/`permission_scopes` 省略时分别置空/清空（见下）。
-    /// 数据来源：`examples/alist/server/router.go:153`（`handles.UpdateRole`）与
-    /// `examples/alist/server/handles/role.go:58-94`；该分组不在 openapi 中，以 Go 源码为准。
+    /// 数据来源：AList 服务端路由定义（`handles.UpdateRole`）与
+    /// AList 服务端 role 模块；该分组不在 AList OpenAPI 规范中，以 AList 服务端实现为准。
     ///
     /// # Arguments
     ///

@@ -2,8 +2,7 @@
 //!
 //! 对应 `GET /api/admin/task/upload/done`；响应 `data` 为任务数组
 //! （[`crate::schema::admin::task::TaskInfoList`]，非分页包裹）。
-//! 端点文件模板与命名约定见 `docs/design.md`；
-//! API 路径以 `docs/api/alistv3.openapi.yaml` 与 `examples/alist/server/router.go` 为准。
+//! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -36,9 +35,8 @@ impl<'a> super::Task<'a> {
     ///
     /// 对应 AList `GET /api/admin/task/upload/done`；响应 `data` 为处于
     /// 已取消/已失败/已成功状态的上传任务数组（数据来源：
-    /// `docs/api/alistv3.openapi.yaml` 的 `admin/task/upload/done` 与
-    /// `examples/alist/server/handles/task.go` 的 `taskRoute` `/done` 分支，
-    /// 实现为 `common.SuccessResp(c, getTaskInfos(...))`，非分页包裹）。
+    /// AList OpenAPI 规范的 `admin/task/upload/done` 与
+    /// AList 服务端 task 模块的 `/done` 分支，非分页包裹）。
     ///
     /// # Returns
     ///
@@ -100,7 +98,7 @@ mod tests {
         use crate::test_support::{ok_json, spawn_mock_server};
 
         let requests = Arc::new(Mutex::new(Vec::new()));
-        // 任务元素字段取自 examples/alist/server/handles/task.go 的 TaskInfo（Go 为准）
+        // 任务元素字段取自服务端 task 模块的 TaskInfo
         let body = r#"{
             "code": 200,
             "message": "success",

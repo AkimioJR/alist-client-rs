@@ -4,8 +4,8 @@
 //! `{"content":[LabelFileBinding],"total":N}` 分页结构（handler 内部
 //! `pageResp[model.LabelFileBinding]`，与 [`PageResponse`]
 //! 形状一致），以 `PageResponse<LabelFileBinding>` 作为端点模型。
-//! 该分组未收录进 openapi 文档；路由见 `examples/alist/server/router.go:210`，
-//! 处理逻辑见 `examples/alist/server/handles/label_file_binding.go:125`
+//! 该分组未收录进 AList OpenAPI 规范；路由见 AList 服务端路由定义，
+//! 处理逻辑见 AList 服务端 label_file_binding 模块
 //! （实现为 `handles.ListLabelFileBinding`）。
 
 use alist_client_derive::EndpointRequest;
@@ -32,18 +32,24 @@ use crate::schema::{admin::label_file_binding::LabelFileBinding, common::PageRes
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 页码（可选，从 1 开始；缺省或非法时服务端按第 1 页处理）。
+    /// 页码（可选参数）。
+    ///
+    /// 从 1 开始；缺省或非法时服务端按第 1 页处理。
     #[query]
     page: Option<i32>,
-    /// 每页条数（可选；缺省或非法时服务端取 50，最大 200）。
+    /// 每页条数（可选参数）。
+    ///
+    /// 缺省或非法时服务端取 50，最大 200。
     #[query]
     page_size: Option<i32>,
-    /// 按文件名过滤（可选；精确匹配绑定记录的 `file_name`）。
+    /// 按文件名过滤（可选参数）。
+    ///
+    /// 精确匹配绑定记录的 `file_name`。
     #[query]
     file_name: Option<String>,
-    /// 按标签 ID 过滤（可选；支持逗号分隔多个标签，如 `"1,2"`）。
+    /// 按标签 ID 过滤（可选参数）。
     ///
-    /// 服务端逐段解析为无符号整数，任一段非法时返回 400。
+    /// 支持逗号分隔多个标签，如 `"1,2"`。服务端逐段解析为无符号整数，任一段非法时返回 400。
     #[query]
     label_id: Option<String>,
 }
@@ -68,8 +74,8 @@ impl<'a> super::LabelFileBinding<'a> {
     ///
     /// 对应 AList `GET /api/admin/label_file_binding/list`；成功时响应 `data` 为
     /// `{"content":[LabelFileBinding],"total":N}`。
-    /// 数据来源：`examples/alist/server/router.go:210`（路由注册）与
-    /// `examples/alist/server/handles/label_file_binding.go:125`
+    /// 数据来源：AList 服务端路由定义（路由注册）与
+    /// AList 服务端 label_file_binding 模块
     /// （实现为 `handles.ListLabelFileBinding`）。
     ///
     /// # Arguments
@@ -123,8 +129,7 @@ mod tests {
     use super::*;
     use crate::test_support::{ok_json, spawn_mock_server};
 
-    /// 绑定记录示例 JSON（按 `examples/alist/internal/model/label_file_binding.go:5`
-    /// 的 `model.LabelFileBinding` JSON tag 构造）。
+    /// 绑定记录示例 JSON（按 AList 服务端标签绑定模型字段构造）。
     const BINDING_JSON: &str = r#"{"id":7,"user_id":1,"label_id":3,"file_name":"movie.mp4","create_time":"2024-06-01T08:00:00Z"}"#;
 
     /// 请求形状断言：GET 方法、URL 路径与全部查询参数（含 None 跳过）。

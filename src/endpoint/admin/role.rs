@@ -2,8 +2,8 @@
 //!
 //! 覆盖 `/api/admin/role` 下的角色管理端点：
 //! 列表、详情、创建、更新与删除。
-//! 路由定义见 `examples/alist/server/router.go` 的 `role` 路由组
-//! （openapi 文档未覆盖该分组，以 Go 源码为准）。
+//! 路由定义见 AList 服务端路由定义的 `role` 路由组
+//! （AList OpenAPI 规范未覆盖该分组，以 AList 服务端实现为准）。
 //! 通过 [`Admin::role`](super::Admin::role) 获取句柄，推荐即建即用。
 
 pub mod create;

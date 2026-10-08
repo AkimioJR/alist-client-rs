@@ -2,9 +2,8 @@
 //!
 //! 对应 `POST /api/admin/task/upload/info`；目标任务经查询参数 `tid` 指定，
 //! 响应 `data` 为单个任务对象（[`crate::schema::admin::task::TaskInfo`]）。
-//! 端点文件模板与命名约定见 `docs/design.md`；
-//! API 路径与参数位置以 `docs/api/alistv3.openapi.yaml` 与
-//! `examples/alist/server/handles/task.go` 为准。
+//! API 路径与参数位置以 AList OpenAPI 规范与
+//! AList 服务端 task 模块为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -22,7 +21,9 @@ use crate::schema::admin::task::TaskInfo;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 目标任务 ID（必选；进 URL 查询串）。
+    /// 目标任务 ID（必选参数）。
+    ///
+    /// 作为 URL 查询参数传递。
     #[query]
     tid: String,
 }
@@ -43,11 +44,9 @@ impl<'a> super::Task<'a> {
     /// 按 `tid` 查询单个上传任务。
     ///
     /// 对应 AList `POST /api/admin/task/upload/info`；目标任务经**查询参数**
-    /// `tid` 指定（数据来源：`docs/api/alistv3.openapi.yaml` 的
-    /// `admin/task/upload/info` 与 `examples/alist/server/handles/task.go:86`
-    /// 的 `manager.GetByID(c.Query("tid"))`），响应 `data` 为单个任务对象
-    /// （`task.go:152-154` 的 `common.SuccessResp(c, getTaskInfo(task))`；
-    /// 老文档示例误写为数组，以 Go 为准）。任务不存在时服务端返回 404 语义错误。
+    /// `tid` 指定（数据来源：AList OpenAPI 规范的
+    /// `admin/task/upload/info` 与 AList 服务端 task 模块），响应 `data` 为单个任务对象
+    /// （老版本文档示例误标为数组，以服务端实际返回为准）。任务不存在时服务端返回 404 语义错误。
     ///
     /// # Arguments
     ///

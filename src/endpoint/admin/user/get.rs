@@ -18,7 +18,9 @@ use crate::schema::admin::user::AdminUser;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 目标用户 ID（必选，作为 URL 查询参数 `id` 发送）。
+    /// 目标用户 ID（必选参数）。
+    ///
+    /// 作为 URL 查询参数 `id` 发送。
     #[query]
     id: i64,
 }
@@ -36,9 +38,8 @@ impl<'a> super::User<'a> {
     /// 按 ID 获取用户详情。
     ///
     /// 对应 AList `GET /api/admin/user/get`；成功时响应 `data` 为单个用户对象。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `admin/user/get`、
-    /// `docs/api/alistv3.md` 的 `# admin/user` 分组与
-    /// `examples/alist/server/handles/user.go`（实现为 `GetUser`，读取 `id`
+    /// 数据来源：AList OpenAPI 规范的 `admin/user/get` 与
+    /// AList 服务端 user 模块（实现为 `GetUser`，读取 `id`
     /// 查询参数后按 ID 查库返回）。
     ///
     /// # Arguments

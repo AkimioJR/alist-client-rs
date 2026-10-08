@@ -2,8 +2,7 @@
 //!
 //! 对应 `GET /api/admin/task/upload/undone`；响应 `data` 为任务数组
 //! （[`crate::schema::admin::task::TaskInfoList`]，非分页包裹）。
-//! 端点文件模板与命名约定见 `docs/design.md`；
-//! API 路径以 `docs/api/alistv3.openapi.yaml` 与 `examples/alist/server/router.go` 为准。
+//! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -40,9 +39,8 @@ impl<'a> super::Task<'a> {
     ///
     /// 对应 AList `GET /api/admin/task/upload/undone`；响应 `data` 为处于
     /// 待处理/运行中/取消中/出错/重试中等未完成状态的上传任务数组
-    /// （数据来源：`docs/api/alistv3.openapi.yaml` 的 `admin/task/upload/undone`
-    /// 与 `examples/alist/server/handles/task.go` 的 `taskRoute` `/undone` 分支，
-    /// 实现为 `common.SuccessResp(c, getTaskInfos(...))`，非分页包裹）。
+    /// （数据来源：AList OpenAPI 规范的 `admin/task/upload/undone`
+    /// 与 AList 服务端 task 模块的 `/undone` 分支，非分页包裹）。
     ///
     /// # Returns
     ///

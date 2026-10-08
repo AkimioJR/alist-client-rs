@@ -1,9 +1,9 @@
 //! admin-label 端点：删除标签。
 //!
-//! 对应 `POST /api/admin/label/delete`（openapi 未收录该分组，路由以
-//! `examples/alist/server/router.go` 的 admin `label` 分组为准；实现为
-//! `handles.DeleteLabel`）。标签 ID 通过 URL 查询参数 `id` 传递（Go 侧
-//! `c.Query("id")`，无请求体）；成功时响应 `data` 为 `null`，以 `()` 解码。
+//! 对应 `POST /api/admin/label/delete`（AList OpenAPI 规范未收录该分组，路由以
+//! AList 服务端路由定义的 admin `label` 分组为准；实现为
+//! `handles.DeleteLabel`）。标签 ID 通过 URL 查询参数 `id` 传递（服务端
+//! 读取查询参数 `id`，无请求体）；成功时响应 `data` 为 `null`，以 `()` 解码。
 
 use alist_client_derive::EndpointRequest;
 
@@ -18,7 +18,9 @@ use alist_client_derive::EndpointRequest;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 标签 ID（必选）；以 URL 查询参数 `id` 传递。
+    /// 标签 ID（必选参数）。
+    ///
+    /// 以 URL 查询参数 `id` 传递。
     #[query]
     id: u64,
 }
@@ -37,11 +39,11 @@ impl<'a> super::Label<'a> {
     /// 删除标签。
     ///
     /// 对应 AList `POST /api/admin/label/delete`；标签 ID 以查询参数 `id` 传递
-    /// （`handles.DeleteLabel` 通过 `c.Query("id")` 读取，非请求体）。
+    /// （`handles.DeleteLabel` 通过查询参数 `id` 读取，非请求体）。
     /// 成功时响应 `data` 为 `null`，以 `()` 作为端点模型。
-    /// 数据来源：`examples/alist/server/router.go` 的 admin `label` 路由与
-    /// `examples/alist/server/handles/label.go`（实现为 `DeleteLabel`）；
-    /// openapi 文档未收录该分组。
+    /// 数据来源：AList 服务端路由定义的 admin `label` 路由与
+    /// AList 服务端 label 模块（实现为 `DeleteLabel`）；
+    /// AList OpenAPI 规范未收录该分组。
     ///
     /// # Arguments
     ///

@@ -3,8 +3,8 @@
 //! 按子域划分为元信息（[`meta`]）、用户（[`user`]）、存储（[`storage`]）、
 //! 驱动（[`driver`]）、设置（[`setting`]）、上传任务（[`task`]）、角色（[`role`]）、
 //! 标签（[`label`]）与标签绑定（[`label_file_binding`]），
-//! API 路径见 `docs/api/alistv3.openapi.yaml` 的 `admin` 分组与
-//! `examples/alist/server/router.go` 的 `admin` 路由。
+//! API 路径见 AList OpenAPI 规范的 `admin` 分组与
+//! AList 服务端路由定义的 `admin` 路由。
 //!
 //! 通过 [`Client::admin`](crate::Client::admin) 获取句柄，推荐即建即用：
 //!

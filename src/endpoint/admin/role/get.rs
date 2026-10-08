@@ -1,9 +1,9 @@
 //! admin-role 端点：获取角色。
 //!
-//! 对应 `GET /api/admin/role/get`（openapi 未收录该分组，路由见
-//! `examples/alist/server/router.go:151`）。处理函数 `handles.GetRole`
+//! 对应 `GET /api/admin/role/get`（AList OpenAPI 规范未收录该分组，路由见
+//! AList 服务端路由定义）。处理函数 `handles.GetRole`
 //! 从查询串读取 `id`（缺失或非数字时返回 400 错误响应），角色不存在时
-//! 返回 500 错误响应（见 `examples/alist/server/handles/role.go:30-43`）。
+//! 返回 500 错误响应（见 AList 服务端 role 模块）。
 
 use alist_client_derive::EndpointRequest;
 
@@ -20,7 +20,7 @@ use crate::schema::admin::role::Role;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 目标角色 ID（必选）。
+    /// 目标角色 ID（必选参数）。
     #[query]
     id: u64,
 }
@@ -37,8 +37,8 @@ impl<'a> super::Role<'a> {
     /// 按 ID 获取角色详情。
     ///
     /// 对应 AList `GET /api/admin/role/get`；响应 `data` 为角色对象。
-    /// 数据来源：`examples/alist/server/router.go:151`（`handles.GetRole`）与
-    /// `examples/alist/server/handles/role.go:30-43`；该分组不在 openapi 中，以 Go 源码为准。
+    /// 数据来源：AList 服务端路由定义（`handles.GetRole`）与
+    /// AList 服务端 role 模块；该分组不在 AList OpenAPI 规范中，以 AList 服务端实现为准。
     ///
     /// # Arguments
     ///
@@ -96,7 +96,7 @@ mod tests {
         use crate::test_support::{ok_json, spawn_mock_server};
 
         let requests = Arc::new(Mutex::new(Vec::new()));
-        // 示例形状取自 internal/model/role.go 的 JSON 标签（GetRole 直接返回 model.Role）
+        // 示例形状取自服务端角色模型的 JSON 字段（GetRole 直接返回角色对象）
         let body = r#"{"code":200,"message":"success","data":{"id":3,"name":"editor","description":"可编辑 /data","default":false,"permission_scopes":[{"path":"/data","permission":15}]}}"#;
         let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
         let client = crate::Client::new(base_url).unwrap();

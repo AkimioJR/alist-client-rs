@@ -1,11 +1,11 @@
 //! admin-label 端点：更新标签。
 //!
-//! 对应 `POST /api/admin/label/update`（openapi 未收录该分组，路由以
-//! `examples/alist/server/router.go` 的 admin `label` 分组为准；实现为
+//! 对应 `POST /api/admin/label/update`（AList OpenAPI 规范未收录该分组，路由以
+//! AList 服务端路由定义的 admin `label` 分组为准；实现为
 //! `handles.UpdateLabel`）。请求体为完整标签字段（`id` + `name` 必填，JSON
-//! 绑定到 Go `model.Label`）；成功时响应 `data` 为更新后的标签条目。
-//! 注意服务端以整体保存（gorm `Save`）语义更新：未提供（被跳过）的可选字段
-//! 会落为 Go 零值，需要保留的字段应显式传入原值。
+//! 绑定到 AList 服务端标签模型）；成功时响应 `data` 为更新后的标签条目。
+//! 注意服务端以整体保存语义更新：未提供（被跳过）的可选字段
+//! 会落为默认零值，需要保留的字段应显式传入原值。
 
 use alist_client_derive::EndpointRequest;
 
@@ -22,15 +22,23 @@ use crate::schema::admin::label::Label;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 标签 ID（必选）；服务端按它定位待更新的标签。
+    /// 标签 ID（必选参数）。
+    ///
+    /// 服务端按此 ID 定位待更新的标签。
     id: u64,
-    /// 标签名称（必选）。
+    /// 标签名称（必选参数）。
     name: String,
-    /// 标签类型（可选）；JSON 键为保留字 `type`，故以 raw identifier 命名字段。
+    /// 标签类型（可选参数）。
+    ///
+    /// JSON 键为保留字 `type`，故以 raw identifier 命名字段。
     r#type: Option<i32>,
-    /// 标签描述（可选）；缺省时服务端按空串保存。
+    /// 标签描述（可选参数）。
+    ///
+    /// 缺省时服务端按空串保存。
     description: Option<String>,
-    /// 标签背景色（可选），例如 `#FF0000`；缺省时服务端按空串保存。
+    /// 标签背景色（可选参数）。
+    ///
+    /// 例如十六进制颜色值 `#FF0000`；缺省时服务端按空串保存。
     bg_color: Option<String>,
 }
 
@@ -55,11 +63,11 @@ impl<'a> super::Label<'a> {
     /// 更新标签。
     ///
     /// 对应 AList `POST /api/admin/label/update`；请求体为完整标签字段（JSON 绑定到
-    /// Go `model.Label`），成功时响应 `data` 为更新后的标签条目，解码为
+    /// AList 服务端标签模型），成功时响应 `data` 为更新后的标签条目，解码为
     /// [`Label`]。标签不存在时服务端返回 `500` 错误响应。
-    /// 数据来源：`examples/alist/server/router.go` 的 admin `label` 路由与
-    /// `examples/alist/server/handles/label.go`（实现为 `UpdateLabel`）；
-    /// openapi 文档未收录该分组。
+    /// 数据来源：AList 服务端路由定义的 admin `label` 路由与
+    /// AList 服务端 label 模块（实现为 `UpdateLabel`）；
+    /// AList OpenAPI 规范未收录该分组。
     ///
     /// # Arguments
     ///
@@ -106,7 +114,7 @@ impl<'a> super::Label<'a> {
 mod tests {
     use super::*;
 
-    /// 标签条目示例 JSON（按 `examples/alist/internal/model/label.go` 的 JSON tag 构造）。
+    /// 标签条目示例 JSON（按 AList 服务端标签模型字段构造）。
     const LABEL_JSON: &str = r##"{"id":1,"type":2,"name":"电影","description":"电影相关文件","bg_color":"#FF0000","create_time":"2024-06-01T12:00:00Z"}"##;
 
     /// 1) URL/方法/请求体断言：build_request().build() 检查 method、URL 与 JSON body。
@@ -128,7 +136,7 @@ mod tests {
         let body = std::str::from_utf8(body).unwrap();
         assert!(body.contains("\"id\":1"), "{body}");
         assert!(body.contains("\"name\":\"新名称\""), "{body}");
-        // JSON 键名钉扎：Go `model.Label.Type` 的 JSON tag 为保留字 `type`
+        // JSON 键名钉扎：服务端标签类型的 JSON 键为保留字 `type`
         assert!(body.contains("\"type\":3"), "{body}");
         assert!(
             !body.contains("description") && !body.contains("bg_color"),

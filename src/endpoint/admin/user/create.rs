@@ -3,9 +3,9 @@
 //! 对应 `POST /api/admin/user/create`；请求体为用户对象（JSON，仅 `username`
 //! 必填，其余字段可选），响应 `data: null`，以 `()` 作为端点模型。
 //!
-//! 请求体 `role` 按当前服务端（Go `model.Roles []int`）以数组发送；
-//! openapi 文档示例中的 `"role": 0` 为老版本单值形状（服务端旧模型 `Role int`），
-//! 两者不兼容时以 `examples/alist` Go 源码为准。
+//! 请求体 `role` 按当前服务端以数组发送；
+//! AList OpenAPI 规范中的示例 `"role": 0` 为老版本单值形状，
+//! 两者不兼容时以 AList 服务端实现为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -20,37 +20,37 @@ use alist_client_derive::EndpointRequest;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 用户名（必选，全局唯一）。
+    /// 用户名（必选参数）。
+    ///
+    /// 全局唯一。
     username: String,
-    /// 用户 ID（可选）。
+    /// 用户 ID（可选参数）。
     ///
     /// 通常无需设置（文档示例传 `0`）；服务端以数据库自增主键落库。
     id: Option<i64>,
-    /// 初始密码（可选）。
+    /// 初始密码（可选参数）。
     ///
-    /// 服务端会对该明文密码加盐散列后存储，并清空落库记录中的 `password` 字段
-    /// （`examples/alist/server/handles/user.go` 的 `CreateUser`）。
+    /// 服务端会对该明文密码加盐散列后存储，并清空落库记录中的 `password` 字段。
     password: Option<String>,
-    /// 用户根目录路径（可选）。
+    /// 用户根目录路径（可选参数）。
     ///
-    /// 注意：当前服务端在创建时强制将其重置为 `/`
-    /// （`examples/alist/internal/op/user.go` 的 `CreateUser`）。
+    /// 注意：当前服务端在创建时强制将其重置为 `/`。
     base_path: Option<String>,
-    /// 角色 ID 列表（可选）。
+    /// 角色 ID 列表（可选参数）。
     ///
-    /// 缺省或为空时，服务端回退为系统默认角色
-    /// （`examples/alist/server/handles/user.go` 的 `CreateUser`）。
+    /// 缺省或为空时，服务端回退为系统默认角色。
     /// 内置角色：`0` 普通用户、`1` 访客、`2` 管理员；不得创建 admin/guest 用户。
     role: Option<Vec<i32>>,
-    /// 权限位掩码（可选）。
+    /// 权限位掩码（可选参数）。
     ///
     /// 按位控制可见隐藏文件、免密码访问、离线下载、上传、重命名/移动/复制/删除、
-    /// WebDAV 与 FTP 读写、压缩包读取与解压、路径限制、MCP 读写等能力，
-    /// 位定义见 `examples/alist/internal/model/user.go` 的 `Can*` 系列方法。
+    /// WebDAV 与 FTP 读写、压缩包读取与解压、路径限制、MCP 读写等能力。
     permission: Option<i32>,
-    /// 是否禁用该用户（可选，缺省为启用）。
+    /// 是否禁用该用户（可选参数）。
+    ///
+    /// 缺省为启用（`false`）。
     disabled: Option<bool>,
-    /// SSO 平台唯一标识（可选）。
+    /// SSO 平台唯一标识（可选参数）。
     sso_id: Option<String>,
 }
 
@@ -77,9 +77,8 @@ impl<'a> super::User<'a> {
     /// 创建用户。
     ///
     /// 对应 AList `POST /api/admin/user/create`；成功时响应 `data` 为 `null`。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `admin/user/create`、
-    /// `docs/api/alistv3.md` 的 `# admin/user` 分组与
-    /// `examples/alist/server/handles/user.go`（实现为 `CreateUser`）。
+    /// 数据来源：AList OpenAPI 规范的 `admin/user/create` 与
+    /// AList 服务端 user 模块（实现为 `CreateUser`）。
     ///
     /// 注意：服务端拒绝创建 admin/guest 用户（`CreateUser` 中的 `IsAdmin`/`IsGuest`
     /// 检查）；`base_path` 会被强制重置为 `/`；`role` 缺省时回退为系统默认角色。
@@ -167,7 +166,7 @@ mod tests {
             .as_bytes()
             .expect("请求体应为字节缓冲");
         let json: serde_json::Value = serde_json::from_slice(body).unwrap();
-        // 键名钉扎：与 docs/api/alistv3.md `# admin/user` POST create 的 Body 示例一致
+        // 键名钉扎：与 AList OpenAPI 规范中 POST create 的 Body 示例一致
         assert_eq!(json["username"], "a");
         assert_eq!(json["password"], "123456");
         assert_eq!(json["permission"], 60);

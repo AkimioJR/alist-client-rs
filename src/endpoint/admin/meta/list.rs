@@ -1,10 +1,10 @@
 //! admin-meta 端点：列出元信息。
 //!
 //! 对应 `GET /api/admin/meta/list`；查询参数 `page`/`per_page`（均可选，
-//! 服务端对缺省值回退为「第 1 页、每页全部」，见 `examples/alist/internal/model/req.go`
-//! 的 `PageRequest.Validate`），响应 `data` 为 `{ "content": [...], "total": n }` 分页形态。
-//! 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/admin/meta/list` 与
-//! `examples/alist/server/handles/meta.go`（`ListMetas` 绑定 `model.PageRequest`）。
+//! 服务端对缺省值回退为「第 1 页、每页全部」，见 AList 服务端模型
+//! `PageRequest.Validate`），响应 `data` 为 `{ "content": [...], "total": n }` 分页形态。
+//! 数据来源：AList OpenAPI 规范的 `/api/admin/meta/list` 与
+//! AList 服务端 handles.Meta 模块（`ListMetas` 绑定 `model.PageRequest`）。
 
 use alist_client_derive::EndpointRequest;
 
@@ -22,10 +22,14 @@ use crate::schema::{admin::meta::Meta, common::PageResponse};
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 页码（从 1 开始）；缺省时服务端默认第 1 页。
+    /// 页码（可选参数）。
+    ///
+    /// 从 1 开始，缺省时服务端默认第 1 页。
     #[query]
     page: Option<i32>,
-    /// 每页条数；缺省时服务端默认返回全部条目。
+    /// 每页条数（可选参数）。
+    ///
+    /// 缺省时服务端默认返回全部条目。
     #[query]
     per_page: Option<i32>,
 }
@@ -49,8 +53,8 @@ impl<'a> super::Meta<'a> {
     /// 对应 AList `GET /api/admin/meta/list`；响应 `data` 为
     /// `{ "content": [Meta], "total": n }`。不设置分页参数时，服务端
     /// （`PageRequest.Validate`）会回退为「第 1 页、每页全部」，即一次性返回全部元信息。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/admin/meta/list` 与
-    /// `examples/alist/server/handles/meta.go`（实现为 `ListMetas`，经 `op.GetMetas` 分页查询）。
+    /// 数据来源：AList OpenAPI 规范的 `/api/admin/meta/list` 与
+    /// AList 服务端 handles.Meta 模块（实现为 `ListMetas`，经 `op.GetMetas` 分页查询）。
     ///
     /// # Arguments
     ///
@@ -136,7 +140,7 @@ mod tests {
         );
     }
 
-    /// 收发路径断言：`docs/api/alistv3.openapi.yaml` `/api/admin/meta/list`
+    /// 收发路径断言：AList OpenAPI 规范 `/api/admin/meta/list`
     /// 的 200 响应示例应能解码为 `PageResponse<Meta>`。
     #[tokio::test]
     async fn send_decodes_openapi_list_example() {

@@ -3,9 +3,8 @@
 //! 覆盖 `label_file_binding` 路由组的全部 7 条端点：创建、批量创建、分页列出
 //! 绑定记录、恢复绑定记录、删除绑定（挂在 `/api/admin/label_file_binding` 下），
 //! 以及按文件名查询、按标签查询文件（挂在 `/api/label_file_binding` 下）。
-//! 路由定义见 `examples/alist/server/router.go` 的 `_labelFileBinding`
-//! （router.go:261-264）与 `admin/label_file_binding` 路由组
-//! （router.go:209-214）（openapi 文档未覆盖该分组，以 Go 源码为准）。
+//! 路由定义见 AList 服务端路由定义的 `_labelFileBinding` 与 `admin/label_file_binding` 路由组
+//! （AList OpenAPI 规范未覆盖该分组，以 AList 服务端实现为准）。
 //! 通过 [`Admin::label_file_binding`](super::Admin::label_file_binding) 获取句柄，推荐即建即用。
 
 pub mod create;

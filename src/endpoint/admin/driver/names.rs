@@ -38,10 +38,9 @@ impl<'a> super::Driver<'a> {
     /// 列出驱动名称。
     ///
     /// 对应 AList `GET /api/admin/driver/names`；`data` 为已注册驱动的名称数组
-    /// （如 `["Local", "115 Cloud", ...]`）。数据来源：`docs/api/alistv3.openapi.yaml`
-    /// 的 `admin/driver/names`、`examples/alist/server/handles/driver.go`
-    /// （`ListDriverNames`）与 `examples/alist/internal/op/driver.go`
-    /// （`GetDriverNames`）。
+    /// （如 `["Local", "115 Cloud", ...]`）。数据来源：AList OpenAPI 规范
+    /// 的 `admin/driver/names`、AList 服务端 handles.Driver 模块
+    /// （`ListDriverNames`）与 op.Driver 模块（`GetDriverNames`）。
     ///
     /// # Arguments
     ///

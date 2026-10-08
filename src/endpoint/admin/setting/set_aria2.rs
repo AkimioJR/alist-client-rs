@@ -17,9 +17,13 @@ use alist_client_derive::EndpointRequest;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// aria2 JSON-RPC 地址（必选），例如 `http://localhost:6800/jsonrpc`。
+    /// aria2 JSON-RPC 地址（必选参数）。
+    ///
+    /// 例如 `http://localhost:6800/jsonrpc`。
     uri: String,
-    /// aria2 RPC 密钥（必选；未设置时传空字符串）。
+    /// aria2 RPC 密钥（必选参数）。
+    ///
+    /// 未设置时传空字符串。
     secret: String,
 }
 
@@ -46,8 +50,8 @@ impl<'a> super::Setting<'a> {
     /// 对应 AList `POST /api/admin/setting/set_aria2`；保存 `aria2_uri`/`aria2_secret`
     /// 设置项后，服务端会立即初始化 aria2 连接，成功时响应 `data` 为 aria2 版本字符串
     /// （如 `1.36.0`），连接失败时返回非成功响应。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `admin/setting/set_aria2` 与
-    /// `examples/alist/server/handles/offline_download.go`（实现为 `SetAria2`，
+    /// 数据来源：AList OpenAPI 规范的 `admin/setting/set_aria2` 与
+    /// AList 服务端 handles.OfflineDownload 模块（实现为 `SetAria2`，
     /// 请求体 [`SetAria2Request`](crate::schema::admin::setting::SetAria2Request) 仅含 `uri`/`secret` 两字段）。
     ///
     /// # Arguments
