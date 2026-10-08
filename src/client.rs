@@ -19,17 +19,16 @@
 // 过渡期豁免（见上方模块文档），端点实现后移除。
 #![cfg_attr(not(test), allow(dead_code))]
 
+mod rate_limit;
+
 use std::{sync::RwLock, time::Duration};
 
 use reqwest::{Method, RequestBuilder, Url, header::AUTHORIZATION};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_json::Value;
-use tokio::{
-    sync::Mutex,
-    time::{Instant, sleep_until},
-};
 
 use crate::{
+    client::rate_limit::RequestRateLimit,
     error::{ApiStatusCode, Error, InternalErrorKind, Result},
     schema::common::Response,
 };
@@ -80,16 +79,6 @@ pub struct Client {
     api_request_rate_limit: Option<RequestRateLimit>,
 }
 
-/// 客户端侧请求限速器。
-///
-/// 通过记录「下一次允许发送的时刻」串行化请求间隔：
-/// 多个并发请求会在锁上排队，依次保持 `interval` 间距。
-#[derive(Debug)]
-struct RequestRateLimit {
-    interval: Duration,
-    next_request_at: Mutex<Instant>,
-}
-
 /// 请求上下文（用于 JSON 错误的最佳努力定位）。
 struct RequestContext {
     method: String,
@@ -109,30 +98,6 @@ struct LoginBody {
 #[derive(Deserialize)]
 struct LoginData {
     token: String,
-}
-
-impl RequestRateLimit {
-    fn new(interval: Duration) -> Self {
-        Self {
-            interval,
-            next_request_at: Mutex::new(Instant::now()),
-        }
-    }
-
-    /// 阻塞到当前请求的允许发送时刻，并预订下一个时刻。
-    async fn wait(&self) {
-        let mut next_request_at = self.next_request_at.lock().await;
-        let now = Instant::now();
-
-        if *next_request_at > now {
-            let scheduled_at = *next_request_at;
-            *next_request_at += self.interval;
-            drop(next_request_at);
-            sleep_until(scheduled_at).await;
-        } else {
-            *next_request_at = now + self.interval;
-        }
-    }
 }
 
 /// 从请求构建器提取方法与 URL（流式请求体等无法克隆时返回占位符）。
@@ -184,7 +149,7 @@ impl Client {
     pub fn api_request_interval(&self) -> Option<Duration> {
         self.api_request_rate_limit
             .as_ref()
-            .map(|rate_limit| rate_limit.interval)
+            .map(RequestRateLimit::interval)
     }
 
     /// 设置相邻请求之间的最小间隔；`None` 或 `Duration::ZERO` 表示关闭限速。
@@ -431,10 +396,7 @@ impl Client {
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        sync::{Arc, Mutex},
-        time::Instant,
-    };
+    use std::sync::{Arc, Mutex};
 
     use serde::Deserialize;
 
@@ -495,48 +457,6 @@ mod tests {
         client.clear_authentication();
         assert_eq!(client.authentication(), None);
         assert_eq!(client.token().as_deref(), Some("token-2"));
-    }
-
-    #[test]
-    fn api_request_rate_limit_configuration_is_optional() {
-        let mut client = Client::new("https://alist.example").unwrap();
-        assert_eq!(client.api_request_interval(), None);
-
-        client.set_api_request_interval(Duration::from_millis(250));
-        assert_eq!(
-            client.api_request_interval(),
-            Some(Duration::from_millis(250))
-        );
-
-        client.set_api_request_interval(Duration::ZERO);
-        assert_eq!(client.api_request_interval(), None);
-
-        let client = Client::new("https://alist.example")
-            .unwrap()
-            .with_api_request_interval(Duration::from_secs(1));
-        assert_eq!(client.api_request_interval(), Some(Duration::from_secs(1)));
-    }
-
-    #[tokio::test]
-    async fn api_request_rate_limit_delays_consecutive_requests() {
-        let body = r#"{"code":200,"message":"success","data":{"username":"admin"}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body), ok_json(body)], None).await;
-        let client = Client::new(base_url)
-            .unwrap()
-            .with_api_request_interval(Duration::from_millis(50));
-
-        let started_at = Instant::now();
-        let first: MeData = client
-            .execute(client.request(Method::GET, "/api/me"))
-            .await
-            .unwrap();
-        let second: MeData = client
-            .execute(client.request(Method::GET, "/api/me"))
-            .await
-            .unwrap();
-        assert_eq!(first.username, "admin");
-        assert_eq!(second.username, "admin");
-        assert!(started_at.elapsed() >= Duration::from_millis(45));
     }
 
     #[tokio::test]
