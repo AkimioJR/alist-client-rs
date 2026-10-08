@@ -64,6 +64,9 @@ pub struct Request<'a> {
     sha256: Option<String>,
 }
 
+/// 构造器。
+///
+/// 用于创建 [`Request`] 实例，接收必选参数。
 impl<'a> Request<'a> {
     /// `Request::new` 只接收**必选**参数；可选参数一律走链式 setter。
     #[inline]
@@ -117,7 +120,12 @@ impl<'a> Request<'a> {
             sha256: None,
         }
     }
+}
 
+/// 可选参数配置。
+///
+/// 包含所有可选 Header 与上传行为控制的链式 setter 方法。
+impl<'a> Request<'a> {
     /// 目录（元信息）密码（可选；`Password` 头）。
     #[inline]
     pub fn password(mut self, password: impl Into<String>) -> Self {
@@ -183,7 +191,12 @@ impl<'a> Request<'a> {
         self.sha256 = Some(sha256.into());
         self
     }
+}
 
+/// 请求组装与发送。
+///
+/// 将配置好的参数组装为底层 HTTP 请求并发送（亦可通过 [`core::future::IntoFuture`] 直接 `.await`）。
+impl<'a> Request<'a> {
     /// 组装带上传头与请求体的请求构建器（发送前；测试亦用于形状断言）。
     fn into_builder(self) -> reqwest::RequestBuilder {
         let mut builder = self
