@@ -68,7 +68,7 @@ impl<'a> super::Auth<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 如用户名或密码错误返回 400、两步验证码缺失或错误返回 402）时，
     /// 返回 [`crate::Error`]。
     ///
@@ -134,7 +134,7 @@ mod tests {
         assert!(!body.contains("otp_code"), "{body}");
     }
 
-    /// 收发路径：mock 服务器 + 记录请求原文，解码登录响应信封。
+    /// 收发路径：mock 服务器 + 记录请求原文，解码登录响应。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_login_resp() {
         use std::sync::{Arc, Mutex};

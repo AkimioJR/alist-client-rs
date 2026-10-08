@@ -2,14 +2,14 @@
 //!
 //! 对应 `GET /api/admin/role/list`（openapi 未收录该分组，路由见
 //! `examples/alist/server/router.go:150`）。处理函数 `handles.ListRoles`
-//! 绑定 `model.PageReq`（查询串 `page`/`per_page`），返回
-//! `common.PageResp{Content: roles, Total: total}`；
+//! 绑定 `model.PageRequest`（查询串 `page`/`per_page`），返回
+//! `common.PageResponse{Content: roles, Total: total}`；
 //! `per_page` 缺省（或小于 1）时服务端返回全部角色
 //! （见 `examples/alist/server/handles/role.go:14-28` 与 `internal/model/req.go:13-19`）。
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::{admin::role::Role, common::PageResp};
+use crate::schema::{admin::role::Role, common::PageResponse};
 
 /// 列出角色请求构建器。
 ///
@@ -17,7 +17,7 @@ use crate::schema::{admin::role::Role, common::PageResp};
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = GET, path = "/api/admin/role/list", model = PageResp<Role>)]
+#[endpoint(method = GET, path = "/api/admin/role/list", model = PageResponse<Role>)]
 #[cfg_attr(
     feature = "into-stream",
     endpoint(into_stream = true, stream_item = Role)
@@ -62,11 +62,11 @@ impl<'a> super::Role<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`PageResp`]`<`[`Role`]`>`。
+    /// [`PageResponse`]`<`[`Role`]`>`。
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200）时，返回 [`crate::Error`]。
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，返回 [`crate::Error`]。
     ///
     /// # Examples
     ///
@@ -123,7 +123,7 @@ mod tests {
         assert!(!url.contains("per_page="), "None 查询参数应被跳过: {url}");
     }
 
-    /// 收发路径：mock 服务器返回 `PageResp<Role>`，断言请求行与解码结果。
+    /// 收发路径：mock 服务器返回 `PageResponse<Role>`，断言请求行与解码结果。
     #[tokio::test]
     async fn send_gets_role_page_and_decodes_content() {
         use std::sync::{Arc, Mutex};
@@ -131,7 +131,7 @@ mod tests {
         use crate::test_support::{ok_json, spawn_mock_server};
 
         let requests = Arc::new(Mutex::new(Vec::new()));
-        // 示例形状取自 handles/role.go 返回的 PageResp 与 internal/model/role.go 的 JSON 标签
+        // 示例形状取自 handles/role.go 返回的 PageResponse 与 internal/model/role.go 的 JSON 标签
         let body = r#"{"code":200,"message":"success","data":{"content":[{"id":1,"name":"admin","description":"","default":true,"permission_scopes":[{"path":"/","permission":65535}]}],"total":1}}"#;
         let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
         let client = crate::Client::new(base_url).unwrap();

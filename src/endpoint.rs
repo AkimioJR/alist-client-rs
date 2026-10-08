@@ -155,7 +155,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn send_posts_json_body_and_decodes_envelope() {
+    async fn send_posts_json_body_and_decodes_response() {
         let requests = Arc::new(Mutex::new(Vec::new()));
         let body = r#"{"code":200,"message":"success","data":{"content":[{"id":1}],"total":1}}"#;
         let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;

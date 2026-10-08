@@ -71,7 +71,7 @@ impl<'a> super::Auth<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 如凭据错误返回 400、两步验证码缺失或错误返回 402）时，返回 [`crate::Error`]。
     ///
     /// # Examples

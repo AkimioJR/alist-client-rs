@@ -36,7 +36,7 @@ impl<'a> super::Role<'a> {
     /// 删除角色。
     ///
     /// 对应 AList `POST /api/admin/role/delete`；成功时响应 `data` 为 `null`。
-    /// 内置 `admin`/`guest` 角色不可删除（服务端返回 403 信封错误）。
+    /// 内置 `admin`/`guest` 角色不可删除（服务端返回 403 错误响应）。
     /// 数据来源：`examples/alist/server/router.go:154`（`handles.DeleteRole`）与
     /// `examples/alist/server/handles/role.go:96-117`；该分组不在 openapi 中，以 Go 源码为准。
     ///
@@ -50,7 +50,7 @@ impl<'a> super::Role<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如角色不存在或删除内置角色被拒绝）时，返回 [`crate::Error`]。
     ///
     /// # Examples

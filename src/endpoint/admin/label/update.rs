@@ -56,7 +56,7 @@ impl<'a> super::Label<'a> {
     ///
     /// 对应 AList `POST /api/admin/label/update`；请求体为完整标签字段（JSON 绑定到
     /// Go `model.Label`），成功时响应 `data` 为更新后的标签条目，解码为
-    /// [`Label`]。标签不存在时服务端返回 `500` 错误信封。
+    /// [`Label`]。标签不存在时服务端返回 `500` 错误响应。
     /// 数据来源：`examples/alist/server/router.go` 的 admin `label` 路由与
     /// `examples/alist/server/handles/label.go`（实现为 `UpdateLabel`）；
     /// openapi 文档未收录该分组。
@@ -75,8 +75,8 @@ impl<'a> super::Label<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200，
-    /// 例如标签不存在时服务端返回 `500` 错误信封）时，返回 [`crate::Error`]。
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
+    /// 例如标签不存在时服务端返回 `500` 错误响应）时，返回 [`crate::Error`]。
     ///
     /// # Examples
     ///

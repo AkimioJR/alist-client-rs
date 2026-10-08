@@ -120,10 +120,10 @@ mod tests {
     }
 
     /// 列表包裹形态：`ListRoles` 返回 `common.PageResp{Content: roles, Total: total}`
-    /// （`examples/alist/server/handles/role.go:27`），复用 [`crate::schema::common::PageResp`]。
+    /// （`examples/alist/server/handles/role.go:27`），复用 [`crate::schema::common::PageResponse`]。
     #[test]
-    fn role_list_decodes_page_resp_wrapper() {
-        let page: crate::schema::common::PageResp<Role> =
+    fn role_list_decodes_page_response_wrapper() {
+        let page: crate::schema::common::PageResponse<Role> =
             serde_json::from_value(serde_json::json!({
                 "content": [
                     {

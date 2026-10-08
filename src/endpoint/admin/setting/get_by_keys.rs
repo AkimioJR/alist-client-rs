@@ -40,7 +40,7 @@ impl<'a> super::Setting<'a> {
     ///
     /// 对应 AList `GET /api/admin/setting/get`（`keys` 查询参数形态）；成功时响应
     /// `data` 为设置项数组。服务端（`GetSetting`）在 `key` 查询参数为空时走本批量分支，
-    /// 逐键查询并整体返回；任一键不存在时整个请求返回非成功信封（不会部分返回）。
+    /// 逐键查询并整体返回；任一键不存在时整个请求返回非成功响应（不会部分返回）。
     /// 与 [`Setting::get`](super::Setting::get) 的单键形态互斥：本端点只发送 `keys`，
     /// 不携带 `key` 参数。
     /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `admin/setting/get`（`keys` 参数）与
@@ -58,7 +58,7 @@ impl<'a> super::Setting<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如任一键不存在）时，返回 [`crate::Error`]。
     ///
     /// # Examples

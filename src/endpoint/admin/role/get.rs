@@ -2,8 +2,8 @@
 //!
 //! 对应 `GET /api/admin/role/get`（openapi 未收录该分组，路由见
 //! `examples/alist/server/router.go:151`）。处理函数 `handles.GetRole`
-//! 从查询串读取 `id`（缺失或非数字时返回 400 信封错误），角色不存在时
-//! 返回 500 信封错误（见 `examples/alist/server/handles/role.go:30-43`）。
+//! 从查询串读取 `id`（缺失或非数字时返回 400 错误响应），角色不存在时
+//! 返回 500 错误响应（见 `examples/alist/server/handles/role.go:30-43`）。
 
 use alist_client_derive::EndpointRequest;
 
@@ -51,7 +51,7 @@ impl<'a> super::Role<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如角色不存在）时，返回 [`crate::Error`]。
     ///
     /// # Examples

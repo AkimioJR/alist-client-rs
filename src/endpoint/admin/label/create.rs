@@ -57,7 +57,7 @@ impl<'a> super::Label<'a> {
     ///
     /// 对应 AList `POST /api/admin/label/create`；请求体为标签字段（JSON 绑定到
     /// Go `model.Label`），成功时响应 `data` 为 `{ "id": N }`，解码为
-    /// [`CreateLabelResp`]。同名标签已存在时服务端返回 `401` 错误信封。
+    /// [`CreateLabelResp`]。同名标签已存在时服务端返回 `401` 错误响应。
     /// 数据来源：`examples/alist/server/router.go` 的 admin `label` 路由与
     /// `examples/alist/server/handles/label.go`（实现为 `CreateLabel`）；
     /// openapi 文档未收录该分组。
@@ -75,8 +75,8 @@ impl<'a> super::Label<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200，
-    /// 例如标签名已存在时服务端返回 `401` 错误信封）时，返回 [`crate::Error`]。
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
+    /// 例如标签名已存在时服务端返回 `401` 错误响应）时，返回 [`crate::Error`]。
     ///
     /// # Examples
     ///

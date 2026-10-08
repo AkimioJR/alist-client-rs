@@ -108,7 +108,7 @@ impl<'a> super::LabelFileBinding<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200）时，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。例如通过 `is_dir(true)` 为目录创建绑定时，
     /// 服务端返回 400「Unable to bind folder」。
     ///
@@ -180,7 +180,7 @@ mod tests {
         assert!(!body.contains("modified"), "{body}");
     }
 
-    /// 收发路径断言：mock 服务器 + 记录请求原文，并解码信封内 `data`。
+    /// 收发路径断言：mock 服务器 + 记录请求原文，并解码响应内 `data`。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_msg() {
         let requests = Arc::new(Mutex::new(Vec::new()));

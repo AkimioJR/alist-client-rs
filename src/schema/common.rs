@@ -1,30 +1,30 @@
 //! AList 共享数据模型（无条件编译）。
 //!
-//! 本文件建模所有端点共用的信封与分页/任务结构，字段与
+//! 本文件建模所有端点共用的响应与分页/任务结构，字段与
 //! `examples/alist/server/common/resp.go`、`internal/model/req.go`、`server/handles/task.go`
 //! 及 `docs/api/alistv3.openapi.yaml` 的示例保持一致。
 //!
-//! ## 信封语义
+//! ## 响应语义
 //!
-//! AList 对绝大多数 API 错误返回 HTTP 200，真正状态在信封 `code` 中：
+//! AList 对绝大多数 API 错误返回 HTTP 200，真正状态在响应 `code` 中：
 //!
 //! ```json
 //! { "code": 200, "message": "success", "data": { "...": "..." } }
 //! { "code": 403, "message": "permission denied", "data": null }
 //! ```
 //!
-//! [`Client`](crate::Client) 统一负责信封解码与状态检查。
+//! [`Client`](crate::Client) 统一负责响应解码与状态检查。
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-/// AList 标准 JSON 响应信封。
+/// AList 标准 JSON 响应封装。
 ///
 /// 对应 `examples/alist/server/common/resp.go` 的 `Resp[T]`。
 /// [`Client`](crate::Client) 用 [`serde_json::Value`] 解出 `data` 后再二次反序列化为端点模型，
 /// 因此 `data: null` 可以自然解码为 `()` 或 `Option<T>`。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Envelope<T> {
+pub struct Response<T> {
     /// AList 逻辑状态码，例如 `200`、`403`、`500`。
     pub code: i32,
     /// 服务端消息。
@@ -37,14 +37,14 @@ pub struct Envelope<T> {
 ///
 /// 对应 `examples/alist/internal/model/req.go` 的 `PageReq`（JSON/form 键为 `page`/`per_page`）。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
-pub struct PageReq {
+pub struct PageRequest {
     /// 页码，从 1 开始。
     pub page: i32,
     /// 每页条数；部分 fs 端点接受 `0` 表示全部。
     pub per_page: i32,
 }
 
-impl PageReq {
+impl PageRequest {
     /// 以第 1 页、每页 10 条构造分页参数。
     #[must_use]
     pub const fn new(page: i32, per_page: i32) -> Self {
@@ -68,7 +68,7 @@ impl PageReq {
 /// 对应 `examples/alist/server/common/resp.go` 的 `PageResp`
 /// 以及 admin 列表端点返回的 `{ "content": [...], "total": ... }` 结构。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct PageResp<T> {
+pub struct PageResponse<T> {
     /// 当前页内容。
     pub content: Vec<T>,
     /// 服务端报告的条目总数。
@@ -116,12 +116,16 @@ pub struct TaskInfo {
 /// 对应 `examples/alist/server/handles/fsup.go` 中 `FsStream`/`FsForm` 以
 /// `gin.H{"task": getTaskInfo(t)}` 返回的结构。
 /// 直传成功（未启用 `As-Task`）时端点 `data` 为 `null`，
-/// 因此调用方应以 `Option<UploadResp>` 作为端点模型。
+/// 因此调用方应以 `Option<UploadResponse>` 作为端点模型。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct UploadResp {
+pub struct UploadResponse {
     /// 后台上传任务详情。
     pub task: TaskInfo,
 }
+
+/// 向后兼容类型别名。
+#[deprecated(note = "use UploadResponse instead")]
+pub type UploadResp = UploadResponse;
 
 #[cfg(test)]
 mod tests {
@@ -129,8 +133,8 @@ mod tests {
 
     /// 示例 JSON 钉扎测试：钉住 openapi/Go 源码中的响应结构，防止模型漂移。
     #[test]
-    fn envelope_decodes_success_and_error_examples() {
-        let ok: Envelope<serde_json::Value> = serde_json::from_value(serde_json::json!({
+    fn response_decodes_success_and_error_examples() {
+        let ok: Response<serde_json::Value> = serde_json::from_value(serde_json::json!({
             "code": 200,
             "message": "success",
             "data": { "token": "abcd" }
@@ -140,7 +144,7 @@ mod tests {
         assert_eq!(ok.message, "success");
         assert_eq!(ok.data["token"], "abcd");
 
-        let err: Envelope<serde_json::Value> = serde_json::from_value(serde_json::json!({
+        let err: Response<serde_json::Value> = serde_json::from_value(serde_json::json!({
             "code": 403,
             "message": "permission denied",
             "data": null
@@ -151,8 +155,8 @@ mod tests {
     }
 
     #[test]
-    fn envelope_null_data_decodes_to_unit_and_option() {
-        let unit: Envelope<()> = serde_json::from_value(serde_json::json!({
+    fn response_null_data_decodes_to_unit_and_option() {
+        let unit: Response<()> = serde_json::from_value(serde_json::json!({
             "code": 200,
             "message": "success",
             "data": null
@@ -160,7 +164,7 @@ mod tests {
         .unwrap();
         assert_eq!(unit.data, ());
 
-        let none: Envelope<Option<PageReq>> = serde_json::from_value(serde_json::json!({
+        let none: Response<Option<PageRequest>> = serde_json::from_value(serde_json::json!({
             "code": 200,
             "message": "success",
             "data": null
@@ -170,15 +174,15 @@ mod tests {
     }
 
     #[test]
-    fn page_req_serializes_with_api_field_names() {
-        let req = PageReq::new(2, 30);
+    fn page_request_serializes_with_api_field_names() {
+        let req = PageRequest::new(2, 30);
         assert_eq!(
             serde_json::to_value(req).unwrap(),
             serde_json::json!({ "page": 2, "per_page": 30 })
         );
         assert_eq!(
-            PageReq::all(),
-            PageReq {
+            PageRequest::all(),
+            PageRequest {
                 page: 1,
                 per_page: 0
             }
@@ -186,8 +190,8 @@ mod tests {
     }
 
     #[test]
-    fn page_resp_decodes_admin_list_example() {
-        let resp: PageResp<i64> = serde_json::from_value(serde_json::json!({
+    fn page_response_decodes_admin_list_example() {
+        let resp: PageResponse<i64> = serde_json::from_value(serde_json::json!({
             "content": [1, 2, 3],
             "total": 3
         }))
@@ -242,8 +246,8 @@ mod tests {
     }
 
     #[test]
-    fn upload_resp_decodes_fs_stream_task_example() {
-        let resp: Envelope<UploadResp> = serde_json::from_value(serde_json::json!({
+    fn upload_response_decodes_fs_stream_task_example() {
+        let resp: Response<UploadResponse> = serde_json::from_value(serde_json::json!({
             "code": 200,
             "message": "success",
             "data": {

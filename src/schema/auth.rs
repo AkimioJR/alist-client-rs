@@ -171,13 +171,13 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::schema::common::Envelope;
+    use crate::schema::common::Response;
 
     /// 正向钉扎：openapi `POST /api/auth/login` 返回示例。
     #[test]
     fn login_resp_decodes_openapi_example() {
         // 示例来源：docs/api/alistv3.openapi.yaml 的 /api/auth/login 200 响应
-        let resp: Envelope<LoginResp> = serde_json::from_value(serde_json::json!({
+        let resp: Response<LoginResp> = serde_json::from_value(serde_json::json!({
             "code": 200,
             "message": "success",
             "data": { "token": "abcd" }

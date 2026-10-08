@@ -17,7 +17,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 /// [`/api/public/settings`](crate::endpoint::public::Public::settings) 返回的
-/// 站点设置集合（信封 `data`）。
+/// 站点设置集合（响应 `data`）。
 ///
 /// 对应 Go `op.GetPublicSettingsMap()` 的 `map[string]string`：AList 把所有设置项
 /// 一律以字符串序列化（布尔值是 `"true"`/`"false"`，数字是 `"30"` 这样的十进制文本），
@@ -121,7 +121,7 @@ pub struct KnownPublicSettings {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::schema::common::Envelope;
+    use crate::schema::common::Response;
 
     /// `docs/api/alistv3.openapi.yaml` 的 `/api/public/settings` 200 示例
     /// （与 `docs/api/alistv3.md` `# public` 组 `GET 获取站点设置` 的返回示例一致）。
@@ -158,18 +158,18 @@ mod tests {
         })
     }
 
-    /// 1) 正向钉扎：openapi 示例 JSON 按信封包裹解码为 `PublicSettings` 映射。
+    /// 1) 正向钉扎：openapi 示例 JSON 按响应封装解码为 `PublicSettings` 映射。
     #[test]
     fn public_settings_map_decodes_openapi_example() {
-        let envelope: Envelope<PublicSettings> = serde_json::from_value(serde_json::json!({
+        let resp: Response<PublicSettings> = serde_json::from_value(serde_json::json!({
             "code": 200,
             "message": "success",
             "data": openapi_settings_example()
         }))
         .unwrap();
 
-        assert_eq!(envelope.code, 200);
-        let settings = envelope.data;
+        assert_eq!(resp.code, 200);
+        let settings = resp.data;
         assert_eq!(settings.len(), 28);
         assert_eq!(settings["allow_indexed"], "false");
         assert_eq!(settings["default_page_size"], "30");

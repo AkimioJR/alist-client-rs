@@ -1,6 +1,6 @@
 //! public端点：获取站点设置。
 //!
-//! 对应 `GET /api/public/settings`；响应信封 `data` 为字符串键值映射
+//! 对应 `GET /api/public/settings`；响应 `data` 为字符串键值映射
 //! （服务端 `op.GetPublicSettingsMap()` 以 `map[string]string` 返回全部公共设置项，
 //! 所有值均为字符串形式），端点模型为 [`PublicSettings`]。
 //! 端点文件模板与命名约定见 `docs/design.md`；
@@ -53,7 +53,7 @@ impl<'a> super::Public<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200）时，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。
     ///
     /// # Examples

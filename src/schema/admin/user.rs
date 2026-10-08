@@ -93,14 +93,14 @@ pub struct AdminUser {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::schema::common::PageResp;
+    use crate::schema::common::PageResponse;
 
     /// 正向钉扎：`docs/api/alistv3.md` `# admin/user` GET「列出所有用户」返回示例
     /// （与 `docs/api/alistv3.openapi.yaml` 的 `/api/admin/user/list` 示例一致），
-    /// 验证 `PageResp` 分页包裹形态与 `role` 单值形状的展开。
+    /// 验证 `PageResponse` 分页包裹形态与 `role` 单值形状的展开。
     #[test]
-    fn admin_user_list_example_decodes_page_resp() {
-        let page: PageResp<AdminUser> = serde_json::from_value(serde_json::json!({
+    fn admin_user_list_example_decodes_page_response() {
+        let page: PageResponse<AdminUser> = serde_json::from_value(serde_json::json!({
             "content": [
                 {
                     "id": 1, "username": "admin", "password": "", "base_path": "/",

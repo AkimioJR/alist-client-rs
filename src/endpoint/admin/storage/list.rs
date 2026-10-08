@@ -1,13 +1,13 @@
 //! admin-storage 端点：列出存储。
 //!
-//! 对应 `GET /api/admin/storage/list`；响应 `data` 为 `PageResp<Storage>`
+//! 对应 `GET /api/admin/storage/list`；响应 `data` 为 `PageResponse<Storage>`
 //! 分页包裹结构（`{"content": [...], "total": N}`）。不传分页参数时服务端
-//! 一次返回全部存储（`examples/alist/internal/model/req.go` 的 `PageReq::Validate`
+//! 一次返回全部存储（`examples/alist/internal/model/req.go` 的 `PageRequest::Validate`
 //! 会把缺省 `per_page` 放大为最大整数值）。
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::{admin::storage::Storage, common::PageResp};
+use crate::schema::{admin::storage::Storage, common::PageResponse};
 
 /// 列出存储请求构建器。
 ///
@@ -15,7 +15,7 @@ use crate::schema::{admin::storage::Storage, common::PageResp};
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = GET, path = "/api/admin/storage/list", model = PageResp<Storage>)]
+#[endpoint(method = GET, path = "/api/admin/storage/list", model = PageResponse<Storage>)]
 #[cfg_attr(feature = "into-stream", endpoint(into_stream = true, stream_item = Storage))]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -58,12 +58,12 @@ impl<'a> super::Storage<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`PageResp`] 包裹的
+    /// [`PageResponse`] 包裹的
     /// [`Storage`] 列表。
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200）时，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。
     ///
     /// # Examples
@@ -125,7 +125,7 @@ mod tests {
         assert!(url.contains("per_page=30"), "URL 应包含每页条数: {url}");
     }
 
-    /// 收发路径断言：mock 服务器返回 openapi 列表示例，解码 `PageResp<Storage>`。
+    /// 收发路径断言：mock 服务器返回 openapi 列表示例，解码 `PageResponse<Storage>`。
     #[tokio::test]
     async fn send_decodes_paginated_storage_list() {
         use std::sync::{Arc, Mutex};

@@ -55,7 +55,7 @@ impl<'a> super::Setting<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如键不存在）时，返回 [`crate::Error`]。
     ///
     /// # Examples

@@ -3,7 +3,7 @@
 > 本文档是后续所有代理/贡献者实现端点与 schema 的**约定来源**。动手前请先通读。
 > 架构参考 `/Users/akimio/GitRepository/MediaArk/themoviedb-rs`（句柄 + Request 构建器 + derive 宏模式）；
 > API 事实来源为 `docs/api/alistv3.openapi.yaml`、`docs/api/alistv3.md`，**文档不确定时以 `examples/alist` 的 Go 源码为准**
-> （路由 `server/router.go`、信封 `server/common/resp.go`、上传 `server/handles/fsup.go`、fs 读取 `server/handles/fsread.go`、
+> （路由 `server/router.go`、响应包装 `server/common/resp.go`、上传 `server/handles/fsup.go`、fs 读取 `server/handles/fsread.go`、
 > 任务 `server/handles/task.go`、标签 `internal/model/label.go`）。
 
 ## 1. 仓库布局与所有权边界
@@ -18,7 +18,7 @@ src/endpoint.rs             # 端点模块接线 + 派生宏冒烟测试（已�
 src/endpoint/<组>.rs        # 各域句柄文件（已实现，勿改结构）
 src/endpoint/<组>/<端点>.rs # 端点 Request 文件（空壳，待实现 ← 主要工作面）
 src/schema.rs               # schema 模块接线（已完成）
-src/schema/common.rs        # 共享模型：Envelope/PageReq/PageResp/TaskInfo/UploadResp（已完成）
+src/schema/common.rs        # 共享模型：Response/PageRequest/PageResponse/TaskInfo/UploadResponse（已完成）
 src/schema/<组>.rs          # 各域 schema 文件（空壳，待实现 ← 主要工作面）
 src/test_support.rs         # 仅测试构建：手搓 TcpListener mock 服务器（勿用于生产代码）
 docs/design.md              # 本文档
@@ -64,7 +64,7 @@ docs/design.md              # 本文档
 
 ```rust
 #[derive(EndpointRequest)]
-#[endpoint(method = GET, path = "/api/admin/meta/list", model = PageResp<Meta>)]
+#[endpoint(method = GET, path = "/api/admin/meta/list", model = PageResponse<Meta>)]
 #[cfg_attr(feature = "into-stream", endpoint(into_stream = true, stream_item = Meta))]
 pub struct Request<'a> { ... }
 ```
@@ -90,7 +90,7 @@ pub struct Request<'a> { ... }
 - 生成 `pub async fn send(&self)`（借用）与 `pub async fn send_raw<T: DeserializeOwned>(&self)`；
   以及 `IntoFuture`（`Output = crate::Result<model>`，手写 `Pin<Box<dyn Future + Send>>`，不依赖 futures）。
 - `into_stream()`：`futures::stream::BoxStream<'a, crate::Result<stream_item>>`；从 `page`（缺省 1）起循环
-  `page += 1`，产出模型 `.content`（`PageResp<T>` 形态）内元素，`content` 为空时停止（最后一页可能多发一次确认请求）。
+  `page += 1`，产出模型 `.content`（`PageResponse<T>` 形态）内元素，`content` 为空时停止（最后一页可能多发一次确认请求）。
   **要求**：Request 结构体存在 `page: Option<i32>` 字段；model 存在 `content: Vec<stream_item>` 字段。
 - 宏限制：仅支持命名字段结构体、生命周期泛型（不支持类型/常量泛型参数）。
 
@@ -201,18 +201,18 @@ impl<'a> super::Fs<'a> {
 5. **示例 JSON 钉扎测试**：每个 schema 文件在 `#[cfg(test)] mod tests` 中用 `docs/api/alistv3.openapi.yaml`
    与 Go 源码里的真实示例 JSON 反序列化断言（参考 `src/schema/common.rs` 与 git 历史 `src/models/*` 的写法），
    键名序列化用 `serde_json::to_value` 断言钉住。
-6. 复用共享模型：分页响应用 `crate::schema::common::PageResp<T>`，任务体用 `TaskInfo`，上传响应 `UploadResp`。
+6. 复用共享模型：分页响应用 `crate::schema::common::PageResponse<T>`，任务体用 `TaskInfo`，上传响应 `UploadResponse`。
 7. 文件头部：中文模块文档 + 数据来源说明；不写 pub use 之外的实现逻辑。
 
-## 6. 错误与 envelope 语义（已实现，端点代理需理解）
+## 6. 错误与响应包装（envelope）语义（已实现，端点代理需理解）
 
-- AList 多数错误以 **HTTP 200 + 信封 `code` 非 200** 返回；`Client::execute` 统一处理：
-  HTTP 非 2xx → `Error::HttpStatus`；信封 `code` 非 200 → `Error::Api { code, kind, message, data }`；
+- AList 多数错误以 **HTTP 200 + 响应 `code` 非 200** 返回；`Client::execute` 统一处理：
+  HTTP 非 2xx → `Error::HttpStatus`；响应 `code` 非 200 → `Error::Api { code, kind, message, data }`；
   `data` 二次反序列化失败 → `Error::Json`（附 method/url/响应体上下文）。
 - `Error::Api.code` 为 [`ApiStatusCode`]（0/200=Ok、202=Accepted、400/401/402/403/404/405/429/500、其余 Unknown）；
   `kind` 为 `InternalErrorKind::from_message` 按 `alist/internal/errs` 常量文本的尽力分类。
 - **`data: null` 直接用 `model = ()` 或 `model = Option<T>` 解码**，不要在端点里特殊处理。
-- 401/403（信封或 HTTP）且配置了 `Authentication::UsernamePassword` 时自动重新登录并重试一次；
+- 401/403（响应包装或 HTTP）且配置了 `Authentication::UsernamePassword` 时自动重新登录并重试一次；
   `Authentication::Token` 不触发。登录实现内置于 `client.rs`（`/api/auth/login`），不依赖任何端点 feature。
 - 端点只管「构建 + 发送 + 解码」，**不要**在端点层重复检查状态码。
 
@@ -238,7 +238,7 @@ cargo test -p alist-client-derive                         # 宏自身单元测�
   `cargo +nightly fmt -- <file>...`。**禁止裸跑 `cargo fmt`**（会波及他人正在修改的文件）。
 - 测试基础设施：`crate::test_support::spawn_mock_server`（手搓 tokio TcpListener，逐请求返回预设响应、
   可记录请求原文）。端点测试写法参考 `src/endpoint.rs` 的 `mod tests`（含 URL 构建断言、body/查询串断言、
-  认证头断言、`data: null`、`into_stream` 翻页等）。客户端行为（信封/刷新/限速/错误分类）测试在
+  认证头断言、`data: null`、`into_stream` 翻页等）。客户端行为（响应包装/刷新/限速/错误分类）测试在
   `src/client.rs` 内联 `mod tests`。
 - 每个端点文件建议至少一个 URL/方法断言测试；有 body 或 query 的端点补序列化断言；
   列表类端点如启用 `into-stream`，补翻页测试。
@@ -249,6 +249,6 @@ cargo test -p alist-client-derive                         # 宏自身单元测�
 - `set_authentication / with_authentication / clear_authentication`（`Authentication::username_password(usr, pwd, otp)` / `Authentication::token(t)`）。
 - `set_api_request_interval / with_api_request_interval / api_request_interval`：客户端侧限速（串行保持间隔）。
 - `base_url()`；token 与凭据为内部状态（`token()`/`authentication()` 为 `pub(crate)`）。
-- `pub(crate) request(method, path)`：构建请求（无认证头）；`pub(crate) execute<R>(builder)`：信封解码 + 限速 + 401/403 自动重登重试一次；
-  `pub(crate) execute_text(builder)`：原始文本响应（供 `/ping`），无信封解码。
+- `pub(crate) request(method, path)`：构建请求（无认证头）；`pub(crate) execute<R>(builder)`：响应解码 + 限速 + 401/403 自动重登重试一次；
+  `pub(crate) execute_text(builder)`：原始文本响应（供 `/ping`），无响应解码。
 - 流式 body（multipart 上传）无法克隆，401 重试对这类请求不可用（返回原始错误）——上传端点实现时注意在文档说明。

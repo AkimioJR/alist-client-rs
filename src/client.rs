@@ -6,7 +6,7 @@
 //! - token 内部状态与 `Authorization` 头注入（发送时注入，而非构建时）；
 //! - [`Authentication`] 凭据保存与 401/403 时的自动重新登录并重试一次；
 //! - 客户端侧请求限速（[`RequestRateLimit`]）；
-//! - JSON 信封解码、HTTP 状态与信封 `code` 检查、`data: null` → `Option<T>`/`()` 解码；
+//! - JSON 响应解码、HTTP 状态与响应 `code` 检查、`data: null` → `Option<T>`/`()` 解码；
 //! - 原始文本响应辅助（供 `/ping` 等非 JSON 端点使用）。
 //!
 //! 端点模块通过 `pub(crate) request`/`execute` 组合出具体 API 调用，
@@ -31,7 +31,7 @@ use tokio::{
 
 use crate::{
     error::{ApiStatusCode, Error, InternalErrorKind, Result},
-    schema::common::Envelope,
+    schema::common::Response,
 };
 
 /// 用于刷新当前 token 的认证凭据。
@@ -256,9 +256,9 @@ impl Client {
         self.http.request(method, url)
     }
 
-    /// 发送请求并解码 AList JSON 信封，返回端点模型。
+    /// 发送请求并解码 AList JSON 响应，返回端点模型。
     ///
-    /// 处理顺序：限速等待 → 注入认证头 → 发送 → HTTP 状态检查 → 信封 `code` 检查 →
+    /// 处理顺序：限速等待 → 注入认证头 → 发送 → HTTP 状态检查 → 响应 `code` 检查 →
     /// `data` 二次反序列化。当收到 401/403 且配置了
     /// [`Authentication::UsernamePassword`] 时，自动重新登录并重试一次。
     ///
@@ -272,7 +272,7 @@ impl Client {
             let Some(current) = pending.take() else {
                 unreachable!("每轮循环都会补充待发请求");
             };
-            match self.send_envelope(current, &context, true).await {
+            match self.send_response(current, &context, true).await {
                 Ok(decoded) => break decoded,
                 Err(err) => {
                     let can_retry =
@@ -297,7 +297,7 @@ impl Client {
     /// 发送请求并返回原始响应体文本（供 `/ping` 等非 JSON 端点使用）。
     ///
     /// 与 [`Client::execute`] 一致地执行限速、认证注入与 HTTP 状态检查，
-    /// 但不做信封解码。
+    /// 但不做响应解码。
     pub(crate) async fn execute_text(&self, builder: RequestBuilder) -> Result<String> {
         let builder = self.apply_auth(builder);
         self.wait_for_rate_limit().await;
@@ -310,10 +310,10 @@ impl Client {
         Ok(body)
     }
 
-    /// 单次发送并解码信封；返回 `(data, 原始响应体)`。
+    /// 单次发送并解码响应；返回 `(data, 原始响应体)`。
     ///
     /// `authenticated` 为 `false` 时不注入认证头（用于登录本身）。
-    async fn send_envelope(
+    async fn send_response(
         &self,
         builder: RequestBuilder,
         context: &RequestContext,
@@ -331,23 +331,23 @@ impl Client {
         if !status.is_success() {
             return Err(Error::HttpStatus { status, body });
         }
-        let envelope: Envelope<Value> =
+        let api_response: Response<Value> =
             serde_json::from_str(&body).map_err(|source| Error::Json {
                 source,
                 method: context.method.clone(),
                 url: context.url.clone(),
                 response_body: Some(body.clone()),
             })?;
-        let code = ApiStatusCode::from_code(envelope.code);
+        let code = ApiStatusCode::from_code(api_response.code);
         if !code.is_success() {
             return Err(Error::Api {
                 code,
-                kind: InternalErrorKind::from_message(&envelope.message),
-                message: envelope.message,
-                data: envelope.data,
+                kind: InternalErrorKind::from_message(&api_response.message),
+                message: api_response.message,
+                data: api_response.data,
             });
         }
-        Ok((envelope.data, body))
+        Ok((api_response.data, body))
     }
 
     /// 使用保存的凭据重新登录并更新 token。
@@ -370,7 +370,7 @@ impl Client {
         };
         let builder = self.request(Method::POST, "/api/auth/login").json(&body);
         let context = request_context(&builder);
-        let (data, response_body) = self.send_envelope(builder, &context, false).await?;
+        let (data, response_body) = self.send_response(builder, &context, false).await?;
         let login: LoginData = serde_json::from_value(data).map_err(|source| Error::Json {
             source,
             method: context.method.clone(),
@@ -383,7 +383,7 @@ impl Client {
 
     /// 该错误是否应当触发重新登录。
     ///
-    /// 仅在保存了 [`Authentication::UsernamePassword`] 时对信封 401/403
+    /// 仅在保存了 [`Authentication::UsernamePassword`] 时对响应 401/403
     /// 或 HTTP 401/403 生效；[`Authentication::Token`] 永不触发。
     fn should_refresh_auth(&self, err: &Error) -> bool {
         if !matches!(
@@ -540,7 +540,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn execute_decodes_success_envelope() {
+    async fn execute_decodes_success_response() {
         let body = r#"{"code":200,"message":"success","data":{"username":"admin"}}"#;
         let base_url = spawn_mock_server(vec![ok_json(body)], None).await;
         let client = Client::new(base_url).unwrap();

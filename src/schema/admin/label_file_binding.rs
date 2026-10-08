@@ -49,7 +49,7 @@ pub struct Label {
 /// `model.LabelFileBinding`；`GET /api/admin/label_file_binding/list` 以
 /// `{"content": [...], "total": N}` 分页壳返回该实体的数组
 /// （handler 内 `pageResp[model.LabelFileBinding]`，形状与
-/// [`crate::schema::common::PageResp`] 一致），也是
+/// [`crate::schema::common::PageResponse`] 一致），也是
 /// `POST /api/admin/label_file_binding/restore` 请求体 `bindings` 数组的元素类型。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct LabelFileBinding {
@@ -441,12 +441,12 @@ mod tests {
 
     /// 正向钉扎：`GET /api/admin/label_file_binding/list` 的 `data` 分页壳
     /// （`handles.ListLabelFileBinding` 返回 `pageResp[model.LabelFileBinding]`，
-    /// 即 `{content, total}`，与 `crate::schema::common::PageResp` 形状一致）。
+    /// 即 `{content, total}`，与 `crate::schema::common::PageResponse` 形状一致）。
     #[test]
-    fn label_file_binding_page_resp_wraps_handler_shape() {
-        use crate::schema::common::PageResp;
+    fn label_file_binding_page_response_wraps_handler_shape() {
+        use crate::schema::common::PageResponse;
 
-        let page: PageResp<LabelFileBinding> = serde_json::from_value(serde_json::json!({
+        let page: PageResponse<LabelFileBinding> = serde_json::from_value(serde_json::json!({
             "content": [
                 {
                     "id": 7,

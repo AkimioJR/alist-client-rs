@@ -36,7 +36,7 @@ impl<'a> super::Meta<'a> {
     /// 按 ID 删除元信息。
     ///
     /// 对应 AList `POST /api/admin/meta/delete?id=<id>`；成功时响应 `data` 为 `null`
-    /// （ID 不存在时服务端返回 `code` 非 200 的信封错误）。
+    /// （ID 不存在时服务端返回 `code` 非 200 的错误响应）。
     /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/admin/meta/delete` 与
     /// `examples/alist/server/handles/meta.go`（实现为 `DeleteMeta`，经 `op.DeleteMetaById` 删除）。
     ///
@@ -50,7 +50,7 @@ impl<'a> super::Meta<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如 ID 不存在）时，返回 [`crate::Error`]。
     ///
     /// # Examples

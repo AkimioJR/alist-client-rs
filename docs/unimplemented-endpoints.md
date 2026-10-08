@@ -134,11 +134,11 @@
 | `/api/admin/task/<其余 6 类别>/*`（copy、offline_download、offline_download_transfer、s3_transition、decompress、decompress_upload × 12 动作） | 72 | 管理端其余任务类别的完整动作集。 |
 | `/api/task/<7 类别>/*`（7 × 12 动作） | 84 | 面向普通用户的任务查询/管理接口（非管理员前缀）。 |
 
-实现这些端点时可复用现有 `admin-task` 句柄的 Request 模板，仅需按类别参数化路径前缀；响应模型为 `PageResp<TaskInfo>` 形态（`taskRoute` 内 `getTaskInfos`/`getTaskInfo` 返回 `TaskInfo` 结构，`handles/task.go:31、62`）。
+实现这些端点时可复用现有 `admin-task` 句柄的 Request 模板，仅需按类别参数化路径前缀；响应模型为 `PageResponse<TaskInfo>` 形态（`taskRoute` 内 `getTaskInfos`/`getTaskInfo` 返回 `TaskInfo` 结构，`handles/task.go:31、62`）。
 
 ## 13. 范围外：非 JSON API 路由（未实现，多数也超出本 crate 定位）
 
-以下路由由 router.go 注册，但它们是**内容分发/网关类路由**，不走 JSON 信封，通常由客户端直接拼 URL 或专用协议访问，本次未建模：
+以下路由由 router.go 注册，但它们是**内容分发/网关类路由**，不走 JSON 响应包装，通常由客户端直接拼 URL 或专用协议访问，本次未建模：
 
 | 方法 | 路径 | 位置 | 说明 |
 |---|---|---|---|

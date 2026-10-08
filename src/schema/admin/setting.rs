@@ -78,13 +78,13 @@ pub struct SetQbitReq {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::schema::common::Envelope;
+    use crate::schema::common::Response;
 
     /// 正向钉扎：`docs/api/alistv3.openapi.yaml` `admin/setting/list` 返回示例
     /// （`data` 为设置项数组，非分页结构）。
     #[test]
     fn setting_list_decodes_openapi_example() {
-        let resp: Envelope<Vec<Setting>> = serde_json::from_value(serde_json::json!({
+        let resp: Response<Vec<Setting>> = serde_json::from_value(serde_json::json!({
             "code": 200,
             "message": "success",
             "data": [
@@ -129,7 +129,7 @@ mod tests {
     /// （`data` 为单个设置项；`value` 为正则文本）。
     #[test]
     fn setting_get_decodes_openapi_example() {
-        let resp: Envelope<Setting> = serde_json::from_value(serde_json::json!({
+        let resp: Response<Setting> = serde_json::from_value(serde_json::json!({
             "code": 200,
             "message": "success",
             "data": {

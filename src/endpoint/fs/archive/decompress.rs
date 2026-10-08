@@ -77,7 +77,7 @@ impl<'a> super::Archive<'a> {
     /// 压缩包内条目解压到 `dst_dir`。驱动以后台任务方式解压时，响应
     /// `data.task` 列出创建的任务（[`TaskInfo`](crate::schema::common::TaskInfo)）；
     /// 条目被同步解压时不出现在其中，全部同步完成时 `task` 为空数组。
-    /// 压缩包密码错误时 AList 以信封 `code: 202` 返回。
+    /// 压缩包密码错误时 AList 以响应 `code: 202` 返回。
     ///
     /// 数据来源：`examples/alist/server/router.go:249`
     /// （`a.POST("/decompress", handles.FsArchiveDecompress)`）与
@@ -98,7 +98,7 @@ impl<'a> super::Archive<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 如压缩包密码错误、目标路径越权）时，返回 [`crate::Error`]。
     ///
     /// # Examples

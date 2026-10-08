@@ -124,11 +124,11 @@ mod tests {
         assert_eq!(label.create_time.to_rfc3339(), "2024-06-01T12:00:00+00:00");
     }
 
-    /// 分页钉扎：`/api/label/list` 的 `PageResp<Label>` 包装形态
+    /// 分页钉扎：`/api/label/list` 的 `PageResponse<Label>` 包装形态
     /// （`examples/alist/server/common/resp.go` 的 `PageResp`）。
     #[test]
-    fn label_list_wraps_into_page_resp() {
-        let page: crate::schema::common::PageResp<Label> =
+    fn label_list_wraps_into_page_response() {
+        let page: crate::schema::common::PageResponse<Label> =
             serde_json::from_value(serde_json::json!({
                 "content": [{
                     "id": 7,
@@ -170,7 +170,7 @@ mod tests {
     /// 创建响应钉扎：`handles/label.go` 的 `CreateLabel` 成功时返回 `gin.H{"id": id}`。
     #[test]
     fn create_label_resp_decodes_handler_shape() {
-        let resp: crate::schema::common::Envelope<CreateLabelResp> =
+        let resp: crate::schema::common::Response<CreateLabelResp> =
             serde_json::from_value(serde_json::json!({
                 "code": 200,
                 "message": "success",

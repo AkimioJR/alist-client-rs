@@ -2,16 +2,16 @@
 //!
 //! 对应 `POST /api/fs/archive/list`；响应 `data` 为
 //! `{content: [...], total: N}` 分页形状（共享模型
-//! [`PageResp`]，元素为
+//! [`PageResponse`]，元素为
 //! [`ObjResp`]）。该端点未收录于
 //! `docs/api/alistv3.openapi.yaml`，请求/响应形状以
 //! `examples/alist/server/handles/archive.go` 的 `ArchiveListReq`/`ArchiveListResp`
 //! （archive.go:147-156）为准；分页字段与 `internal/model/req.go` 的
-//! `PageReq`（`page`/`per_page`）一致，随 JSON 请求体发送。
+//! `PageRequest`（`page`/`per_page`）一致，随 JSON 请求体发送。
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::{common::PageResp, fs::ObjResp};
+use crate::schema::{common::PageResponse, fs::ObjResp};
 
 /// 列出压缩包内目录内容请求构建器。
 ///
@@ -25,7 +25,7 @@ use crate::schema::{common::PageResp, fs::ObjResp};
 #[endpoint(
     method = POST,
     path = "/api/fs/archive/list",
-    model = PageResp<ObjResp>
+    model = PageResponse<ObjResp>
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -70,12 +70,12 @@ impl<'a> super::Archive<'a> {
     ///
     /// 对应 AList `POST /api/fs/archive/list`；返回 `inner_path`
     /// （缺省为压缩包根）下直接子项的分页列表（`content` 与 `total`）。
-    /// 压缩包密码错误时 AList 以信封 `code: 202` 返回。
+    /// 压缩包密码错误时 AList 以响应 `code: 202` 返回。
     ///
     /// 数据来源：`examples/alist/server/router.go:246-248`
     /// （`a.Any("/list", handles.FsArchiveList)`，携带 JSON 请求体的读端点
     /// 按 POST 处理）与 `examples/alist/server/handles/archive.go:158-222`
-    /// （实现 `FsArchiveList`；分页经 `pagination(objs, &req.PageReq)`）。
+    /// （实现 `FsArchiveList`；分页经 `pagination(objs, &req.PageRequest)`）。
     ///
     /// # Arguments
     ///
@@ -84,11 +84,11 @@ impl<'a> super::Archive<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`PageResp<ObjResp>`](crate::schema::common::PageResp)。
+    /// [`PageResponse<ObjResp>`](crate::schema::common::PageResponse)。
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 如目录密码错误、压缩包密码错误）时，返回 [`crate::Error`]。
     ///
     /// # Examples

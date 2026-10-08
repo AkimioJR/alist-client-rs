@@ -62,7 +62,7 @@ impl<'a> super::Driver<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如未携带管理员凭据时的 `403`）时，返回 [`crate::Error`]。
     ///
     /// # Examples
@@ -113,7 +113,7 @@ mod tests {
         );
     }
 
-    /// 收发路径：mock 服务器返回驱动模板映射，验证请求行与信封解码。
+    /// 收发路径：mock 服务器返回驱动模板映射，验证请求行与响应解码。
     #[tokio::test]
     async fn send_decodes_driver_template_map() {
         use std::sync::{Arc, Mutex};

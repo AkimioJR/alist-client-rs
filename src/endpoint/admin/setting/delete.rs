@@ -1,7 +1,7 @@
 //! admin-setting 端点：删除设置。
 //!
 //! 对应 `POST /api/admin/setting/delete`；`key` 为查询参数，响应 `data` 为 `null`，
-//! 以 `()` 作为端点模型。openapi 示例未含标准信封（仅 `{}`），此处以 Go
+//! 以 `()` 作为端点模型。openapi 示例未含标准响应（仅 `{}`），此处以 Go
 //! `common.SuccessResp`（`examples/alist/server/common/resp.go`）为准。
 
 use alist_client_derive::EndpointRequest;
@@ -52,7 +52,7 @@ impl<'a> super::Setting<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200）时，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。
     ///
     /// # Examples

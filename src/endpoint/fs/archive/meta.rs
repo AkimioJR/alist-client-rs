@@ -55,7 +55,7 @@ impl<'a> super::Archive<'a> {
     ///
     /// 对应 AList `POST /api/fs/archive/meta`；返回压缩包注释、是否加密、
     /// 递归文件树（`content[].children` 嵌套）、原始下载地址（`raw_url`）
-    /// 与访问签名（`sign`）。压缩包密码错误时 AList 以信封 `code: 202`
+    /// 与访问签名（`sign`）。压缩包密码错误时 AList 以响应 `code: 202`
     /// 返回，`Client::execute` 会将其转换为
     /// [`Error::Api`](crate::Error::Api)。
     ///
@@ -75,7 +75,7 @@ impl<'a> super::Archive<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 如目录密码错误、压缩包密码错误）时，返回 [`crate::Error`]。
     ///
     /// # Examples

@@ -2,17 +2,17 @@
 //!
 //! 对应 `GET /api/admin/user/list`；响应 `data` 为
 //! `{"content": [用户数组], "total": 总数}` 分页形态，复用
-//! [`crate::schema::common::PageResp`]，元素类型为
+//! [`crate::schema::common::PageResponse`]，元素类型为
 //! [`crate::schema::admin::user::AdminUser`]。
 //!
 //! 说明：当前服务端实现（`examples/alist/server/handles/user.go` 的 `ListUsers`）
-//! 会绑定可选的 `page`/`per_page` 查询参数（`model.PageReq`），但缺省
+//! 会绑定可选的 `page`/`per_page` 查询参数（`model.PageRequest`），但缺省
 //! （不传参数，`per_page` 回退为 `MaxInt`）即返回全部用户，且 openapi 文档
 //! 未列出这两个参数；因此本端点按文档语义不暴露分页参数。
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::{admin::user::AdminUser, common::PageResp};
+use crate::schema::{admin::user::AdminUser, common::PageResponse};
 
 /// 列出用户请求构建器。
 ///
@@ -20,7 +20,7 @@ use crate::schema::{admin::user::AdminUser, common::PageResp};
 /// 或 [`.send().await`](Request::send) / [`.send_raw::<T>().await`](Request::send_raw)
 /// 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = GET, path = "/api/admin/user/list", model = PageResp<AdminUser>)]
+#[endpoint(method = GET, path = "/api/admin/user/list", model = PageResponse<AdminUser>)]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     #[endpoint(skip)]
@@ -46,7 +46,7 @@ impl<'a> super::User<'a> {
     /// `examples/alist/server/handles/user.go`（实现为 `ListUsers`）。
     ///
     /// 当前服务端实现另接受可选的 `page`/`per_page` 查询参数，但缺省即返回
-    /// 全部用户（`internal/model/req.go` 的 `PageReq::Validate` 将 `per_page`
+    /// 全部用户（`internal/model/req.go` 的 `PageRequest::Validate` 将 `per_page`
     /// 回退为 `MaxInt`），且 openapi 文档未列出这两个参数，故本客户端不提供。
     ///
     /// # Arguments
@@ -56,11 +56,11 @@ impl<'a> super::User<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`PageResp`]`<`[`AdminUser`]`>`。
+    /// [`PageResponse`]`<`[`AdminUser`]`>`。
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200）时，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。
     ///
     /// # Examples
@@ -110,7 +110,7 @@ mod tests {
 
     /// 收发路径：mock 服务器返回文档示例，验证分页形态与 `role` 单值展开的解码。
     #[tokio::test]
-    async fn send_decodes_page_resp_of_admin_user() {
+    async fn send_decodes_page_response_of_admin_user() {
         use std::sync::{Arc, Mutex};
 
         use crate::test_support::{ok_json, spawn_mock_server};

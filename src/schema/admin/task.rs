@@ -27,16 +27,16 @@ pub type TaskInfoList = Vec<TaskInfo>;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::schema::common::Envelope;
+    use crate::schema::common::Response;
 
-    /// 正向钉扎：`GET /api/admin/task/upload/done` 的信封 + 任务数组形状。
+    /// 正向钉扎：`GET /api/admin/task/upload/done` 的响应 + 任务数组形状。
     ///
-    /// 信封 `data` 为数组的形状取自 `docs/api/alistv3.md` `# admin/task/upload`
+    /// 响应 `data` 为数组的形状取自 `docs/api/alistv3.md` `# admin/task/upload`
     /// 分节「获取已完成任务」的返回示例；任务元素字段取自
     /// `examples/alist/server/handles/task.go` 的 `TaskInfo`（Go 为准，老文档精简形状不采用）。
     #[test]
-    fn task_info_list_decodes_done_endpoint_envelope() {
-        let resp: Envelope<TaskInfoList> = serde_json::from_value(serde_json::json!({
+    fn task_info_list_decodes_done_endpoint_response() {
+        let resp: Response<TaskInfoList> = serde_json::from_value(serde_json::json!({
             "code": 200,
             "message": "success",
             "data": [
@@ -75,7 +75,7 @@ mod tests {
     /// 单对象，以 Go 为准钉住。
     #[test]
     fn info_endpoint_decodes_single_task_object() {
-        let resp: Envelope<TaskInfo> = serde_json::from_value(serde_json::json!({
+        let resp: Response<TaskInfo> = serde_json::from_value(serde_json::json!({
             "code": 200,
             "message": "success",
             "data": {
@@ -108,7 +108,7 @@ mod tests {
     /// `tache.State`（整型）冲突，以 Go 为准建模为 `i32`，故此处用整型钉住。
     #[test]
     fn task_info_list_tolerates_minimal_task_fields() {
-        let resp: Envelope<TaskInfoList> = serde_json::from_value(serde_json::json!({
+        let resp: Response<TaskInfoList> = serde_json::from_value(serde_json::json!({
             "code": 200,
             "message": "success",
             "data": [

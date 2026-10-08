@@ -1,7 +1,7 @@
 //! AList v3 API 的异步 Rust 客户端。
 //!
-//! 本 crate 将 [AList](https://github.com/AlistGo/alist) 的 JSON 信封与文件系统/管理端点
-//! 建模为强类型 Rust API：HTTP 构建、发送、信封解码、认证刷新与客户端限速统一由
+//! 本 crate 将 [AList](https://github.com/AlistGo/alist) 的 JSON 响应（[`Response`](crate::schema::common::Response)）与文件系统/管理端点
+//! 建模为强类型 Rust API：HTTP 构建、发送、响应解码、认证刷新与客户端限速统一由
 //! [`Client`] 处理；各业务端点以「域句柄 + 请求构建器」的形式暴露；数据模型集中在
 //! [`schema`] 下。实现约定详见仓库内 `docs/design.md`。
 //!
@@ -47,7 +47,7 @@
 //!
 //! # #[cfg(feature = "public")]
 //! # {
-//! // 6. 公开端点：`/ping` 返回纯文本，走 `send_text` 通道（不做信封解码）
+//! // 6. 公开端点：`/ping` 返回纯文本，走 `send_text` 通道（不做响应解码）
 //! let pong = client.public().ping().send_text().await?;
 //! assert_eq!(pong, "pong");
 //! # }
@@ -60,7 +60,7 @@
 //! ```text
 //! Client（src/client.rs）
 //!   ├── Authentication    凭据：UsernamePassword（自动重登）/ Token
-//!   ├── 请求执行          信封解码、HTTP 状态检查、限速、401/403 自动重试
+//!   ├── 请求执行          响应解码、HTTP 状态检查、限速、401/403 自动重试
 //!   └── 域句柄（src/endpoint/）
 //!         ├── client.auth()    → Auth     认证（登录/注册、2FA、当前用户）
 //!         ├── client.fs()      → Fs       文件系统（列表、增删改、搜索、离线下载）
@@ -76,9 +76,9 @@
 //!   setter；可直接 `.await` 执行强类型解码。列表端点在 `into-stream` feature 下
 //!   还可调用 `.into_stream()` 得到自动翻页的条目流。
 //! - **数据模型**：[`schema`] 按 API 域分组（`src/schema/<域>.rs`），serde 驱动，
-//!   对老版本服务器的缺失/`null` 字段保持兼容；分页（[`PageResp`](crate::schema::common::PageResp)）、
-//!   任务（`TaskInfo`）、上传（`UploadResp`）等共享形状在 [`schema::common`]。
-//! - **错误语义**：AList 多数错误以 HTTP 200 + 信封 `code` 非 200 返回，[`Client`]
+//!   对老版本服务器的缺失/`null` 字段保持兼容；响应封装（[`Response`](crate::schema::common::Response)）、
+//!   分页（[`PageResponse`](crate::schema::common::PageResponse)）、任务（`TaskInfo`）、上传（[`UploadResponse`](crate::schema::common::UploadResponse)）等共享形状在 [`schema::common`]。
+//! - **错误语义**：AList 多数错误以 HTTP 200 + 响应 `code` 非 200 返回，[`Client`]
 //!   统一转换为 [`Error::Api`]（状态码见 [`ApiStatusCode`]，内部错误分类见
 //!   [`InternalErrorKind`]）；HTTP 非 2xx 转换为 [`Error::HttpStatus`]。
 //! - **测试基建**：`test_support` 模块（仅测试构建）提供手搓的 mock 服务器。

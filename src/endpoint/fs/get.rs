@@ -64,7 +64,7 @@ impl<'a> super::Fs<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200）
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）
     /// 时，返回 [`crate::Error`]；目录密码错误或对象不存在时返回对应错误。
     ///
     /// # Examples

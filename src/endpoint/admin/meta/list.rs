@@ -2,13 +2,13 @@
 //!
 //! 对应 `GET /api/admin/meta/list`；查询参数 `page`/`per_page`（均可选，
 //! 服务端对缺省值回退为「第 1 页、每页全部」，见 `examples/alist/internal/model/req.go`
-//! 的 `PageReq.Validate`），响应 `data` 为 `{ "content": [...], "total": n }` 分页形态。
+//! 的 `PageRequest.Validate`），响应 `data` 为 `{ "content": [...], "total": n }` 分页形态。
 //! 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/admin/meta/list` 与
-//! `examples/alist/server/handles/meta.go`（`ListMetas` 绑定 `model.PageReq`）。
+//! `examples/alist/server/handles/meta.go`（`ListMetas` 绑定 `model.PageRequest`）。
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::{admin::meta::Meta, common::PageResp};
+use crate::schema::{admin::meta::Meta, common::PageResponse};
 
 /// 列出元信息请求构建器。
 ///
@@ -16,7 +16,7 @@ use crate::schema::{admin::meta::Meta, common::PageResp};
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = GET, path = "/api/admin/meta/list", model = PageResp<Meta>)]
+#[endpoint(method = GET, path = "/api/admin/meta/list", model = PageResponse<Meta>)]
 #[cfg_attr(feature = "into-stream", endpoint(into_stream = true, stream_item = Meta))]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -48,7 +48,7 @@ impl<'a> super::Meta<'a> {
     ///
     /// 对应 AList `GET /api/admin/meta/list`；响应 `data` 为
     /// `{ "content": [Meta], "total": n }`。不设置分页参数时，服务端
-    /// （`PageReq.Validate`）会回退为「第 1 页、每页全部」，即一次性返回全部元信息。
+    /// （`PageRequest.Validate`）会回退为「第 1 页、每页全部」，即一次性返回全部元信息。
     /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/admin/meta/list` 与
     /// `examples/alist/server/handles/meta.go`（实现为 `ListMetas`，经 `op.GetMetas` 分页查询）。
     ///
@@ -58,12 +58,12 @@ impl<'a> super::Meta<'a> {
     ///
     /// # Returns
     ///
-    /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回 [`PageResp`]，
+    /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回 [`PageResponse`]，
     /// 其 `content` 为 [`Meta`] 列表、`total` 为元信息总条数。
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200）时，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。
     ///
     /// # Examples
@@ -137,7 +137,7 @@ mod tests {
     }
 
     /// 收发路径断言：`docs/api/alistv3.openapi.yaml` `/api/admin/meta/list`
-    /// 的 200 响应示例应能解码为 `PageResp<Meta>`。
+    /// 的 200 响应示例应能解码为 `PageResponse<Meta>`。
     #[tokio::test]
     async fn send_decodes_openapi_list_example() {
         use crate::test_support::{ok_json, spawn_mock_server};

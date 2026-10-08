@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 /// 存储驱动实例。
 ///
 /// 对应 `examples/alist/internal/model/storage.go` 的 `model.Storage`；
-/// 由 `GET /api/admin/storage/list`（`PageResp<Storage>` 包裹）与
+/// 由 `GET /api/admin/storage/list`（`PageResponse<Storage>` 包裹）与
 /// `GET /api/admin/storage/get` 返回。`POST /api/admin/storage/create`、
 /// `/update` 的请求体也绑定该结构（`server/handles/storage.go` 的
 /// `CreateStorage`/`UpdateStorage`），端点层通过 [`crate::endpoint::admin`] 的
@@ -84,7 +84,7 @@ pub struct StorageCreateResp {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::schema::common::PageResp;
+    use crate::schema::common::PageResponse;
 
     /// 正向钉扎：`docs/api/alistv3.openapi.yaml` `/api/admin/storage/list`
     /// 的响应示例（Local 驱动存储）。
@@ -174,11 +174,11 @@ mod tests {
         assert!(storage.down_proxy_sign);
     }
 
-    /// 兼容钉扎：`list` 端点响应 `data` 的 `PageResp<Storage>` 分页包裹形态。
+    /// 兼容钉扎：`list` 端点响应 `data` 的 `PageResponse<Storage>` 分页包裹形态。
     #[test]
     fn list_response_decodes_page_wrapper() {
         // 示例来源：docs/api/alistv3.openapi.yaml /api/admin/storage/list（content/total 包裹）
-        let page: PageResp<Storage> = serde_json::from_value(serde_json::json!({
+        let page: PageResponse<Storage> = serde_json::from_value(serde_json::json!({
             "content": [{
                 "id": 1,
                 "mount_path": "/lll",

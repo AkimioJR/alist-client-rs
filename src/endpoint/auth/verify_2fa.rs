@@ -48,7 +48,7 @@ impl<'a> super::Auth<'a> {
     /// `docs/api/alistv3.openapi.yaml` 的 `auth/2fa/verify` 与
     /// `examples/alist/server/handles/auth.go` 的 `Verify2FA`，
     /// 实现于 auth.go:250-271）。校验通过后服务端将密钥写入当前账号，
-    /// 成功时响应 `data` 为 `null`；验证码错误返回信封 400。
+    /// 成功时响应 `data` 为 `null`；验证码错误返回响应 400。
     ///
     /// # Arguments
     ///
@@ -61,7 +61,7 @@ impl<'a> super::Auth<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 如验证码错误返回 400、游客账号调用返回 403）时，返回 [`crate::Error`]。
     ///
     /// # Examples

@@ -58,8 +58,8 @@ impl<'a> super::Driver<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200）时，
-    /// 返回 [`crate::Error`]。驱动不存在时 AList 以 HTTP 200 + 信封 `code: 404`
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
+    /// 返回 [`crate::Error`]。驱动不存在时 AList 以 HTTP 200 + 响应 `code: 404`
     /// 返回 `driver [<名称>] not found`（见 `server/handles/driver.go`）。
     ///
     /// # Examples
@@ -120,7 +120,7 @@ mod tests {
         );
     }
 
-    /// 收发路径：mock 服务器返回单个驱动模板，验证请求行、查询串与信封解码。
+    /// 收发路径：mock 服务器返回单个驱动模板，验证请求行、查询串与响应解码。
     #[tokio::test]
     async fn send_decodes_single_driver_info() {
         use std::sync::{Arc, Mutex};

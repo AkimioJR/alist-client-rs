@@ -4,7 +4,7 @@
 //! 为 AList 端点请求构建器生成：
 //!
 //! 1. `pub(crate) fn build_request()`：拼接 method + path、`#[query]` 查询串与 JSON 请求体；
-//! 2. `pub async fn send()` / `pub async fn send_raw<T>()`：经 `Client::execute` 解信封；
+//! 2. `pub async fn send()` / `pub async fn send_raw<T>()`：经 `Client::execute` 解码响应；
 //! 3. [`core::future::IntoFuture`]：`Output = crate::Result<model>`，手写 `Pin<Box<dyn Future>>`；
 //! 4. 仅为 `Option` 字段生成消费式链式 setter；
 //! 5. `into_stream = true` 时生成 `#[cfg(feature = "into-stream")]` 门控的 `into_stream()`。
@@ -718,7 +718,7 @@ mod tests {
     #[test]
     fn expand_generates_setters_build_request_and_into_future() {
         let input = parse_struct(quote! {
-            #[endpoint(method = GET, path = "/api/admin/meta/list", model = PageResp<Meta>)]
+            #[endpoint(method = GET, path = "/api/admin/meta/list", model = PageResponse<Meta>)]
             pub struct Request<'a> {
                 #[endpoint(skip)]
                 client: &'a crate::Client,
@@ -794,7 +794,7 @@ mod tests {
     #[test]
     fn expand_into_stream_requires_stream_item_and_page() {
         let missing_item = parse_struct(quote! {
-            #[endpoint(method = GET, path = "/api/x/list", model = PageResp<Obj>, into_stream = true)]
+            #[endpoint(method = GET, path = "/api/x/list", model = PageResponse<Obj>, into_stream = true)]
             pub struct Request<'a> {
                 #[endpoint(skip)]
                 client: &'a crate::Client,
@@ -807,7 +807,7 @@ mod tests {
         );
 
         let missing_page = parse_struct(quote! {
-            #[endpoint(method = GET, path = "/api/x/list", model = PageResp<Obj>, into_stream = true, stream_item = Obj)]
+            #[endpoint(method = GET, path = "/api/x/list", model = PageResponse<Obj>, into_stream = true, stream_item = Obj)]
             pub struct Request<'a> {
                 #[endpoint(skip)]
                 client: &'a crate::Client,

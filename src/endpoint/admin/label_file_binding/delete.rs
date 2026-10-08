@@ -67,7 +67,7 @@ impl<'a> super::LabelFileBinding<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200）时，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]；`label_id` 不是合法无符号整数时服务端返回 500。
     ///
     /// # Examples

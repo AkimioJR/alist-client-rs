@@ -1,19 +1,19 @@
 //! AList 客户端错误类型。
 //!
-//! AList 的 JSON 信封（`code`/`message`/`data`）承载业务状态码，HTTP 状态码仅反映传输层结果，
+//! AList 的 JSON 响应（[`Response`](crate::schema::common::Response)）承载业务状态码，HTTP 状态码仅反映传输层结果，
 //! 因此错误分类同时覆盖两个层面：[`Error::HttpStatus`]（HTTP 非 2xx）与
-//! [`Error::Api`]（HTTP 200 但信封 `code` 非 200）。
+//! [`Error::Api`]（HTTP 200 但响应 `code` 非 200）。
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use thiserror::Error;
 
-/// AList JSON 信封中的逻辑状态码。
+/// AList JSON 响应中的逻辑状态码。
 ///
 /// 参考实现见 `examples/alist/server/common/resp.go` 与 `internal/errs`。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ApiStatusCode {
-    /// 成功响应（信封 `code` 为 `200` 或 `0`）。
+    /// 成功响应（响应 `code` 为 `200` 或 `0`）。
     Ok,
     /// 归档密码错误或归档元信息尚未就绪（`202`）。
     Accepted,
@@ -38,7 +38,7 @@ pub enum ApiStatusCode {
 }
 
 impl ApiStatusCode {
-    /// 将 AList 信封中的原始状态码转换为类型化状态。
+    /// 将 AList 响应中的原始状态码转换为类型化状态。
     pub fn from_code(code: i32) -> Self {
         match code {
             0 | 200 => Self::Ok,
@@ -250,7 +250,7 @@ pub enum Error {
     /// I/O 错误，通常来自上传请求体构建。
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
-    /// 信封解码前的非 2xx HTTP 状态。
+    /// 响应解码前的非 2xx HTTP 状态。
     #[error("http status {status}: {body}")]
     HttpStatus {
         /// HTTP 状态码。
@@ -258,7 +258,7 @@ pub enum Error {
         /// 响应体文本。
         body: String,
     },
-    /// HTTP 200 但 AList 信封 `code` 非 200。
+    /// HTTP 200 但 AList 响应 `code` 非 200。
     #[error("alist api error {code:?}: {message}")]
     Api {
         /// 类型化的 AList 状态码。
@@ -267,7 +267,7 @@ pub enum Error {
         message: String,
         /// 按 `alist/internal/errs` 常量文本做的尽力分类。
         kind: Option<InternalErrorKind>,
-        /// 错误信封中的原始 `data`。
+        /// 错误响应中的原始 `data`。
         data: Value,
     },
 }

@@ -45,7 +45,7 @@ impl<'a> super::Setting<'a> {
     ///
     /// 对应 AList `POST /api/admin/setting/set_aria2`；保存 `aria2_uri`/`aria2_secret`
     /// 设置项后，服务端会立即初始化 aria2 连接，成功时响应 `data` 为 aria2 版本字符串
-    /// （如 `1.36.0`），连接失败时返回非成功信封。
+    /// （如 `1.36.0`），连接失败时返回非成功响应。
     /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `admin/setting/set_aria2` 与
     /// `examples/alist/server/handles/offline_download.go`（实现为 `SetAria2`，
     /// 请求体 `SetAria2Req` 仅含 `uri`/`secret` 两字段）。
@@ -61,7 +61,7 @@ impl<'a> super::Setting<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如 aria2 连接初始化失败）时，返回 [`crate::Error`]。
     ///
     /// # Examples

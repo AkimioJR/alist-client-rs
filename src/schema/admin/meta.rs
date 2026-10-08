@@ -92,7 +92,7 @@ pub struct Meta {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::schema::common::PageResp;
+    use crate::schema::common::PageResponse;
 
     /// `docs/api/alistv3.openapi.yaml` `/api/admin/meta/get` 的 200 响应示例：
     /// 不含 `header`/`header_sub`（openapi 未收录），应回退为默认值。
@@ -205,10 +205,10 @@ mod tests {
     }
 
     /// `docs/api/alistv3.openapi.yaml` `/api/admin/meta/list` 的 200 响应示例：
-    /// 分页包裹形态 `{"content": [...], "total": n}`（复用 [`PageResp`]）。
+    /// 分页包裹形态 `{"content": [...], "total": n}`（复用 [`PageResponse`]）。
     #[test]
-    fn meta_list_decodes_page_resp_example() {
-        let resp: PageResp<Meta> = serde_json::from_value(serde_json::json!({
+    fn meta_list_decodes_page_response_example() {
+        let resp: PageResponse<Meta> = serde_json::from_value(serde_json::json!({
             "content": [{
                 "id": 1,
                 "path": "/a",

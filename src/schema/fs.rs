@@ -7,7 +7,7 @@
 //! - **归档（archive）**：压缩包元信息、内部列表与解压（`/api/fs/archive/*`），
 //!   模型供归档端点代理直接复用；
 //! - **上传（upload）**：`PUT /api/fs/put` / `PUT /api/fs/form` 的响应模型
-//!   [`UploadResp`]（上传请求载荷全部位于
+//!   [`UploadResponse`]（上传请求载荷全部位于
 //!   HTTP 头与原始 body，无 JSON 请求模型）。
 //!
 //! 字段形状的数据来源（与 Go 源码冲突时以 Go 为准）：
@@ -417,11 +417,15 @@ impl StringOrArray {
 ///
 /// 即 `examples/alist/server/handles/fsup.go` 中 `FsStream`/`FsForm` 以
 /// `gin.H{"task": getTaskInfo(t)}` 返回的结构，复用共享模型
-/// [`UploadResp`](crate::schema::common::UploadResp)。
+/// [`UploadResponse`](crate::schema::common::UploadResponse)。
 /// 直传成功（未启用 `As-Task` 头）时端点 `data` 为 `null`（fsup.go:104-109），
-/// 因此端点模型为 `Option<UploadResp>`；上传请求载荷全部位于 HTTP 头与原始 body，
+/// 因此端点模型为 `Option<UploadResponse>`；上传请求载荷全部位于 HTTP 头与原始 body，
 /// 无 JSON 请求模型。
-pub type UploadResp = crate::schema::common::UploadResp;
+pub type UploadResponse = crate::schema::common::UploadResponse;
+
+/// 向后兼容类型别名。
+#[deprecated(note = "use UploadResponse instead")]
+pub type UploadResp = UploadResponse;
 
 #[cfg(test)]
 mod tests {
@@ -606,7 +610,7 @@ mod tests {
     /// 兼容老版本无 `type` 字段的形状。
     #[test]
     fn search_resp_decodes_openapi_example() {
-        let page: crate::schema::common::PageResp<SearchResp> = serde_json::from_value(
+        let page: crate::schema::common::PageResponse<SearchResp> = serde_json::from_value(
             serde_json::json!({
                 "content": [
                     { "parent": "/m", "name": "4305da1e", "is_dir": false, "size": 393090, "type": 0 }
@@ -773,12 +777,12 @@ mod tests {
         );
     }
 
-    /// 钉扎：上传响应复用 [`crate::schema::common::UploadResp`]（fsup.go `gin.H{"task": ...}`）。
+    /// 钉扎：上传响应复用 [`crate::schema::common::UploadResponse`]（fsup.go `gin.H{"task": ...}`）。
     #[test]
-    fn upload_resp_alias_reuses_common_model() {
-        use crate::schema::common::Envelope;
+    fn upload_response_alias_reuses_common_model() {
+        use crate::schema::common::Response;
 
-        let resp: Envelope<UploadResp> = serde_json::from_value(serde_json::json!({
+        let resp: Response<UploadResponse> = serde_json::from_value(serde_json::json!({
             "code": 200,
             "message": "success",
             "data": {

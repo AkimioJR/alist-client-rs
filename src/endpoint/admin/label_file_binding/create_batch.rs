@@ -67,7 +67,7 @@ impl<'a> super::LabelFileBinding<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200）时，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]；`items` 为空时服务端返回 400。
     /// 注意：单项失败（如为目录创建绑定）不算端点错误，体现在返回值的 `failed`/`results` 中。
     ///
@@ -156,7 +156,7 @@ mod tests {
         assert!(body.contains("\"size\":2048"), "{body}");
     }
 
-    /// 收发路径断言：mock 服务器 + 记录请求原文，并解码信封内批量结果。
+    /// 收发路径断言：mock 服务器 + 记录请求原文，并解码响应内批量结果。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_batch_result() {
         let requests = Arc::new(Mutex::new(Vec::new()));

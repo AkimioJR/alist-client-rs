@@ -2,15 +2,15 @@
 //!
 //! 对应 `GET /api/admin/label_file_binding/list`；响应 `data` 为
 //! `{"content":[LabelFileBinding],"total":N}` 分页结构（handler 内部
-//! `pageResp[model.LabelFileBinding]`，与 [`PageResp`]
-//! 形状一致），以 `PageResp<LabelFileBinding>` 作为端点模型。
+//! `pageResp[model.LabelFileBinding]`，与 [`PageResponse`]
+//! 形状一致），以 `PageResponse<LabelFileBinding>` 作为端点模型。
 //! 该分组未收录进 openapi 文档；路由见 `examples/alist/server/router.go:210`，
 //! 处理逻辑见 `examples/alist/server/handles/label_file_binding.go:125`
 //! （实现为 `handles.ListLabelFileBinding`）。
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::{admin::label_file_binding::LabelFileBinding, common::PageResp};
+use crate::schema::{admin::label_file_binding::LabelFileBinding, common::PageResponse};
 
 /// 分页列出标签绑定记录请求构建器。
 ///
@@ -22,7 +22,7 @@ use crate::schema::{admin::label_file_binding::LabelFileBinding, common::PageRes
 #[endpoint(
     method = GET,
     path = "/api/admin/label_file_binding/list",
-    model = PageResp<LabelFileBinding>
+    model = PageResponse<LabelFileBinding>
 )]
 #[cfg_attr(
     feature = "into-stream",
@@ -80,12 +80,12 @@ impl<'a> super::LabelFileBinding<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`PageResp<LabelFileBinding>`](crate::schema::common::PageResp)。
+    /// [`PageResponse<LabelFileBinding>`](crate::schema::common::PageResponse)。
     /// 启用 `into-stream` feature 时也可调用 `.into_stream()` 逐页流式产出绑定记录。
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200）时，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]；`label_id` 含非数字片段时服务端返回 400。
     ///
     /// # Examples

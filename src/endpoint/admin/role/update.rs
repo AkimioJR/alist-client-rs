@@ -79,7 +79,7 @@ impl<'a> super::Role<'a> {
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如角色不存在或修改内置 `admin` 角色被拒绝）时，返回 [`crate::Error`]。
     ///
     /// # Examples

@@ -4,11 +4,11 @@
 //! `examples/alist/server/router.go` 的 `_label` 为准；实现为 `handles.ListLabel`）。
 //! 注意：列表/详情两个读取端点挂在 `/api/label` 而非 `/api/admin/label` 下。
 //! 响应 `data` 为 `{ "content": [Label], "total": N }` 分页结构，以
-//! `PageResp<Label>` 解码。
+//! `PageResponse<Label>` 解码。
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::{admin::label::Label, common::PageResp};
+use crate::schema::{admin::label::Label, common::PageResponse};
 
 /// 列出标签请求构建器。
 ///
@@ -16,7 +16,7 @@ use crate::schema::{admin::label::Label, common::PageResp};
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = GET, path = "/api/label/list", model = PageResp<Label>)]
+#[endpoint(method = GET, path = "/api/label/list", model = PageResponse<Label>)]
 #[cfg_attr(
     feature = "into-stream",
     endpoint(into_stream = true, stream_item = Label)
@@ -51,9 +51,9 @@ impl<'a> super::Label<'a> {
     /// 列出标签（分页）。
     ///
     /// 对应 AList `GET /api/label/list`；服务端按 `page`/`per_page` 查询参数分页，
-    /// `per_page` 缺省时返回全部标签（`handles.ListLabel` 中 `PageReq.Validate` 的语义）。
+    /// `per_page` 缺省时返回全部标签（`handles.ListLabel` 中 `PageRequest.Validate` 的语义）。
     /// 成功时响应 `data` 为 `{ "content": [Label], "total": N }`，解码为
-    /// [`PageResp<Label>`](crate::schema::common::PageResp)。
+    /// [`PageResponse<Label>`](crate::schema::common::PageResponse)。
     /// 数据来源：`examples/alist/server/router.go` 的 `_label` 路由与
     /// `examples/alist/server/handles/label.go`（实现为 `ListLabel`）；
     /// openapi 文档未收录该分组。
@@ -66,12 +66,12 @@ impl<'a> super::Label<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`PageResp<Label>`](crate::schema::common::PageResp)。
+    /// [`PageResponse<Label>`](crate::schema::common::PageResponse)。
     /// 启用 `into-stream` feature 时也可调用 `.into_stream()` 逐页流式产出标签。
     ///
     /// # Errors
     ///
-    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200）时，
+    /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。
     ///
     /// # Examples
