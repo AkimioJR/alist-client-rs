@@ -11,13 +11,6 @@
 //!
 //! 端点模块通过 `pub(crate) request`/`execute` 组合出具体 API 调用，
 //! 见 `src/endpoint.rs` 与 `docs/design.md`。
-//!
-//! 过渡期说明：端点文件尚为实现骨架，`request`/`execute`/`execute_text` 等核心方法
-//! 在非测试构建中暂无调用方，因此本模块在非测试构建下豁免 dead_code；
-//! 端点实现落地后应移除下方该行，恢复 dead_code 检查。
-
-// 过渡期豁免（见上方模块文档），端点实现后移除。
-#![cfg_attr(not(test), allow(dead_code))]
 
 mod rate_limit;
 
@@ -270,6 +263,7 @@ impl Client {
     ///
     /// 与 [`Client::execute`] 一致地执行限速、认证注入与 HTTP 状态检查，
     /// 但不做响应解码。
+    #[cfg(any(feature = "public", test))]
     pub(crate) async fn execute_text(&self, builder: RequestBuilder) -> Result<String> {
         let builder = self.apply_auth(builder);
         self.wait_for_rate_limit().await;

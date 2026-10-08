@@ -12,7 +12,7 @@
 Cargo.toml                  # [workspace] + 主包；feature 矩阵见文件内注释（已冻结，勿改结构）
 alist-client-derive/        # proc-macro crate：EndpointRequest 派生宏（已实现，含单元测试）
 src/lib.rs                  # crate 文档 + 模块接线 + re-exports（Client/Error/Result/Authentication…）
-src/client.rs               # Client 核心（已完成；过渡期模块级 cfg_attr(not(test), allow(dead_code))，端点落地后移除）
+src/client.rs               # Client 核心（已完成；凭据流转/请求执行/响应解码/自动重登）
 src/error.rs                # Error/Result/ApiStatusCode/InternalErrorKind（已完成）
 src/endpoint.rs             # 端点模块接线 + 派生宏冒烟测试（已完成；勿删测试）
 src/endpoint/<组>.rs        # 各域句柄文件（已实现，勿改结构）
@@ -184,10 +184,7 @@ impl<'a> super::Fs<'a> {
 5. 访问器定义在 `impl<'a> super::<父句柄><'a>` 块内，**直接读 `self.client`（父句柄私有字段，子模块可见）**。
 6. 全部 rustdoc 中文；`# Arguments` / `# Returns` / `# Errors` / `# Examples` 小节齐全；
    `# Examples` 用 ```no_run 并保证 `cargo test --all-features` 的 doctest 通过。
-7. **实现端点后清理过渡标记**：若所在句柄字段上存在 `#[expect(dead_code)]`（现在指向
-   `client: &'a crate::Client` 字段，旁边有注释），端点读取该字段后该 expect 会变为「未满足」并报警告——
-   此时删除该 `#[expect(dead_code)]` 及其注释行。`src/client.rs` 顶部的
-   `#![cfg_attr(not(test), allow(dead_code))]` 待全部端点落地后由收尾代理移除。
+7. **无 dead_code 豁免约定**：端点与客户端核心已全部落地，dead_code 豁免已彻底清除。所有句柄字段、内部方法与端点均处于全链路调用状态，代码库严禁保留或引入 `allow(dead_code)`、`expect(dead_code)` 等临时标记。
 8. HTTP 方法/路径必须与 `docs/api/alistv3.openapi.yaml` 或 `examples/alist/server/router.go` 一致；
    router 中 `g.Any(...)` 的读端点按 GET 处理，写端点按 POST 处理。
 
