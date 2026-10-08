@@ -1,8 +1,8 @@
 //! auth 认证域数据模型。
 //!
-//! 覆盖登录（明文/哈希）`LoginReq`/`LoginResp`、注册 `RegisterReq`、
-//! 两步验证 `Generate2FaResp`/`Verify2FaReq`，以及 `/api/me` 的 `UserResp`
-//! （含 [`MeResp`] 别名）。
+//! 覆盖登录（明文/哈希）`LoginRequest`/`LoginResponse`、注册 `RegisterRequest`、
+//! 两步验证 `Generate2FaResponse`/`Verify2FaRequest`，以及 `/api/me` 的 `UserResponse`
+//! （含 [`MeResponse`] 别名）。
 //!
 //! ## 字段形状来源
 //!
@@ -29,7 +29,7 @@ use serde::{Deserialize, Serialize, de::DeserializeOwned};
 ///
 /// 对应 `examples/alist/server/handles/auth.go` 的 `LoginReq`（auth.go:34-38）。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct LoginReq {
+pub struct LoginRequest {
     /// 用户名。
     pub username: String,
     /// 密码：`/api/auth/login` 传明文（服务端会做静态盐 SHA-256 哈希，
@@ -46,7 +46,7 @@ pub struct LoginReq {
 /// 对应 auth.go:114 `gin.H{"token": token, "device_key": key}`；
 /// 与 [`crate::Client`] 内部自动刷新 token 的登录实现使用同一 JSON 形状。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct LoginResp {
+pub struct LoginResponse {
     /// 临时 JWT token，放入 `Authorization` 头使用。
     pub token: String,
     /// 当前登录设备键；新版本服务端返回，老服务器缺失时为 [`None`]。
@@ -59,7 +59,7 @@ pub struct LoginResp {
 /// 对应 auth.go:118-121 的 `RegisterReq`；该端点不在 openapi 中，
 /// 路径见 `examples/alist/server/router.go:75`。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RegisterReq {
+pub struct RegisterRequest {
     /// 新用户名。
     pub username: String,
     /// 明文密码；服务端注册时自行加盐哈希（auth.go:139 `SetPassword`）。
@@ -70,7 +70,7 @@ pub struct RegisterReq {
 ///
 /// 对应 auth.go:239-242 `gin.H{"qr", "secret"}`。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Generate2FaResp {
+pub struct Generate2FaResponse {
     /// 二维码 PNG 图片的 data URL（`data:image/png;base64,...`）。
     pub qr: String,
     /// TOTP 密钥；交由 `/api/auth/2fa/verify` 校验后才正式启用。
@@ -81,10 +81,10 @@ pub struct Generate2FaResp {
 ///
 /// 对应 auth.go:245-248 的 `Verify2FAReq`。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Verify2FaReq {
+pub struct Verify2FaRequest {
     /// 用户从认证器 App 中读取的当前 TOTP 验证码。
     pub code: String,
-    /// [`Generate2FaResp::secret`] 返回的 2FA 密钥。
+    /// [`Generate2FaResponse::secret`] 返回的 2FA 密钥。
     pub secret: String,
 }
 
@@ -101,12 +101,12 @@ pub struct PermissionEntry {
 
 /// `/api/me` 返回的当前用户信息。
 ///
-/// 对应 `examples/alist/server/handles/auth.go` 的 `UserResp`（auth.go:147-152，
+/// 对应 `examples/alist/server/handles/auth.go` 的 `UserResponse`（auth.go:147-152，
 /// 内嵌 `model.User` 的 JSON 字段，user.go:25-58；`password` 由 handler 置空，
 /// auth.go:162）。新服务器追加的 `role_names`/`permissions` 字段与
 /// `role` 的历史形状均做了兼容处理，详见模块文档。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct UserResp {
+pub struct UserResponse {
     /// 数字用户 ID（Go `uint`）。
     pub id: u64,
     /// 用户名。
@@ -136,8 +136,8 @@ pub struct UserResp {
     pub permissions: Vec<PermissionEntry>,
 }
 
-/// [`UserResp`] 的别名，与 `/api/me` 端点名称对应。
-pub type MeResp = UserResp;
+/// [`UserResponse`] 的别名，与 `/api/me` 端点名称对应。
+pub type MeResponse = UserResponse;
 
 /// 将 `role` 字段的三种历史形状（数组 / 单值 int / `null`）统一展开为 `Vec<i32>`。
 fn deserialize_role_ids<'de, D>(deserializer: D) -> Result<Vec<i32>, D::Error>
@@ -175,9 +175,9 @@ mod tests {
 
     /// 正向钉扎：openapi `POST /api/auth/login` 返回示例。
     #[test]
-    fn login_resp_decodes_openapi_example() {
+    fn login_response_decodes_openapi_example() {
         // 示例来源：docs/api/alistv3.openapi.yaml 的 /api/auth/login 200 响应
-        let resp: Response<LoginResp> = serde_json::from_value(serde_json::json!({
+        let resp: Response<LoginResponse> = serde_json::from_value(serde_json::json!({
             "code": 200,
             "message": "success",
             "data": { "token": "abcd" }
@@ -190,8 +190,8 @@ mod tests {
 
     /// 兼容钉扎：新版本登录响应携带 `device_key`（auth.go:114）。
     #[test]
-    fn login_resp_tolerates_device_key_from_go_source() {
-        let resp: LoginResp = serde_json::from_value(serde_json::json!({
+    fn login_response_tolerates_device_key_from_go_source() {
+        let resp: LoginResponse = serde_json::from_value(serde_json::json!({
             "token": "abcd",
             "device_key": "MD5(1-client)"
         }))
@@ -199,11 +199,11 @@ mod tests {
         assert_eq!(resp.device_key.as_deref(), Some("MD5(1-client)"));
     }
 
-    /// 序列化键名钉扎：`LoginReq` 与 openapi 请求示例键一致，`otp_code` 缺省时跳过。
+    /// 序列化键名钉扎：`LoginRequest` 与 openapi 请求示例键一致，`otp_code` 缺省时跳过。
     #[test]
-    fn login_req_serializes_with_api_field_names() {
+    fn login_request_serializes_with_api_field_names() {
         // 示例来源：docs/api/alistv3.openapi.yaml 的 /api/auth/login 请求示例
-        let req = LoginReq {
+        let req = LoginRequest {
             username: "akimio".to_owned(),
             password: "JuXQMCe4m6LstB".to_owned(),
             otp_code: None,
@@ -216,7 +216,7 @@ mod tests {
             })
         );
 
-        let with_otp = LoginReq {
+        let with_otp = LoginRequest {
             otp_code: Some("123456".to_owned()),
             ..req
         };
@@ -230,10 +230,10 @@ mod tests {
         );
     }
 
-    /// 序列化键名钉扎：`RegisterReq` 键与 Go `RegisterReq`（auth.go:118-121）一致。
+    /// 序列化键名钉扎：`RegisterRequest` 键与 Go `RegisterReq`（auth.go:118-121）一致。
     #[test]
-    fn register_req_serializes_with_api_field_names() {
-        let req = RegisterReq {
+    fn register_request_serializes_with_api_field_names() {
+        let req = RegisterRequest {
             username: "string".to_owned(),
             password: "string".to_owned(),
         };
@@ -248,9 +248,9 @@ mod tests {
 
     /// 正向钉扎：openapi `POST /api/auth/2fa/generate` 返回示例。
     #[test]
-    fn generate_2fa_resp_decodes_openapi_example() {
+    fn generate_2fa_response_decodes_openapi_example() {
         // 示例来源：docs/api/alistv3.openapi.yaml 的 /api/auth/2fa/generate 200 响应
-        let resp: Generate2FaResp = serde_json::from_value(serde_json::json!({
+        let resp: Generate2FaResponse = serde_json::from_value(serde_json::json!({
             "qr": "data:image/png;base64,iVBORw0KGgoAAAANSUhE",
             "secret": "RPQZG4MDS3"
         }))
@@ -259,10 +259,10 @@ mod tests {
         assert_eq!(resp.secret, "RPQZG4MDS3");
     }
 
-    /// 序列化键名钉扎：`Verify2FaReq` 键与 openapi 请求示例（`code`/`secret`）一致。
+    /// 序列化键名钉扎：`Verify2FaRequest` 键与 openapi 请求示例（`code`/`secret`）一致。
     #[test]
-    fn verify_2fa_req_serializes_with_api_field_names() {
-        let req = Verify2FaReq {
+    fn verify_2fa_request_serializes_with_api_field_names() {
+        let req = Verify2FaRequest {
             code: "123456".to_owned(),
             secret: "RPQZG4MDS3".to_owned(),
         };
@@ -277,9 +277,9 @@ mod tests {
 
     /// 正向钉扎：openapi `/api/me` 返回示例；`role` 钉住老服务器单值 int 形状。
     #[test]
-    fn me_resp_decodes_openapi_example_with_single_int_role() {
+    fn me_response_decodes_openapi_example_with_single_int_role() {
         // 示例来源：docs/api/alistv3.openapi.yaml 的 /api/me 200 响应
-        let me: MeResp = serde_json::from_value(serde_json::json!({
+        let me: MeResponse = serde_json::from_value(serde_json::json!({
             "id": 1,
             "username": "admin",
             "password": "",
@@ -306,10 +306,10 @@ mod tests {
 
     /// 正向钉扎：Go 源码形状——`role` 为数组、`permissions` 携带路径权限条目。
     #[test]
-    fn me_resp_decodes_go_shape_with_array_role_and_permissions() {
+    fn me_response_decodes_go_shape_with_array_role_and_permissions() {
         // 形状来源：examples/alist/server/handles/auth.go UserResp（auth.go:147-190）
         // 与 examples/alist/internal/model/role.go PermissionEntry（role.go:10-13）
-        let me: MeResp = serde_json::from_value(serde_json::json!({
+        let me: MeResponse = serde_json::from_value(serde_json::json!({
             "id": 2,
             "username": "user",
             "password": "",
@@ -339,8 +339,8 @@ mod tests {
 
     /// 兼容钉扎：老服务器响应缺少 `role_names`/`permissions`/`sso_id` 等新增字段。
     #[test]
-    fn me_resp_tolerates_missing_optional_fields() {
-        let me: MeResp = serde_json::from_value(serde_json::json!({
+    fn me_response_tolerates_missing_optional_fields() {
+        let me: MeResponse = serde_json::from_value(serde_json::json!({
             "id": 2,
             "username": "guest",
             "base_path": "/",
@@ -360,8 +360,8 @@ mod tests {
     /// 兼容钉扎：真实部署服务器会把 Go nil 切片序列化为显式 `null`
     /// （`role_names`/`permissions`），`role` 为 `null` 时归约为空列表。
     #[test]
-    fn me_resp_tolerates_null_collection_fields() {
-        let me: MeResp = serde_json::from_value(serde_json::json!({
+    fn me_response_tolerates_null_collection_fields() {
+        let me: MeResponse = serde_json::from_value(serde_json::json!({
             "id": 1,
             "username": "akimio",
             "password": "",

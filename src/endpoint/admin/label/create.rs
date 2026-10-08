@@ -9,7 +9,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::admin::label::CreateLabelResp;
+use crate::schema::admin::label::CreateLabelResponse;
 
 /// 创建标签请求构建器。
 ///
@@ -20,7 +20,7 @@ use crate::schema::admin::label::CreateLabelResp;
 #[endpoint(
     method = POST,
     path = "/api/admin/label/create",
-    model = CreateLabelResp
+    model = CreateLabelResponse
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -57,7 +57,7 @@ impl<'a> super::Label<'a> {
     ///
     /// 对应 AList `POST /api/admin/label/create`；请求体为标签字段（JSON 绑定到
     /// Go `model.Label`），成功时响应 `data` 为 `{ "id": N }`，解码为
-    /// [`CreateLabelResp`]。同名标签已存在时服务端返回 `401` 错误响应。
+    /// [`CreateLabelResponse`]。同名标签已存在时服务端返回 `401` 错误响应。
     /// 数据来源：`examples/alist/server/router.go` 的 admin `label` 路由与
     /// `examples/alist/server/handles/label.go`（实现为 `CreateLabel`）；
     /// openapi 文档未收录该分组。
@@ -69,7 +69,7 @@ impl<'a> super::Label<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`CreateLabelResp`]（新建标签的 ID）。
+    /// [`CreateLabelResponse`]（新建标签的 ID）。
     /// 可选字段（标签类型 `type`、描述 `description`、背景色 `bg_color`）
     /// 通过 [`Request`] 的链式 setter 设置。
     ///
@@ -135,7 +135,7 @@ mod tests {
         );
     }
 
-    /// 2) 收发路径断言：mock 服务器 + 记录请求原文，响应解码为 CreateLabelResp。
+    /// 2) 收发路径断言：mock 服务器 + 记录请求原文，响应解码为 CreateLabelResponse。
     #[tokio::test]
     async fn send_creates_label_and_returns_id() {
         use std::sync::{Arc, Mutex};

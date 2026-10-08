@@ -123,10 +123,6 @@ pub struct UploadResponse {
     pub task: TaskInfo,
 }
 
-/// 向后兼容类型别名。
-#[deprecated(note = "use UploadResponse instead")]
-pub type UploadResp = UploadResponse;
-
 #[cfg(test)]
 mod tests {
     use super::*;

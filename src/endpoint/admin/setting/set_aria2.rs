@@ -48,7 +48,7 @@ impl<'a> super::Setting<'a> {
     /// （如 `1.36.0`），连接失败时返回非成功响应。
     /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `admin/setting/set_aria2` 与
     /// `examples/alist/server/handles/offline_download.go`（实现为 `SetAria2`，
-    /// 请求体 `SetAria2Req` 仅含 `uri`/`secret` 两字段）。
+    /// 请求体 [`SetAria2Request`](crate::schema::admin::setting::SetAria2Request) 仅含 `uri`/`secret` 两字段）。
     ///
     /// # Arguments
     ///

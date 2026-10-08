@@ -48,7 +48,7 @@ impl<'a> super::Setting<'a> {
     /// 成功时响应 `data` 为 `"ok"` 字符串，连接失败时返回非成功响应。
     /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `admin/setting/set_qbit` 与
     /// `examples/alist/server/handles/offline_download.go`（实现为 `SetQbittorrent`，
-    /// 请求体 `SetQbittorrentReq` 仅含 `url`/`seedtime` 两字段）。
+    /// 请求体 Go `SetQbittorrentReq`（对应客户端模型 [`SetQbitRequest`](crate::schema::admin::setting::SetQbitRequest)） 仅含 `url`/`seedtime` 两字段）。
     ///
     /// # Arguments
     ///

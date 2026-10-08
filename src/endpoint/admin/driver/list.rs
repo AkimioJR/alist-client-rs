@@ -2,13 +2,13 @@
 //!
 //! 对应 `GET /api/admin/driver/list`；`data` 为「驱动名 → 驱动模板」映射。
 //! 驱动模板为异构复杂结构，按约定采用宽松模型
-//! [`DriverListResp`]
+//! [`DriverListResponse`]
 //! （`HashMap<String, serde_json::Value>`），条目的实际字段形状见
 //! [`crate::schema::admin::driver::DriverInfo`]。
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::admin::driver::DriverListResp;
+use crate::schema::admin::driver::DriverListResponse;
 
 /// 列出全部驱动配置模板请求构建器。
 ///
@@ -19,7 +19,7 @@ use crate::schema::admin::driver::DriverListResp;
 #[endpoint(
     method = GET,
     path = "/api/admin/driver/list",
-    model = DriverListResp
+    model = DriverListResponse
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -46,7 +46,7 @@ impl<'a> super::Driver<'a> {
     /// 与 `examples/alist/internal/op/driver.go`（`GetDriverInfoMap`）。
     ///
     /// 响应为异构复杂结构（键为任意驱动名、条目随驱动种类与 AList 版本演进），
-    /// 因此保持宽松模型 [`DriverListResp`]（`HashMap<String, serde_json::Value>`）；
+    /// 因此保持宽松模型 [`DriverListResponse`]（`HashMap<String, serde_json::Value>`）；
     /// 需要强类型视图时，可对单个条目执行
     /// `serde_json::from_value::<DriverInfo>`（见
     /// [`DriverInfo`](crate::schema::admin::driver::DriverInfo)）。
@@ -58,7 +58,7 @@ impl<'a> super::Driver<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`DriverListResp`]。
+    /// [`DriverListResponse`]。
     ///
     /// # Errors
     ///
@@ -125,7 +125,7 @@ mod tests {
         let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
         let client = crate::Client::new(base_url).unwrap();
 
-        let templates: DriverListResp = Request::new(&client).send().await.unwrap();
+        let templates: DriverListResponse = Request::new(&client).send().await.unwrap();
         assert!(templates.contains_key("Local"));
         assert_eq!(templates["Local"]["config"]["name"], "Local");
 

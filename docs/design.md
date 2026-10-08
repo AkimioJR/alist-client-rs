@@ -55,7 +55,7 @@ docs/design.md              # 本文档
 |---|---|---|
 | `method = GET/POST/PUT/DELETE/PATCH/HEAD/OPTIONS` | ✅ | 生成 `::reqwest::Method::<M>` |
 | `path = "/api/fs/list"` | ✅ | 自站点根起算的**完整路径**（含 `/api` 前缀；`/ping` 直接写 `"/ping"`） |
-| `model = FsListResp` | ✅ | `send()`/`IntoFuture` 的解码目标；`data: null` 的端点写 `model = ()`，可能为 null 写 `model = Option<T>` |
+| `model = FsListResponse` | ✅ | `send()`/`IntoFuture` 的解码目标；`data: null` 的端点写 `model = ()`，可能为 null 写 `model = Option<T>` |
 | `into_stream = true` | — | 生成自动翻页流方法 `into_stream()`（生成代码自带 `#[cfg(feature = "into-stream")]`） |
 | `stream_item = Obj` | — | 流元素类型；**仅在 `into_stream = true` 时允许** |
 

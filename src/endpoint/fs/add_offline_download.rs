@@ -3,14 +3,14 @@
 //! 对应 `POST /api/fs/add_offline_download`；请求体为 `urls`/`path`/`tool`/
 //! `delete_policy`（Go `AddOfflineDownloadReq`，offline_download.go:338-343）。
 //! 响应是 `{"tasks": [...]}` 任务数组（每个 URL 至多一个后台任务，
-//! offline_download.go:383-385，openapi 示例一致），以 [`OfflineDownloadResp`]
+//! offline_download.go:383-385，openapi 示例一致），以 [`OfflineDownloadResponse`]
 //! 建模。
 //! 端点文件模板与命名约定见 `docs/design.md`；
 //! API 路径以 `docs/api/alistv3.openapi.yaml` 与 `examples/alist/server/router.go` 为准。
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::fs::OfflineDownloadResp;
+use crate::schema::fs::OfflineDownloadResponse;
 
 /// 添加离线下载任务请求构建器。
 ///
@@ -22,7 +22,7 @@ use crate::schema::fs::OfflineDownloadResp;
 #[endpoint(
     method = POST,
     path = "/api/fs/add_offline_download",
-    model = OfflineDownloadResp
+    model = OfflineDownloadResponse
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -69,7 +69,7 @@ impl<'a> super::Fs<'a> {
     /// 对应 AList `POST /api/fs/add_offline_download`；为 `urls` 中的每个链接
     /// 使用 `tool` 创建离线下载任务，下载到临时目录后转存到 `path`。
     /// 成功时响应 `data` 为 `{"tasks": [TaskInfo]}` 任务数组
-    /// （[`OfflineDownloadResp`]；
+    /// （[`OfflineDownloadResponse`]；
     /// 每个 URL 至多一个任务，单个 URL 创建失败会直接报错）。
     /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/fs/add_offline_download`
     /// 与 `examples/alist/server/handles/offline_download.go`（实现为
@@ -87,7 +87,7 @@ impl<'a> super::Fs<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`OfflineDownloadResp`]。
+    /// [`OfflineDownloadResponse`]。
     ///
     /// # Errors
     ///

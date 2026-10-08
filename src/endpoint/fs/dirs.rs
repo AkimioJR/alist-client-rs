@@ -8,7 +8,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::fs::DirResp;
+use crate::schema::fs::DirResponse;
 
 /// 获取目录列表请求构建器。
 ///
@@ -16,7 +16,7 @@ use crate::schema::fs::DirResp;
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = POST, path = "/api/fs/dirs", model = Vec<DirResp>)]
+#[endpoint(method = POST, path = "/api/fs/dirs", model = Vec<DirResponse>)]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     #[endpoint(skip)]
@@ -47,10 +47,10 @@ impl<'a> super::Fs<'a> {
     /// 获取目录列表。
     ///
     /// 对应 AList `POST /api/fs/dirs`；返回目录下的子目录列表
-    /// （`Vec<DirResp>`，每项含 `name` 与 `modified`），不含文件。
+    /// （`Vec<DirResponse>`，每项含 `name` 与 `modified`），不含文件。
     /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/fs/dirs` 与
     /// `examples/alist/server/handles/fsread.go`（实现为 `fs.FsDirs`，
-    /// 请求 `DirReq` fsread.go:29-33，响应 `DirResp` fsread.go:208-211）。
+    /// 请求 `DirReq` fsread.go:29-33，响应 `DirResponse` fsread.go:208-211）。
     ///
     /// # Arguments
     ///
@@ -59,7 +59,7 @@ impl<'a> super::Fs<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`Vec<DirResp>`](crate::schema::fs::DirResp)。
+    /// [`Vec<DirResponse>`](crate::schema::fs::DirResponse)。
     ///
     /// # Errors
     ///

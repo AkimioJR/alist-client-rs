@@ -10,7 +10,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::fs::ArchiveDecompressResp;
+use crate::schema::fs::ArchiveDecompressResponse;
 
 /// 解压压缩包内容请求构建器。
 ///
@@ -22,7 +22,7 @@ use crate::schema::fs::ArchiveDecompressResp;
 #[endpoint(
     method = POST,
     path = "/api/fs/archive/decompress",
-    model = ArchiveDecompressResp
+    model = ArchiveDecompressResponse
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -94,7 +94,7 @@ impl<'a> super::Archive<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`ArchiveDecompressResp`]。
+    /// [`ArchiveDecompressResponse`]。
     ///
     /// # Errors
     ///
@@ -257,13 +257,13 @@ mod tests {
     /// 5) 兼容钉扎：服务端同步完成（`task` 为空数组）与 `task` 缺失/`null` 时均可解码。
     #[test]
     fn decodes_empty_and_missing_task_arrays() {
-        let empty: ArchiveDecompressResp = serde_json::from_value(serde_json::json!({
+        let empty: ArchiveDecompressResponse = serde_json::from_value(serde_json::json!({
             "task": []
         }))
         .unwrap();
         assert!(empty.task.is_empty());
 
-        let none: ArchiveDecompressResp =
+        let none: ArchiveDecompressResponse =
             serde_json::from_value(serde_json::json!({ "task": null })).unwrap();
         assert!(none.task.is_empty());
     }

@@ -11,7 +11,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::{common::PageResponse, fs::SearchResp};
+use crate::schema::{common::PageResponse, fs::SearchResponse};
 
 /// 搜索文件或文件夹请求构建器。
 ///
@@ -19,10 +19,10 @@ use crate::schema::{common::PageResponse, fs::SearchResp};
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = POST, path = "/api/fs/search", model = PageResponse<SearchResp>)]
+#[endpoint(method = POST, path = "/api/fs/search", model = PageResponse<SearchResponse>)]
 #[cfg_attr(
     feature = "into-stream",
-    endpoint(into_stream = true, stream_item = SearchResp)
+    endpoint(into_stream = true, stream_item = SearchResponse)
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -74,11 +74,11 @@ impl<'a> super::Fs<'a> {
     ///
     /// 对应 AList `POST /api/fs/search`；在服务端搜索索引中检索 `parent`
     /// 目录之下匹配 `keywords` 的文件/目录，返回分页结果
-    /// （[`PageResponse<SearchResp>`](crate::schema::common::PageResponse)）。
+    /// （[`PageResponse<SearchResponse>`](crate::schema::common::PageResponse)）。
     /// 服务端需已启用搜索索引，否则返回 `SearchNotAvailable` 错误。
     /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/fs/search` 与
     /// `examples/alist/server/handles/search.go`（实现为 `handles.Search`，
-    /// 请求 `SearchReq` search.go:17-20，元素 `SearchResp` search.go:22-25）。
+    /// 请求 `SearchReq` search.go:17-20，元素 `SearchResponse` search.go:22-25）。
     ///
     /// # Arguments
     ///
@@ -90,7 +90,7 @@ impl<'a> super::Fs<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`PageResponse<SearchResp>`](crate::schema::common::PageResponse)。
+    /// [`PageResponse<SearchResponse>`](crate::schema::common::PageResponse)。
     ///
     /// 可选参数（链式 setter）：`page`（页码，默认第 1 页）、`scope`
     /// （`0` 全部 / `1` 仅文件夹 / `2` 仅文件）、`password`（目录密码）。

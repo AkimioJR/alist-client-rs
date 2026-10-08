@@ -35,7 +35,7 @@ impl EndpointAttr {
         if !matches!(attr.meta, Meta::List(_)) {
             return Err(syn::Error::new_spanned(
                 attr,
-                "`#[endpoint]` 需要括号参数，例如 `#[endpoint(method = GET, path = \"/api/fs/list\", model = FsListResp)]`",
+                "`#[endpoint]` 需要括号参数，例如 `#[endpoint(method = GET, path = \"/api/fs/list\", model = FsListResponse)]`",
             ));
         }
         attr.parse_nested_meta(|meta| {
@@ -653,7 +653,7 @@ mod tests {
     #[test]
     fn endpoint_attr_parses_method_path_model() {
         let attr: Attribute = syn::parse_quote! {
-            #[endpoint(method = POST, path = "/api/fs/list", model = FsListResp)]
+            #[endpoint(method = POST, path = "/api/fs/list", model = FsListResponse)]
         };
         let mut parsed = EndpointAttr::default();
         EndpointAttr::parse(&attr, &mut parsed).expect("属性应可解析");
@@ -873,7 +873,7 @@ mod tests {
     #[test]
     fn expand_empty_body_generates_no_request_body_struct() {
         let input = parse_struct(quote! {
-            #[endpoint(method = POST, path = "/api/auth/2fa/generate", model = Generate2FaResp)]
+            #[endpoint(method = POST, path = "/api/auth/2fa/generate", model = Generate2FaResponse)]
             pub struct Request<'a> {
                 #[endpoint(skip)]
                 client: &'a crate::Client,

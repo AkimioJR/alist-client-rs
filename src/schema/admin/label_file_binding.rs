@@ -1,9 +1,9 @@
 //! admin-label-file-binding 绑定域数据模型。
 //!
 //! 覆盖标签绑定端点的请求与响应模型：标签实体（[`Label`]）、绑定记录实体
-//! （[`LabelFileBinding`]）、按标签查询到的文件条目（[`ObjLabelResp`]）、
-//! 创建/批量创建的请求项（[`CreateItem`]）与响应（[`CreateResp`]、
-//! [`CreateBatchResp`]）、恢复响应（[`RestoreResp`]）。
+//! （[`LabelFileBinding`]）、按标签查询到的文件条目（[`ObjLabelResponse`]）、
+//! 创建/批量创建的请求项（[`CreateItem`]）与响应（[`CreateResponse`]、
+//! [`CreateBatchResponse`]）、恢复响应（[`RestoreResponse`]）。
 //!
 //! 该 API 分组未收录进 `docs/api/alistv3.md` 与 `docs/api/alistv3.openapi.yaml`
 //! （两份文档均无 label 相关条目），字段形状完全以 `examples/alist` Go 源码为准：
@@ -12,7 +12,7 @@
 //! - 绑定记录实体：`examples/alist/internal/model/label_file_binding.go:5`
 //!   （`model.LabelFileBinding`，`GET /api/admin/label_file_binding/list` 的元素类型）；
 //! - 按标签查询的文件条目：`examples/alist/internal/op/label_file_binding.go:29`
-//!   （`op.ObjLabelResp`，文件字段取自 `internal/model/obj_file.go` 的 `model.ObjFile`）；
+//!   （Go `op.ObjLabelResp`，文件字段取自 `internal/model/obj_file.go` 的 `model.ObjFile`）；
 //! - 创建请求体：`examples/alist/internal/op/label_file_binding.go:13`
 //!   （`op.CreateLabelFileBinDingReq`）；
 //! - 响应 `data` 形状：`examples/alist/server/handles/label_file_binding.go`
@@ -67,12 +67,12 @@ pub struct LabelFileBinding {
 
 /// 按标签查询返回的文件条目（附加了标签列表的文件对象）。
 ///
-/// 对应 `examples/alist/internal/op/label_file_binding.go:29` 的 `op.ObjLabelResp`；
+/// 对应 `examples/alist/internal/op/label_file_binding.go:29` 的 Go `op.ObjLabelResp`；
 /// 文件字段与 `examples/alist/internal/model/obj_file.go` 的 `model.ObjFile` 一致，
 /// 并附加该文件命中的标签列表。
 /// `GET /api/label_file_binding/get_file_by_label` 返回该条目的数组。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ObjLabelResp {
+pub struct ObjLabelResponse {
     /// 文件 ID（对应 Go `model.ObjFile.Id`；JSON 中为字符串）。
     pub id: String,
     /// 文件完整路径。
@@ -139,7 +139,7 @@ pub struct CreateItem {
     /// 缩略图链接（可选）。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub thumb: Option<String>,
-    /// 文件类型枚举值（可选；取值含义见 [`ObjLabelResp`] 的 `type` 字段）。
+    /// 文件类型枚举值（可选；取值含义见 [`ObjLabelResponse`] 的 `type` 字段）。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub r#type: Option<i32>,
     /// 哈希信息字符串（可选；JSON 键为 `hashinfo`，对应 Go `HashInfoStr`）。
@@ -158,7 +158,7 @@ pub struct CreateItem {
 /// 对应 `examples/alist/server/handles/label_file_binding.go:77` 的
 /// `CreateLabelFileBinDing` 以 `gin.H{"msg": "添加成功！"}` 返回的形状。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct CreateResp {
+pub struct CreateResponse {
     /// 服务端提示消息（Go 源码固定返回「添加成功！」）。
     pub msg: String,
 }
@@ -183,7 +183,7 @@ pub struct BatchResult {
 /// 对应 `examples/alist/server/handles/label_file_binding.go:244` 的
 /// `CreateLabelFileBinDingBatch` 以 `gin.H{...}` 返回的形状。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct CreateBatchResp {
+pub struct CreateBatchResponse {
     /// 提交的请求项总数。
     pub total: i64,
     /// 创建成功的项数。
@@ -200,7 +200,7 @@ pub struct CreateBatchResp {
 /// 对应 `examples/alist/server/handles/label_file_binding.go:203` 的
 /// `RestoreLabelFileBinding` 以 `gin.H{"msg": "restored N rows"}` 返回的形状。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RestoreResp {
+pub struct RestoreResponse {
     /// 服务端提示消息（Go 源码返回 `restored N rows`，N 为提交的记录条数）。
     pub msg: String,
 }
@@ -245,12 +245,12 @@ mod tests {
         );
     }
 
-    /// 正向钉扎：按 `op.ObjLabelResp` JSON tag 构造的文件条目
+    /// 正向钉扎：按 Go `op.ObjLabelResp` JSON tag 构造的文件条目
     /// （`GET /api/label_file_binding/get_file_by_label` 的元素形状），
     /// 重点钉住字符串形态的 `id`、`hashinfo`/`label_list` 键名与 `type` 键。
     #[test]
     fn obj_label_resp_decodes_go_shape() {
-        let resp: ObjLabelResp = serde_json::from_value(serde_json::json!({
+        let resp: ObjLabelResponse = serde_json::from_value(serde_json::json!({
             "id": "obj-1",
             "path": "/data",
             "name": "movie.mp4",
@@ -287,8 +287,8 @@ mod tests {
 
     /// 兼容钉扎：集合字段显式 `null` 时归约为空 `Vec`（`null_to_default`）。
     #[test]
-    fn obj_label_resp_tolerates_null_label_list() {
-        let resp: ObjLabelResp = serde_json::from_value(serde_json::json!({
+    fn obj_label_response_tolerates_null_label_list() {
+        let resp: ObjLabelResponse = serde_json::from_value(serde_json::json!({
             "id": "obj-1",
             "path": "/data",
             "name": "movie.mp4",
@@ -362,8 +362,8 @@ mod tests {
     /// 正向钉扎：`POST /api/admin/label_file_binding/create` 的 `data` 形状
     /// （`handles.CreateLabelFileBinDing` 返回 `gin.H{"msg": "添加成功！"}`）。
     #[test]
-    fn create_resp_decodes_handler_example() {
-        let resp: CreateResp = serde_json::from_value(serde_json::json!({
+    fn create_response_decodes_handler_example() {
+        let resp: CreateResponse = serde_json::from_value(serde_json::json!({
             "msg": "添加成功！"
         }))
         .unwrap();
@@ -374,8 +374,8 @@ mod tests {
     /// （`handles.CreateLabelFileBinDingBatch` 返回 `gin.H{total, succeed, failed, results}`，
     /// 其中失败项带 `errMsg`、成功项省略该键）。
     #[test]
-    fn create_batch_resp_decodes_handler_example() {
-        let resp: CreateBatchResp = serde_json::from_value(serde_json::json!({
+    fn create_batch_response_decodes_handler_example() {
+        let resp: CreateBatchResponse = serde_json::from_value(serde_json::json!({
             "total": 2,
             "succeed": 1,
             "failed": 1,
@@ -400,13 +400,13 @@ mod tests {
 
     /// 兼容钉扎：`results` 缺失或显式 `null` 时归约为空 `Vec`。
     #[test]
-    fn create_batch_resp_tolerates_missing_or_null_results() {
-        let missing: CreateBatchResp =
+    fn create_batch_response_tolerates_missing_or_null_results() {
+        let missing: CreateBatchResponse =
             serde_json::from_value(serde_json::json!({ "total": 0, "succeed": 0, "failed": 0 }))
                 .unwrap();
         assert_eq!(missing.results, Vec::<BatchResult>::new());
 
-        let null: CreateBatchResp = serde_json::from_value(serde_json::json!({
+        let null: CreateBatchResponse = serde_json::from_value(serde_json::json!({
             "total": 0, "succeed": 0, "failed": 0, "results": null
         }))
         .unwrap();
@@ -475,8 +475,8 @@ mod tests {
     /// 正向钉扎：`POST /api/admin/label_file_binding/restore` 的 `data` 形状
     /// （`handles.RestoreLabelFileBinding` 返回 `gin.H{"msg": "restored N rows"}`）。
     #[test]
-    fn restore_resp_decodes_handler_example() {
-        let resp: RestoreResp = serde_json::from_value(serde_json::json!({
+    fn restore_response_decodes_handler_example() {
+        let resp: RestoreResponse = serde_json::from_value(serde_json::json!({
             "msg": "restored 3 rows"
         }))
         .unwrap();

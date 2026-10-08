@@ -42,7 +42,7 @@ impl<'a> super::Driver<'a> {
     ///
     /// 对应 AList `GET /api/admin/driver/info?driver=<名称>`；`data` 为该驱动的
     /// 配置模板（`common` 通用配置项、`additional` 驱动专有配置项、`config`
-    /// 驱动行为开关），形状与 [`crate::schema::admin::driver::DriverListResp`]
+    /// 驱动行为开关），形状与 [`crate::schema::admin::driver::DriverListResponse`]
     /// 中同名键的条目一致。数据来源：`docs/api/alistv3.openapi.yaml` 的
     /// `admin/driver/info`、`examples/alist/server/handles/driver.go`
     /// （`GetDriverInfo`，按查询参数 `driver` 查找）。

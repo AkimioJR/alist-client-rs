@@ -4,13 +4,13 @@
 //! `skip_existing`（Go `MoveCopyReq`，fsmanage.go:66-74，`skip_existing` 仅对复制
 //! 生效）。新版服务端返回 `{"tasks": [...]}` 后台任务信息
 //! （fsmanage.go:215-217），老版本成功时 `data` 为 `null`，因此端点模型为
-//! `Option<CopyResp>`。
+//! `Option<CopyResponse>`。
 //! 端点文件模板与命名约定见 `docs/design.md`；
 //! API 路径以 `docs/api/alistv3.openapi.yaml` 与 `examples/alist/server/router.go` 为准。
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::fs::CopyResp;
+use crate::schema::fs::CopyResponse;
 
 /// 复制文件请求构建器。
 ///
@@ -18,7 +18,7 @@ use crate::schema::fs::CopyResp;
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = POST, path = "/api/fs/copy", model = Option<CopyResp>)]
+#[endpoint(method = POST, path = "/api/fs/copy", model = Option<CopyResponse>)]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     #[endpoint(skip)]
@@ -63,7 +63,7 @@ impl<'a> super::Fs<'a> {
     /// 对应 AList `POST /api/fs/copy`；将 `src_dir` 下的 `names` 复制到
     /// `dst_dir`。新版服务端为每个需要后台处理的条目创建复制任务，响应 `data`
     /// 为 `{"tasks": [TaskInfo]}`（fsmanage.go:215-217）；全部同步完成或老版本
-    /// 服务端成功时 `data` 为 `null`，因此端点模型为 `Option<CopyResp>`。
+    /// 服务端成功时 `data` 为 `null`，因此端点模型为 `Option<CopyResponse>`。
     /// 数据来源：`examples/alist/server/router.go:235`（路由注册）与
     /// `examples/alist/server/handles/fsmanage.go`（实现为 `fs.FsCopy`，
     /// 请求 `MoveCopyReq` fsmanage.go:66-74）。
@@ -77,7 +77,7 @@ impl<'a> super::Fs<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// `Option<`[`CopyResp`]`>`：
+    /// `Option<`[`CopyResponse`]`>`：
     /// `Some` 携带后台复制任务列表（新版服务端），`None` 表示 `data` 为 `null`
     /// （无后台任务或老版本服务端）。
     ///
@@ -160,7 +160,7 @@ mod tests {
         );
     }
 
-    /// 3) 收发路径断言：新版服务端返回 `{"tasks": [...]}`，解码为 `Some(CopyResp)`。
+    /// 3) 收发路径断言：新版服务端返回 `{"tasks": [...]}`，解码为 `Some(CopyResponse)`。
     #[tokio::test]
     async fn send_decodes_copy_tasks() {
         use crate::test_support::{ok_json, spawn_mock_server};

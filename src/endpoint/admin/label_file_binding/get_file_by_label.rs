@@ -1,7 +1,7 @@
 //! admin-label-file-binding 端点：按标签查询文件。
 //!
 //! 对应 `GET /api/label_file_binding/get_file_by_label`；响应 `data` 为带标签的
-//! 文件条目数组（无结果时为 `null`），因此以 `Option<Vec<ObjLabelResp>>` 作为端点模型。
+//! 文件条目数组（无结果时为 `null`），因此以 `Option<Vec<ObjLabelResponse>>` 作为端点模型。
 //! 该分组未收录进 openapi 文档；路由见 `examples/alist/server/router.go:263`
 //! （挂载在 `auth.Group("/label_file_binding")` 下，非 `/api/admin` 前缀），
 //! 处理逻辑见 `examples/alist/server/handles/label_file_binding.go:106`
@@ -9,7 +9,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::admin::label_file_binding::ObjLabelResp;
+use crate::schema::admin::label_file_binding::ObjLabelResponse;
 
 /// 按标签查询文件请求构建器。
 ///
@@ -20,7 +20,7 @@ use crate::schema::admin::label_file_binding::ObjLabelResp;
 #[endpoint(
     method = GET,
     path = "/api/label_file_binding/get_file_by_label",
-    model = Option<Vec<ObjLabelResp>>
+    model = Option<Vec<ObjLabelResponse>>
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -49,7 +49,7 @@ impl<'a> super::LabelFileBinding<'a> {
     /// 按标签查询绑定的文件。
     ///
     /// 对应 AList `GET /api/label_file_binding/get_file_by_label`；成功时响应 `data`
-    /// 为 [`ObjLabelResp`] 数组，
+    /// 为 [`ObjLabelResponse`] 数组，
     /// 无结果时为 `null`（解码为 `None`）。
     /// 数据来源：`examples/alist/server/router.go:263`（路由注册）与
     /// `examples/alist/server/handles/label_file_binding.go:106`

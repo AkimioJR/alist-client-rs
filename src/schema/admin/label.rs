@@ -2,7 +2,7 @@
 //!
 //! 覆盖 `/api/label/list`、`/api/label/get`（读取）与
 //! `/api/admin/label/create`、`/api/admin/label/update`、`/api/admin/label/delete`（写入）
-//! 涉及的数据形状：标签条目 [`Label`] 与创建响应 [`CreateLabelResp`]。
+//! 涉及的数据形状：标签条目 [`Label`] 与创建响应 [`CreateLabelResponse`]。
 //!
 //! 该路由分组未被 `docs/api/alistv3.openapi.yaml` 与 `docs/api/alistv3.md` 收录，
 //! 字段形状以 `examples/alist` 的 Go 源码为准：
@@ -54,7 +54,7 @@ pub struct Label {
 /// 对应 `examples/alist/server/handles/label.go` 的 `CreateLabel`：
 /// 成功时以 `gin.H{"id": id}` 返回新建标签的数据库 ID。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub struct CreateLabelResp {
+pub struct CreateLabelResponse {
     /// 新建标签的 ID。
     pub id: u64,
 }
@@ -169,8 +169,8 @@ mod tests {
 
     /// 创建响应钉扎：`handles/label.go` 的 `CreateLabel` 成功时返回 `gin.H{"id": id}`。
     #[test]
-    fn create_label_resp_decodes_handler_shape() {
-        let resp: crate::schema::common::Response<CreateLabelResp> =
+    fn create_label_response_decodes_handler_shape() {
+        let resp: crate::schema::common::Response<CreateLabelResponse> =
             serde_json::from_value(serde_json::json!({
                 "code": 200,
                 "message": "success",

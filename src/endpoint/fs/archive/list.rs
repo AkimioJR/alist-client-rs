@@ -3,15 +3,15 @@
 //! 对应 `POST /api/fs/archive/list`；响应 `data` 为
 //! `{content: [...], total: N}` 分页形状（共享模型
 //! [`PageResponse`]，元素为
-//! [`ObjResp`]）。该端点未收录于
+//! [`ObjResponse`]）。该端点未收录于
 //! `docs/api/alistv3.openapi.yaml`，请求/响应形状以
-//! `examples/alist/server/handles/archive.go` 的 `ArchiveListReq`/`ArchiveListResp`
+//! `examples/alist/server/handles/archive.go` 的 `ArchiveListReq`/`ArchiveListResponse`
 //! （archive.go:147-156）为准；分页字段与 `internal/model/req.go` 的
 //! `PageRequest`（`page`/`per_page`）一致，随 JSON 请求体发送。
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::{common::PageResponse, fs::ObjResp};
+use crate::schema::{common::PageResponse, fs::ObjResponse};
 
 /// 列出压缩包内目录内容请求构建器。
 ///
@@ -25,7 +25,7 @@ use crate::schema::{common::PageResponse, fs::ObjResp};
 #[endpoint(
     method = POST,
     path = "/api/fs/archive/list",
-    model = PageResponse<ObjResp>
+    model = PageResponse<ObjResponse>
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -84,7 +84,7 @@ impl<'a> super::Archive<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`PageResponse<ObjResp>`](crate::schema::common::PageResponse)。
+    /// [`PageResponse<ObjResponse>`](crate::schema::common::PageResponse)。
     ///
     /// # Errors
     ///

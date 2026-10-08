@@ -1,14 +1,14 @@
 //! fs 端点：读取压缩包元信息。
 //!
 //! 对应 `POST /api/fs/archive/meta`；响应 `data` 为压缩包元信息（注释、
-//! 是否加密、递归文件树 [`ArchiveContentResp`](crate::schema::fs::ArchiveContentResp)、
+//! 是否加密、递归文件树 [`ArchiveContentResponse`](crate::schema::fs::ArchiveContentResponse)、
 //! 原始下载地址与签名）。该端点未收录于 `docs/api/alistv3.openapi.yaml`，
 //! 请求/响应形状以 `examples/alist/server/handles/archive.go` 的
-//! `ArchiveMetaReq`/`ArchiveMetaResp`（archive.go:25-44）为准。
+//! `ArchiveMetaReq`/`ArchiveMetaResponse`（archive.go:25-44）为准。
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::fs::ArchiveMetaResp;
+use crate::schema::fs::ArchiveMetaResponse;
 
 /// 读取压缩包元信息请求构建器。
 ///
@@ -19,7 +19,7 @@ use crate::schema::fs::ArchiveMetaResp;
 #[endpoint(
     method = POST,
     path = "/api/fs/archive/meta",
-    model = ArchiveMetaResp
+    model = ArchiveMetaResponse
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -71,7 +71,7 @@ impl<'a> super::Archive<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`ArchiveMetaResp`]。
+    /// [`ArchiveMetaResponse`]。
     ///
     /// # Errors
     ///

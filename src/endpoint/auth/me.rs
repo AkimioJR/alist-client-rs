@@ -1,13 +1,13 @@
 //! auth 端点：获取当前用户信息。
 //!
-//! 对应 `GET /api/me`；无需请求体，返回 [`MeResp`]
+//! 对应 `GET /api/me`；无需请求体，返回 [`MeResponse`]
 //! （`examples/alist/server/handles/auth.go:147-191` 的 `CurrentUser`）。
 //! 注意 Go 侧 `role` 为数组（`model.Roles []int`，user.go:33），而 openapi 示例
 //! 与老服务器返回单值 int，schema 层已做兼容；token 缺失时服务端返回游客信息。
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::auth::MeResp;
+use crate::schema::auth::MeResponse;
 
 /// 获取当前用户信息请求构建器。
 ///
@@ -15,7 +15,7 @@ use crate::schema::auth::MeResp;
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = GET, path = "/api/me", model = MeResp)]
+#[endpoint(method = GET, path = "/api/me", model = MeResponse)]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     #[endpoint(skip)]
@@ -36,7 +36,7 @@ impl<'a> super::Auth<'a> {
     ///
     /// 对应 AList `GET /api/me`（数据来源：`docs/api/alistv3.openapi.yaml` 的
     /// `/api/me` 与 `examples/alist/server/handles/auth.go` 的 `CurrentUser`，
-    /// 实现于 auth.go:156-191）。成功时返回 [`MeResp`]：用户 ID、用户名、
+    /// 实现于 auth.go:156-191）。成功时返回 [`MeResponse`]：用户 ID、用户名、
     /// 根目录、角色 ID 列表（`role` 兼容数组/单值/`null` 三种历史形状）、
     /// 聚合权限位掩码、是否启用 2FA，以及新服务器的 `role_names`/`permissions`
     /// 字段（老服务器缺失或为 `null` 时归约为空值）。
@@ -49,7 +49,7 @@ impl<'a> super::Auth<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`MeResp`]。
+    /// [`MeResponse`]。
     ///
     /// # Errors
     ///
@@ -94,7 +94,7 @@ mod tests {
     /// 收发路径：mock 服务器返回 openapi `/api/me` 示例（老服务器单值 role 形状），
     /// 断言 GET 方法、认证头注入与 schema 兼容解码。
     #[tokio::test]
-    async fn send_gets_me_and_decodes_user_resp() {
+    async fn send_gets_me_and_decodes_user_response() {
         use std::sync::{Arc, Mutex};
 
         use crate::test_support::{ok_json, spawn_mock_server};

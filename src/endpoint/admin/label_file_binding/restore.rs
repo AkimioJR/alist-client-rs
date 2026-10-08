@@ -3,7 +3,7 @@
 //! 对应 `POST /api/admin/label_file_binding/restore`；请求体为
 //! `{"keep_ids":bool,"override":bool,"bindings":[LabelFileBinding]}`，
 //! 响应 `data` 为 `{"msg":"restored N rows"}`，以
-//! [`RestoreResp`]
+//! [`RestoreResponse`]
 //! 作为端点模型。该分组未收录进 openapi 文档；路由见
 //! `examples/alist/server/router.go:214`，处理逻辑见
 //! `examples/alist/server/handles/label_file_binding.go:172`
@@ -12,7 +12,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::admin::label_file_binding::{LabelFileBinding, RestoreResp};
+use crate::schema::admin::label_file_binding::{LabelFileBinding, RestoreResponse};
 
 /// 恢复标签绑定记录请求构建器。
 ///
@@ -24,7 +24,7 @@ use crate::schema::admin::label_file_binding::{LabelFileBinding, RestoreResp};
 #[endpoint(
     method = POST,
     path = "/api/admin/label_file_binding/restore",
-    model = RestoreResp
+    model = RestoreResponse
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -77,7 +77,7 @@ impl<'a> super::LabelFileBinding<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`RestoreResp`]。
+    /// [`RestoreResponse`]。
     ///
     /// # Errors
     ///

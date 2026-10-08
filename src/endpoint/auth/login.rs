@@ -7,7 +7,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::auth::LoginResp;
+use crate::schema::auth::LoginResponse;
 
 /// 登录请求构建器。
 ///
@@ -15,7 +15,7 @@ use crate::schema::auth::LoginResp;
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = POST, path = "/api/auth/login", model = LoginResp)]
+#[endpoint(method = POST, path = "/api/auth/login", model = LoginResponse)]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     #[endpoint(skip)]
@@ -52,7 +52,7 @@ impl<'a> super::Auth<'a> {
     /// 对应 AList `POST /api/auth/login`；密码以明文发送，由服务端做静态盐
     /// SHA-256 哈希（数据来源：`docs/api/alistv3.openapi.yaml` 的 `auth/login`
     /// 与 `examples/alist/server/handles/auth.go` 的 `Login`，实现于 auth.go:41-49）。
-    /// 成功时返回 [`LoginResp`]（含 token；新版本服务端还返回 `device_key`）。
+    /// 成功时返回 [`LoginResponse`]（含 token；新版本服务端还返回 `device_key`）。
     /// 该端点是 [`Client`](crate::Client) 内部自动刷新 token 所用登录的公开入口。
     /// 预哈希密码的变体见 [`login_hash`](super::Auth::login_hash)。
     ///
@@ -64,7 +64,7 @@ impl<'a> super::Auth<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`LoginResp`]。
+    /// [`LoginResponse`]。
     ///
     /// # Errors
     ///
@@ -136,7 +136,7 @@ mod tests {
 
     /// 收发路径：mock 服务器 + 记录请求原文，解码登录响应。
     #[tokio::test]
-    async fn send_posts_expected_request_and_decodes_login_resp() {
+    async fn send_posts_expected_request_and_decodes_login_response() {
         use std::sync::{Arc, Mutex};
 
         use crate::test_support::{ok_json, spawn_mock_server};

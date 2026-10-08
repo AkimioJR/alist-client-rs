@@ -5,8 +5,8 @@
 //! - [`Setting`]：设置条目，同时用作 `list`/`get`/`get_by_keys` 的响应模型与
 //!   `save` 的请求体元素，
 //!   对应 `examples/alist/internal/model/setting.go` 的 `SettingItem`；
-//! - [`SetAria2Req`] / [`SetQbitReq`]：`set_aria2`/`set_qbit` 的扁平请求体形状，
-//!   对应 `examples/alist/server/handles/offline_download.go` 的 `SetAria2Req`/`SetQbittorrentReq`；
+//! - [`SetAria2Request`] / [`SetQbitRequest`]：`set_aria2`/`set_qbit` 的扁平请求体形状，
+//!   对应 `examples/alist/server/handles/offline_download.go` 的 Go `SetAria2Req`/`SetQbittorrentReq`；
 //!   端点构建器（`set_aria2::Request`、`set_qbit::Request`）以同名字段直接生成同形 JSON。
 //!
 //! 字段形状以 `docs/api/alistv3.openapi.yaml` 的 `admin/setting` 分组与上述 Go 源码为准；
@@ -50,11 +50,11 @@ pub struct Setting {
 
 /// `POST /api/admin/setting/set_aria2` 的请求体形状。
 ///
-/// 对应 `examples/alist/server/handles/offline_download.go` 的 `SetAria2Req`
+/// 对应 `examples/alist/server/handles/offline_download.go` 的 Go `SetAria2Req`
 /// 与 `docs/api/alistv3.openapi.yaml` `admin/setting/set_aria2` 的请求体；
 /// 仅含 `uri`/`secret` 两个字段（保存后服务端立即初始化 aria2 连接）。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct SetAria2Req {
+pub struct SetAria2Request {
     /// aria2 JSON-RPC 地址，例如 `http://localhost:6800/jsonrpc`；对应 Go `SetAria2Req.Uri`。
     pub uri: String,
     /// aria2 RPC 密钥；未设置时为空字符串；对应 Go `SetAria2Req.Secret`。
@@ -67,7 +67,7 @@ pub struct SetAria2Req {
 /// 与 `docs/api/alistv3.openapi.yaml` `admin/setting/set_qbit` 的请求体；
 /// 仅含 `url`/`seedtime` 两个字段。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct SetQbitReq {
+pub struct SetQbitRequest {
     /// qBittorrent WebUI 地址（可内嵌凭据），例如 `http://user:pass@localhost:8080/`；
     /// 对应 Go `SetQbittorrentReq.Url`。
     pub url: String,
@@ -212,8 +212,8 @@ mod tests {
     /// 序列化键名钉扎：`docs/api/alistv3.openapi.yaml` `admin/setting/set_aria2`
     /// 请求体（`uri`/`secret`，无其它字段）。
     #[test]
-    fn set_aria2_req_serializes_with_api_field_names() {
-        let req = SetAria2Req {
+    fn set_aria2_request_serializes_with_api_field_names() {
+        let req = SetAria2Request {
             uri: "http://localhost:6800/jsonrpc".to_owned(),
             secret: String::new(),
         };
@@ -229,8 +229,8 @@ mod tests {
     /// 序列化键名钉扎：`docs/api/alistv3.openapi.yaml` `admin/setting/set_qbit`
     /// 请求体（`url`/`seedtime`，无其它字段）。
     #[test]
-    fn set_qbit_req_serializes_with_api_field_names() {
-        let req = SetQbitReq {
+    fn set_qbit_request_serializes_with_api_field_names() {
+        let req = SetQbitRequest {
             url: "http://user:pass@localhost:8080/".to_owned(),
             seedtime: "30".to_owned(),
         };

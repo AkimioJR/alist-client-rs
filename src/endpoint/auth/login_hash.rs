@@ -8,7 +8,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::auth::LoginResp;
+use crate::schema::auth::LoginResponse;
 
 /// 哈希登录请求构建器。
 ///
@@ -16,7 +16,7 @@ use crate::schema::auth::LoginResp;
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = POST, path = "/api/auth/login/hash", model = LoginResp)]
+#[endpoint(method = POST, path = "/api/auth/login/hash", model = LoginResponse)]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     #[endpoint(skip)]
@@ -55,7 +55,7 @@ impl<'a> super::Auth<'a> {
     /// （数据来源：`docs/api/alistv3.openapi.yaml` 的 `auth/login/hash` 与
     /// `examples/alist/server/handles/auth.go` 的 `LoginHash`，实现于 auth.go:52-59，
     /// 盐常量为 `examples/alist/internal/model/user.go:23` 的 `StaticHashSalt`）。
-    /// 成功时返回 [`LoginResp`]。
+    /// 成功时返回 [`LoginResponse`]。
     /// 明文密码的变体见 [`login`](super::Auth::login)。
     ///
     /// # Arguments
@@ -67,7 +67,7 @@ impl<'a> super::Auth<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`LoginResp`]。
+    /// [`LoginResponse`]。
     ///
     /// # Errors
     ///

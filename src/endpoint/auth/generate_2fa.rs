@@ -6,7 +6,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::auth::Generate2FaResp;
+use crate::schema::auth::Generate2FaResponse;
 
 /// 生成两步验证密钥请求构建器。
 ///
@@ -14,7 +14,7 @@ use crate::schema::auth::Generate2FaResp;
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = POST, path = "/api/auth/2fa/generate", model = Generate2FaResp)]
+#[endpoint(method = POST, path = "/api/auth/2fa/generate", model = Generate2FaResponse)]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     #[endpoint(skip)]
@@ -36,7 +36,7 @@ impl<'a> super::Auth<'a> {
     /// 对应 AList `POST /api/auth/2fa/generate`（数据来源：
     /// `docs/api/alistv3.openapi.yaml` 的 `auth/2fa/generate` 与
     /// `examples/alist/server/handles/auth.go` 的 `Generate2FA`，
-    /// 实现于 auth.go:216-243）。成功时返回 [`Generate2FaResp`]：
+    /// 实现于 auth.go:216-243）。成功时返回 [`Generate2FaResponse`]：
     /// `qr` 为 PNG 二维码的 data URL，`secret` 为 TOTP 密钥。
     /// 密钥需经 [`verify_2fa`](super::Auth::verify_2fa) 校验后才会绑定到账号。
     ///
@@ -47,7 +47,7 @@ impl<'a> super::Auth<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`Generate2FaResp`]。
+    /// [`Generate2FaResponse`]。
     ///
     /// # Errors
     ///

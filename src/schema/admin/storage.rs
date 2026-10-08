@@ -2,7 +2,7 @@
 //!
 //! 覆盖 `/api/admin/storage/*` 端点的数据模型：存储驱动实例 [`Storage`]
 //! （`list`/`get` 响应，同时也是创建/更新端点的请求体形状）与
-//! 创建操作返回的 [`StorageCreateResp`]。
+//! 创建操作返回的 [`StorageCreateResponse`]。
 //! 字段形状以 `examples/alist/internal/model/storage.go`（`model.Storage`，
 //! 内嵌 `Sort`/`Proxy` 两结构体已平铺）与 `examples/alist/server/handles/storage.go`
 //! 为准；示例 JSON 取自 `docs/api/alistv3.openapi.yaml` 的 `/api/admin/storage/*` 分组。
@@ -74,9 +74,9 @@ pub struct Storage {
 /// 对应 `examples/alist/server/handles/storage.go` 中 `CreateStorage` 以
 /// `gin.H{"id": id}` 返回的结构；更新端点（`UpdateStorage`）成功时 Go 实现
 /// 返回 `data: null`，而 `docs/api/alistv3.openapi.yaml` 的示例记载
-/// `{ "id": N }`，因此更新端点以 `Option<StorageCreateResp>` 建模，两种形状均可解码。
+/// `{ "id": N }`，因此更新端点以 `Option<StorageCreateResponse>` 建模，两种形状均可解码。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct StorageCreateResp {
+pub struct StorageCreateResponse {
     /// 创建成功时由服务端分配的存储 ID。
     pub id: u64,
 }
@@ -208,9 +208,9 @@ mod tests {
 
     /// 正向钉扎 + 序列化键名：create 端点响应 `data` 为 `{"id": N}`。
     #[test]
-    fn create_resp_decodes_and_serializes_api_shape() {
+    fn create_response_decodes_and_serializes_api_shape() {
         // 示例来源：docs/api/alistv3.openapi.yaml /api/admin/storage/create 200 响应 example（data: {"id": 7}）
-        let resp: StorageCreateResp =
+        let resp: StorageCreateResponse =
             serde_json::from_value(serde_json::json!({ "id": 7 })).unwrap();
         assert_eq!(resp.id, 7);
         assert_eq!(

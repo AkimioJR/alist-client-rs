@@ -12,7 +12,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::fs::FsListResp;
+use crate::schema::fs::FsListResponse;
 
 /// 列出目录内容请求构建器。
 ///
@@ -20,12 +20,12 @@ use crate::schema::fs::FsListResp;
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = POST, path = "/api/fs/list", model = FsListResp)]
+#[endpoint(method = POST, path = "/api/fs/list", model = FsListResponse)]
 #[cfg_attr(
     feature = "into-stream",
     endpoint(
         into_stream = true,
-        stream_item = crate::schema::fs::ObjLabelResp
+        stream_item = crate::schema::fs::ObjLabelResponse
     )
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
@@ -74,12 +74,12 @@ impl<'a> super::Fs<'a> {
     ///
     /// 对应 AList `POST /api/fs/list`；返回目录下的文件/目录条目、分页总数、
     /// 元信息（readme/header）、写权限与存储驱动名
-    /// （[`FsListResp`]）。新版服务端额外返回
+    /// （[`FsListResponse`]）。新版服务端额外返回
     /// `page`/`per_page`/`has_more`/`pages_total`/`filtered_total` 分页元信息，
     /// 老版本缺失时对应字段归约为零值。
     /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/fs/list` 与
     /// `examples/alist/server/handles/fsread.go`（实现为 `fs.FsList`，
-    /// 请求 `ListReq` fsread.go:22-27，响应 `FsListResp` fsread.go:52-64）。
+    /// 请求 `ListReq` fsread.go:22-27，响应 `FsListResponse` fsread.go:52-64）。
     ///
     /// # Arguments
     ///
@@ -88,7 +88,7 @@ impl<'a> super::Fs<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`FsListResp`]。
+    /// [`FsListResponse`]。
     ///
     /// 可选参数（链式 setter）：`password`（目录密码）、`page`（页码，从 1 开始）、
     /// `per_page`（每页条数，`-1` 表示全部）、`refresh`（强制刷新）。
