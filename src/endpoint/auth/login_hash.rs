@@ -47,6 +47,7 @@ impl<'a> Request<'a> {
     }
 }
 
+#[cfg(feature = "auth")]
 impl<'a> super::Auth<'a> {
     /// 以预哈希密码登录获取临时 token。
     ///
@@ -145,9 +146,7 @@ mod tests {
         .await;
         let client = crate::Client::new(base_url).unwrap();
 
-        let login = client
-            .auth()
-            .login_hash("admin", "hashed-password")
+        let login = Request::new(&client, "admin", "hashed-password")
             .send()
             .await
             .unwrap();

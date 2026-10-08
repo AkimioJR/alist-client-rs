@@ -23,12 +23,15 @@
 //!   新服务器在无角色时返回 Go nil 切片序列化的 `null`，需同时容忍缺失与显式 `null`；
 //! - `device_key` 为新版本登录响应新增字段（auth.go:114），老服务器仅返回 `token`。
 
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+#[cfg(feature = "auth-schema")]
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
 
 /// `/api/auth/login` 与 `/api/auth/login/hash` 的登录请求体。
 ///
 /// 对应 `examples/alist/server/handles/auth.go` 的 `LoginReq`（auth.go:34-38）。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg(feature = "auth-schema")]
 pub struct LoginRequest {
     /// 用户名。
     pub username: String,
@@ -59,6 +62,7 @@ pub struct LoginResponse {
 /// 对应 auth.go:118-121 的 `RegisterReq`；该端点不在 openapi 中，
 /// 路径见 `examples/alist/server/router.go:75`。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg(feature = "auth-schema")]
 pub struct RegisterRequest {
     /// 新用户名。
     pub username: String,
@@ -70,6 +74,7 @@ pub struct RegisterRequest {
 ///
 /// 对应 auth.go:239-242 `gin.H{"qr", "secret"}`。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg(feature = "auth-schema")]
 pub struct Generate2FaResponse {
     /// 二维码 PNG 图片的 data URL（`data:image/png;base64,...`）。
     pub qr: String,
@@ -81,6 +86,7 @@ pub struct Generate2FaResponse {
 ///
 /// 对应 auth.go:245-248 的 `Verify2FAReq`。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg(feature = "auth-schema")]
 pub struct Verify2FaRequest {
     /// 用户从认证器 App 中读取的当前 TOTP 验证码。
     pub code: String,
@@ -92,6 +98,7 @@ pub struct Verify2FaRequest {
 ///
 /// 对应 `examples/alist/internal/model/role.go` 的 `PermissionEntry`（role.go:10-13）。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg(feature = "auth-schema")]
 pub struct PermissionEntry {
     /// 路径前缀，例如 `/movies`。
     pub path: String,
@@ -106,6 +113,7 @@ pub struct PermissionEntry {
 /// auth.go:162）。新服务器追加的 `role_names`/`permissions` 字段与
 /// `role` 的历史形状均做了兼容处理，详见模块文档。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg(feature = "auth-schema")]
 pub struct UserResponse {
     /// 数字用户 ID（Go `uint`）。
     pub id: u64,
@@ -137,9 +145,11 @@ pub struct UserResponse {
 }
 
 /// [`UserResponse`] 的别名，与 `/api/me` 端点名称对应。
+#[cfg(feature = "auth-schema")]
 pub type MeResponse = UserResponse;
 
 /// 将 `role` 字段的三种历史形状（数组 / 单值 int / `null`）统一展开为 `Vec<i32>`。
+#[cfg(feature = "auth-schema")]
 fn deserialize_role_ids<'de, D>(deserializer: D) -> Result<Vec<i32>, D::Error>
 where
     D: serde::Deserializer<'de>,
@@ -159,6 +169,7 @@ where
 }
 
 /// 将显式 `null` 归约为 `T::default()`（集合字段兼容 Go nil 切片序列化的 `null`）。
+#[cfg(feature = "auth-schema")]
 fn null_to_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
     D: serde::Deserializer<'de>,
@@ -200,6 +211,7 @@ mod tests {
     }
 
     /// 序列化键名钉扎：`LoginRequest` 与 openapi 请求示例键一致，`otp_code` 缺省时跳过。
+    #[cfg(feature = "auth-schema")]
     #[test]
     fn login_request_serializes_with_api_field_names() {
         // 示例来源：docs/api/alistv3.openapi.yaml 的 /api/auth/login 请求示例
@@ -231,6 +243,7 @@ mod tests {
     }
 
     /// 序列化键名钉扎：`RegisterRequest` 键与 Go `RegisterReq`（auth.go:118-121）一致。
+    #[cfg(feature = "auth-schema")]
     #[test]
     fn register_request_serializes_with_api_field_names() {
         let req = RegisterRequest {
@@ -247,6 +260,7 @@ mod tests {
     }
 
     /// 正向钉扎：openapi `POST /api/auth/2fa/generate` 返回示例。
+    #[cfg(feature = "auth-schema")]
     #[test]
     fn generate_2fa_response_decodes_openapi_example() {
         // 示例来源：docs/api/alistv3.openapi.yaml 的 /api/auth/2fa/generate 200 响应
@@ -260,6 +274,7 @@ mod tests {
     }
 
     /// 序列化键名钉扎：`Verify2FaRequest` 键与 openapi 请求示例（`code`/`secret`）一致。
+    #[cfg(feature = "auth-schema")]
     #[test]
     fn verify_2fa_request_serializes_with_api_field_names() {
         let req = Verify2FaRequest {
@@ -276,6 +291,7 @@ mod tests {
     }
 
     /// 正向钉扎：openapi `/api/me` 返回示例；`role` 钉住老服务器单值 int 形状。
+    #[cfg(feature = "auth-schema")]
     #[test]
     fn me_response_decodes_openapi_example_with_single_int_role() {
         // 示例来源：docs/api/alistv3.openapi.yaml 的 /api/me 200 响应
@@ -305,6 +321,7 @@ mod tests {
     }
 
     /// 正向钉扎：Go 源码形状——`role` 为数组、`permissions` 携带路径权限条目。
+    #[cfg(feature = "auth-schema")]
     #[test]
     fn me_response_decodes_go_shape_with_array_role_and_permissions() {
         // 形状来源：examples/alist/server/handles/auth.go UserResp（auth.go:147-190）
@@ -338,6 +355,7 @@ mod tests {
     }
 
     /// 兼容钉扎：老服务器响应缺少 `role_names`/`permissions`/`sso_id` 等新增字段。
+    #[cfg(feature = "auth-schema")]
     #[test]
     fn me_response_tolerates_missing_optional_fields() {
         let me: MeResponse = serde_json::from_value(serde_json::json!({
@@ -359,6 +377,7 @@ mod tests {
 
     /// 兼容钉扎：真实部署服务器会把 Go nil 切片序列化为显式 `null`
     /// （`role_names`/`permissions`），`role` 为 `null` 时归约为空列表。
+    #[cfg(feature = "auth-schema")]
     #[test]
     fn me_response_tolerates_null_collection_fields() {
         let me: MeResponse = serde_json::from_value(serde_json::json!({

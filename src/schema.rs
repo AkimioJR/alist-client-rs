@@ -8,6 +8,8 @@ pub mod common;
 
 #[cfg(feature = "auth-schema")]
 pub mod auth;
+#[cfg(not(feature = "auth-schema"))]
+pub(crate) mod auth;
 
 #[cfg(feature = "fs-schema")]
 pub mod fs;

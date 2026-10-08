@@ -46,6 +46,7 @@ impl<'a> Request<'a> {
     }
 }
 
+#[cfg(feature = "auth")]
 impl<'a> super::Auth<'a> {
     /// 登录获取临时 token。
     ///
@@ -151,9 +152,7 @@ mod tests {
         .await;
         let client = crate::Client::new(base_url).unwrap();
 
-        let login = client
-            .auth()
-            .login("admin", "password")
+        let login = Request::new(&client, "admin", "password")
             .otp_code("123456")
             .send()
             .await

@@ -38,6 +38,7 @@ docs/design.md              # 本文档
   聚合：`admin`（拉全部 admin-*）；特殊：`stream`（tokio-util，响应流式读取）、`into-stream`（async-stream + futures，自动翻页流）。
 - 每个 `X` 自动拉取镜像 `X-schema`。schema 模块只按 `X-schema` 门控；端点模块只按 `X` 门控。
 - 因此：**端点代码引用 `crate::schema::<域>` 类型时无需再加 cfg**——feature 已保证 schema 模块存在。
+- **登录端点常驻编译例外**：为支持 `Client::refresh_token` 在未启用 `auth` feature 时仍能自动重新登录，登录端点（`login` / `login_hash`）及对应模型在内部常驻编译（`#[cfg(not(feature = "auth"))] pub(crate) mod auth`，对应 schema 亦保持内部常驻）。当启用 `auth` feature 时，通过 `pub mod auth` 将这些结构体与句柄直接重导出给调用方。
 - `admin-*` 可单独启用（`endpoint/admin.rs` 用 `any(...)` 门控，子句柄访问器随子 feature 出现）。
 - reqwest 启用 `json`/`query`/`stream`/`multipart` 四个 feature：`query` 是 reqwest 0.13 中
   `RequestBuilder::query` 的门控开关（派生宏生成的查询串依赖它），其余为流式下载/表单上传所需。
@@ -213,7 +214,10 @@ impl<'a> super::Fs<'a> {
   `kind` 为 `InternalErrorKind::from_message` 按 `alist/internal/errs` 常量文本的尽力分类。
 - **`data: null` 直接用 `model = ()` 或 `model = Option<T>` 解码**，不要在端点里特殊处理。
 - 401/403（响应包装或 HTTP）且配置了 `Authentication::UsernamePassword` 时自动重新登录并重试一次；
-  `Authentication::Token` 不触发。登录实现内置于 `client.rs`（`/api/auth/login`），不依赖任何端点 feature。
+  `Authentication::Token` 不触发。
+  - **登录端点与模型复用**：登录端点（`login` / `login_hash`）及对应模型在内部常驻编译（`#[cfg(not(feature = "auth"))] pub(crate) mod auth`），由 `Client::refresh_token` 直接复用 `login::Request::new(...).build_request()` 构建请求并反序列化为 `LoginResponse`；
+  - **底层非认证通道与防死循环**：刷新过程走底层的非认证通道（`authenticated = false`），既避免了手写重复的请求体/响应体，又避免了递归重登死循环；
+  - **按需对外暴露**：当启用 `auth` feature 时，通过 `pub mod auth` 将这些结构体与句柄直接重导出给调用方。
 - 端点只管「构建 + 发送 + 解码」，**不要**在端点层重复检查状态码。
 
 ## 7. 测试与检查命令约定
@@ -243,7 +247,7 @@ cargo test -p alist-client-derive                         # 宏自身单元测�
 - 每个端点文件建议至少一个 URL/方法断言测试；有 body 或 query 的端点补序列化断言；
   列表类端点如启用 `into-stream`，补翻页测试。
 
-## 8. Client 公共面速查（已实现）
+## 8. Client 架构与设计速查（已实现）
 
 - `Client::new(base_url) -> Result<Client>`：基址末尾 `/` 归一化；路径相对拼接（支持反代路径前缀）。
 - `set_authentication / with_authentication / clear_authentication`（`Authentication::username_password(usr, pwd, otp)` / `Authentication::token(t)`）。
@@ -251,4 +255,9 @@ cargo test -p alist-client-derive                         # 宏自身单元测�
 - `base_url()`；token 与凭据为内部状态（`token()`/`authentication()` 为 `pub(crate)`）。
 - `pub(crate) request(method, path)`：构建请求（无认证头）；`pub(crate) execute<R>(builder)`：响应解码 + 限速 + 401/403 自动重登重试一次；
   `pub(crate) execute_text(builder)`：原始文本响应（供 `/ping`），无响应解码。
+- **底层请求通道与认证刷新设计**：
+  - `send_response(builder, context, authenticated)`：内部底层发送通道。`authenticated = true` 为常规业务请求；`authenticated = false` 为非认证底层通道（不注入 Authorization 头）。
+  - `Client::refresh_token`：使用保存的用户名/密码（及可选两步验证码）重新登录。为消除重复代码与维护负担，直接复用 `login::Request::new(...).build_request()` 构建请求，并反序列化为 `LoginResponse`。
+  - **防递归死循环**：重新登录请求严格走底层非认证通道（`authenticated = false`），不携带已失效的旧 token，同时仅在顶层业务请求收到 401/403 时触发一次，重登自身失败即刻报错退出，避免了递归重登死循环。
+  - **常驻编译与重导出**：登录端点（`login` / `login_hash`）及对应模型在内部常驻编译（`#[cfg(not(feature = "auth"))] pub(crate) mod auth`），因此无需依赖外部开启 `auth` feature；当调用方显式启用 `auth` feature 时，通过 `pub mod auth` 将这些结构体与句柄直接重导出给调用方。
 - 流式 body（multipart 上传）无法克隆，401 重试对这类请求不可用（返回原始错误）——上传端点实现时注意在文档说明。

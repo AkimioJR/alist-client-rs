@@ -24,7 +24,7 @@ mod rate_limit;
 use std::{sync::RwLock, time::Duration};
 
 use reqwest::{Method, RequestBuilder, Url, header::AUTHORIZATION};
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde::de::DeserializeOwned;
 use serde_json::Value;
 
 use crate::{
@@ -83,21 +83,6 @@ pub struct Client {
 struct RequestContext {
     method: String,
     url: String,
-}
-
-/// token 刷新使用的登录请求体（与 `/api/auth/login` 的 JSON 形状一致）。
-#[derive(Serialize)]
-struct LoginBody {
-    username: String,
-    password: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    otp_code: Option<String>,
-}
-
-/// token 刷新使用的登录响应数据（与 `/api/auth/login` 的 JSON 形状一致）。
-#[derive(Deserialize)]
-struct LoginData {
-    token: String,
 }
 
 /// 从请求构建器提取方法与 URL（流式请求体等无法克隆时返回占位符）。
@@ -317,8 +302,8 @@ impl Client {
 
     /// 使用保存的凭据重新登录并更新 token。
     ///
-    /// 实现为不依赖任何 feature 门控端点模块的原始登录（`/api/auth/login`），
-    /// 且不注入认证头、不触发再次刷新。
+    /// 复用 [`crate::endpoint::auth::login::Request`] 构建登录请求，
+    /// 且不注入认证头、不触发再次刷新（维持 `authenticated = false`，防止 401/403 产生递归重试死循环）。
     async fn refresh_token(&self) -> Result<()> {
         let Some(Authentication::UsernamePassword {
             username,
@@ -328,20 +313,20 @@ impl Client {
         else {
             return Ok(());
         };
-        let body = LoginBody {
-            username,
-            password,
-            otp_code,
-        };
-        let builder = self.request(Method::POST, "/api/auth/login").json(&body);
+        let mut req = crate::endpoint::auth::login::Request::new(self, username, password);
+        if let Some(otp_code) = otp_code {
+            req = req.otp_code(otp_code);
+        }
+        let builder = req.build_request();
         let context = request_context(&builder);
         let (data, response_body) = self.send_response(builder, &context, false).await?;
-        let login: LoginData = serde_json::from_value(data).map_err(|source| Error::Json {
-            source,
-            method: context.method.clone(),
-            url: context.url.clone(),
-            response_body: Some(response_body),
-        })?;
+        let login: crate::schema::auth::LoginResponse =
+            serde_json::from_value(data).map_err(|source| Error::Json {
+                source,
+                method: context.method.clone(),
+                url: context.url.clone(),
+                response_body: Some(response_body),
+            })?;
         self.replace_token(Some(login.token));
         Ok(())
     }
@@ -601,6 +586,41 @@ mod tests {
             "重试请求应携带刷新后的 token: {}",
             requests[2]
         );
+    }
+
+    #[tokio::test]
+    async fn username_password_authentication_with_otp_refreshes_expired_token() {
+        let requests = Arc::new(Mutex::new(Vec::new()));
+        let responses = vec![
+            ok_json(r#"{"code":401,"message":"token expired","data":null}"#),
+            ok_json(r#"{"code":200,"message":"success","data":{"token":"fresh-token"}}"#),
+            ok_json(r#"{"code":200,"message":"success","data":{"username":"admin"}}"#),
+        ];
+        let base_url = spawn_mock_server(responses, Some(Arc::clone(&requests))).await;
+        let client =
+            Client::new(base_url)
+                .unwrap()
+                .with_authentication(Authentication::username_password(
+                    "admin",
+                    "password",
+                    Some("123456".to_string()),
+                ));
+
+        let me: MeData = client
+            .execute(client.request(Method::GET, "/api/me"))
+            .await
+            .unwrap();
+        assert_eq!(me.username, "admin");
+        assert_eq!(client.token().as_deref(), Some("fresh-token"));
+
+        let requests = requests.lock().unwrap();
+        assert_eq!(requests.len(), 3);
+        assert!(requests[0].contains("GET /api/me "));
+        assert!(requests[1].contains("POST /api/auth/login "));
+        assert!(requests[1].contains(r#""username":"admin""#));
+        assert!(requests[1].contains(r#""password":"password""#));
+        assert!(requests[1].contains(r#""otp_code":"123456""#));
+        assert!(requests[2].contains("GET /api/me "));
     }
 
     #[tokio::test]

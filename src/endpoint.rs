@@ -31,6 +31,8 @@
 
 #[cfg(feature = "auth")]
 pub mod auth;
+#[cfg(not(feature = "auth"))]
+pub(crate) mod auth;
 
 #[cfg(feature = "fs")]
 pub mod fs;

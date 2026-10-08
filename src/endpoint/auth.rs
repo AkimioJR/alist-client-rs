@@ -6,9 +6,10 @@
 //! 通过 [`Client::auth`](crate::Client::auth) 获取句柄，推荐即建即用：
 //!
 //! ```no_run
+//! # #[cfg(feature = "auth")]
+//! # async fn example() -> alist_client::Result<()> {
 //! use alist_client::{Authentication, Client};
 //!
-//! # async fn example() -> alist_client::Result<()> {
 //! let client = Client::new("https://alist.example.com")?
 //!     .with_authentication(Authentication::token("TOKEN".to_owned()));
 //! // 即建即用：直接链式调用端点方法（如 client.auth().me()）
@@ -18,21 +19,30 @@
 //! # }
 //! ```
 
-pub mod generate_2fa;
 pub mod login;
+
+#[cfg(feature = "auth")]
 pub mod login_hash;
+
+#[cfg(feature = "auth")]
+pub mod generate_2fa;
+#[cfg(feature = "auth")]
 pub mod me;
+#[cfg(feature = "auth")]
 pub mod register;
+#[cfg(feature = "auth")]
 pub mod verify_2fa;
 
 /// auth 认证句柄。
 ///
 /// 作为认证端点方法的命名空间路由句柄，通过 [`Client::auth`](crate::Client::auth) 获取。
 /// 本身不包含业务状态，无需单独声明变量持有，推荐通过链式调用直接使用。
+#[cfg(feature = "auth")]
 pub struct Auth<'a> {
-    client: &'a crate::Client,
+    pub(crate) client: &'a crate::Client,
 }
 
+#[cfg(feature = "auth")]
 impl crate::Client {
     /// 获取 auth 认证句柄。
     ///
