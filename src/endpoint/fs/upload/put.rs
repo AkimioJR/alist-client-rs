@@ -29,6 +29,69 @@ use reqwest::{
 
 use crate::schema::common::UploadResponse;
 
+/// 上传请求的数据载荷形态。
+pub(crate) enum Payload {
+    /// 内存字节载荷。
+    Bytes(Bytes),
+    /// 已包装为 reqwest 流且已知长度的流式读取器（`stream` feature）。
+    #[cfg(feature = "stream")]
+    Stream {
+        body: reqwest::Body,
+        content_length: u64,
+    },
+    /// 本地文件句柄；在发送时异步读取元数据获取长度并包装为流（`stream` feature）。
+    #[cfg(feature = "stream")]
+    File(tokio::fs::File),
+}
+
+impl Payload {
+    /// 构造内存字节载荷。
+    #[inline]
+    pub(crate) fn bytes(content: impl Into<Bytes>) -> Self {
+        Self::Bytes(content.into())
+    }
+
+    /// 构造通用流式读取器载荷（`stream` feature）。
+    #[cfg(feature = "stream")]
+    pub(crate) fn stream<R>(reader: R, content_length: u64) -> Self
+    where
+        R: tokio::io::AsyncRead + tokio::io::AsyncSeek + Unpin + Send + 'static,
+    {
+        Self::Stream {
+            body: reqwest::Body::wrap_stream(tokio_util::io::ReaderStream::new(reader)),
+            content_length,
+        }
+    }
+
+    /// 构造本地文件载荷（`stream` feature）。
+    #[cfg(feature = "stream")]
+    #[inline]
+    pub(crate) fn file(file: tokio::fs::File) -> Self {
+        Self::File(file)
+    }
+
+    /// 解析得到 reqwest 请求体与对应文件的 `Content-Length`。
+    async fn into_body_and_len(self) -> crate::Result<(reqwest::Body, u64)> {
+        match self {
+            Self::Bytes(bytes) => {
+                let len = bytes.len() as u64;
+                Ok((reqwest::Body::from(bytes), len))
+            }
+            #[cfg(feature = "stream")]
+            Self::Stream {
+                body,
+                content_length,
+            } => Ok((body, content_length)),
+            #[cfg(feature = "stream")]
+            Self::File(file) => {
+                let content_length = file.metadata().await?.len();
+                let body = reqwest::Body::wrap_stream(tokio_util::io::ReaderStream::new(file));
+                Ok((body, content_length))
+            }
+        }
+    }
+}
+
 /// 流式上传请求构建器。
 ///
 /// 通过 [`Upload::put`](super::Upload::put)（内存字节）、
@@ -42,10 +105,8 @@ pub struct Request<'a> {
     client: &'a crate::Client,
     /// 目标绝对路径（`File-Path` 头，发送时 URL 编码）。
     path: String,
-    /// 请求体：内存字节或流式读取器。
-    body: reqwest::Body,
-    /// 文件大小（字节）；随 `Content-Length` 头发送。
-    content_length: u64,
+    /// 请求载荷（内存字节、流式读取器或本地文件）。
+    payload: Payload,
     /// 目录（元信息）密码（`Password` 头）。
     password: Option<String>,
     /// 是否允许覆盖已有文件（`Overwrite` 头；服务端缺省允许）。
@@ -66,50 +127,20 @@ pub struct Request<'a> {
 
 /// 构造器。
 ///
-/// 用于创建 [`Request`] 实例，接收必选参数。
+/// 用于创建 [`Request`] 实例，接收必选参数与载荷。
 impl<'a> Request<'a> {
-    /// `Request::new` 只接收**必选**参数；可选参数一律走链式 setter。
+    /// 构造流式上传请求构建器。
     #[inline]
     #[must_use = "仅构造请求构建器，不会自动发送请求"]
     pub(crate) fn new(
         client: &'a crate::Client,
         path: impl Into<String>,
-        content: impl Into<Bytes>,
+        payload: Payload,
     ) -> Self {
-        let content = content.into();
-        let content_length = content.len() as u64;
         Self {
             client,
             path: path.into(),
-            body: reqwest::Body::from(content),
-            content_length,
-            password: None,
-            overwrite: None,
-            as_task: None,
-            last_modified: None,
-            content_type: None,
-            md5: None,
-            sha1: None,
-            sha256: None,
-        }
-    }
-
-    /// 以流式请求体创建请求（`stream` feature）。
-    #[cfg(feature = "stream")]
-    pub(crate) fn stream<R>(
-        client: &'a crate::Client,
-        path: impl Into<String>,
-        reader: R,
-        content_length: u64,
-    ) -> Self
-    where
-        R: tokio::io::AsyncRead + tokio::io::AsyncSeek + Unpin + Send + 'static,
-    {
-        Self {
-            client,
-            path: path.into(),
-            body: reqwest::Body::wrap_stream(tokio_util::io::ReaderStream::new(reader)),
-            content_length,
+            payload,
             password: None,
             overwrite: None,
             as_task: None,
@@ -198,7 +229,8 @@ impl<'a> Request<'a> {
 /// 将配置好的参数组装为底层 HTTP 请求并发送（亦可通过 [`core::future::IntoFuture`] 直接 `.await`）。
 impl<'a> Request<'a> {
     /// 组装带上传头与请求体的请求构建器（发送前；测试亦用于形状断言）。
-    fn into_builder(self) -> reqwest::RequestBuilder {
+    async fn into_builder(self) -> crate::Result<reqwest::RequestBuilder> {
+        let (body, content_length) = self.payload.into_body_and_len().await?;
         let mut builder = self
             .client
             .request(Method::PUT, "/api/fs/put")
@@ -208,7 +240,7 @@ impl<'a> Request<'a> {
                 urlencoding::encode(&self.path).into_owned(),
             )
             // 服务端重新解析 Content-Length（fsup.go:53-60），必须显式设置
-            .header(CONTENT_LENGTH, self.content_length);
+            .header(CONTENT_LENGTH, content_length);
         if let Some(password) = &self.password {
             builder = builder.header("Password", password);
         }
@@ -233,7 +265,7 @@ impl<'a> Request<'a> {
         if let Some(sha256) = &self.sha256 {
             builder = builder.header("X-File-Sha256", sha256);
         }
-        builder.body(self.body)
+        Ok(builder.body(body))
     }
 
     /// 附加上传头与原始字节请求体并发送。
@@ -249,7 +281,7 @@ impl<'a> Request<'a> {
     /// 重试可用；`stream` feature 的流式请求体无法克隆，401/403 自动重试
     /// 不可用，将直接返回原始错误（见 `docs/design.md` §8）。
     pub async fn send_upload(self) -> crate::Result<Option<UploadResponse>> {
-        self.client.execute(self.into_builder()).await
+        self.client.execute(self.into_builder().await?).await
     }
 
     /// 发送上传请求（[`send_upload`](Self::send_upload) 的别名，与其他端点的 `send` 保持一致）。
@@ -317,7 +349,7 @@ impl<'a> super::Upload<'a> {
     #[inline]
     #[must_use = "该方法仅返回请求构建器，不会自动发送请求"]
     pub fn put(&self, path: impl Into<String>, content: impl Into<Bytes>) -> Request<'a> {
-        Request::new(self.client, path, content)
+        Request::new(self.client, path, Payload::bytes(content))
     }
 
     /// 以上传本地 `tokio::fs::File` 的方式流式上传（`stream` feature）。
@@ -351,20 +383,15 @@ impl<'a> super::Upload<'a> {
     /// client.fs()
     ///     .upload()
     ///     .put_file("/data/remote.iso", file)
-    ///     .await?
+    ///     .as_task(true) // 可选链式配置
     ///     .await?;
     /// # Ok(())
     /// # }
     /// ```
     #[cfg(feature = "stream")]
     #[must_use = "该方法仅返回请求构建器，不会自动发送请求"]
-    pub async fn put_file(
-        &self,
-        path: impl Into<String>,
-        file: tokio::fs::File,
-    ) -> std::io::Result<Request<'a>> {
-        let content_length = file.metadata().await?.len();
-        Ok(self.put_stream(path, file, content_length))
+    pub fn put_file(&self, path: impl Into<String>, file: tokio::fs::File) -> Request<'a> {
+        Request::new(self.client, path, Payload::file(file))
     }
 
     /// 以任意异步读取器流式上传（`stream` feature）。
@@ -417,7 +444,7 @@ impl<'a> super::Upload<'a> {
     where
         R: tokio::io::AsyncRead + tokio::io::AsyncSeek + Unpin + Send + 'static,
     {
-        Request::stream(self.client, path, reader, content_length)
+        Request::new(self.client, path, Payload::stream(reader, content_length))
     }
 }
 
@@ -427,11 +454,13 @@ mod tests {
 
     /// 1) 请求形状断言：`PUT /api/fs/put`，`File-Path` URL 编码，
     ///    `Content-Length` 必须随头发送。
-    #[test]
-    fn into_builder_composes_method_url_and_required_headers() {
+    #[tokio::test]
+    async fn into_builder_composes_method_url_and_required_headers() {
         let client = crate::Client::new("https://alist.example").unwrap();
-        let built = Request::new(&client, "/data/dir 1/a.zip", vec![0u8; 5])
+        let built = Request::new(&client, "/data/dir 1/a.zip", Payload::bytes(vec![0u8; 5]))
             .into_builder()
+            .await
+            .unwrap()
             .build()
             .unwrap();
         assert_eq!(*built.method(), reqwest::Method::PUT);
@@ -459,10 +488,10 @@ mod tests {
     }
 
     /// 2) 请求形状断言：可选头在设置后按 API 语义发送，未设置时不发送。
-    #[test]
-    fn into_builder_sends_optional_headers_semantically() {
+    #[tokio::test]
+    async fn into_builder_sends_optional_headers_semantically() {
         let client = crate::Client::new("https://alist.example").unwrap();
-        let built = Request::new(&client, "/data/a.zip", vec![0u8; 1])
+        let built = Request::new(&client, "/data/a.zip", Payload::bytes(vec![0u8; 1]))
             .password("meta-secret".to_owned())
             .overwrite(false)
             .as_task(true)
@@ -472,6 +501,8 @@ mod tests {
             .sha1("da39a3ee5e6b4b0d3255bfef95601890afd80709".to_owned())
             .sha256("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855".to_owned())
             .into_builder()
+            .await
+            .unwrap()
             .build()
             .unwrap();
         let headers = built.headers();
@@ -509,8 +540,10 @@ mod tests {
             Some("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
         );
 
-        let unset = Request::new(&client, "/data/a.zip", vec![0u8; 1])
+        let unset = Request::new(&client, "/data/a.zip", Payload::bytes(vec![0u8; 1]))
             .into_builder()
+            .await
+            .unwrap()
             .build()
             .unwrap();
         let headers = unset.headers();
@@ -549,7 +582,7 @@ mod tests {
         .await;
         let client = crate::Client::new(base_url).unwrap();
 
-        let resp = Request::new(&client, "/data/a.zip", b"hello".to_vec())
+        let resp = Request::new(&client, "/data/a.zip", Payload::bytes(b"hello".to_vec()))
             .send_upload()
             .await
             .unwrap();
@@ -598,7 +631,7 @@ mod tests {
         .await;
         let client = crate::Client::new(base_url).unwrap();
 
-        let resp = Request::new(&client, "/data/a.zip", b"hello".to_vec())
+        let resp = Request::new(&client, "/data/a.zip", Payload::bytes(b"hello".to_vec()))
             .as_task(true)
             .send_upload()
             .await
@@ -610,16 +643,17 @@ mod tests {
 
     /// 5) stream 形状断言：流式请求体同样携带 URL 编码路径与显式 Content-Length。
     #[cfg(feature = "stream")]
-    #[test]
-    fn into_builder_sets_content_length_for_stream_body() {
+    #[tokio::test]
+    async fn into_builder_sets_content_length_for_stream_body() {
         let client = crate::Client::new("https://alist.example").unwrap();
-        let built = Request::stream(
+        let built = Request::new(
             &client,
             "/data/a.bin",
-            std::io::Cursor::new(vec![0u8; 4096]),
-            4096,
+            Payload::stream(std::io::Cursor::new(vec![0u8; 4096]), 4096),
         )
         .into_builder()
+        .await
+        .unwrap()
         .build()
         .unwrap();
         assert_eq!(*built.method(), reqwest::Method::PUT);
@@ -708,9 +742,9 @@ mod tests {
             .fs()
             .upload()
             .put_file("/data/a.bin", file)
+            .into_builder()
             .await
             .unwrap()
-            .into_builder()
             .build()
             .unwrap();
         assert_eq!(
