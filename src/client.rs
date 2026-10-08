@@ -349,14 +349,13 @@ impl Client {
 
     /// 该错误是否应当触发重新登录。
     ///
-    /// 仅在保存了 [`Authentication::UsernamePassword`] 时对响应 401/403
+    /// 仅在保存了未设置 `otp_code` 的 [`Authentication::UsernamePassword`] 时对响应 401/403
     /// 或 HTTP 401/403 生效；[`Authentication::Token`] 永不触发。
+    /// 若设置了 `otp_code`，因一次性验证码不可重用且已过时，亦不尝试重新登录，直接报错返回。
     fn should_refresh_auth(&self, err: &Error) -> bool {
-        if !matches!(
-            self.authentication(),
-            Some(Authentication::UsernamePassword { .. })
-        ) {
-            return false;
+        match self.authentication() {
+            Some(Authentication::UsernamePassword { otp_code: None, .. }) => {}
+            _ => return false,
         }
 
         match err {
@@ -605,13 +604,11 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn username_password_authentication_with_otp_refreshes_expired_token() {
+    async fn username_password_authentication_with_otp_does_not_refresh_expired_token() {
         let requests = Arc::new(Mutex::new(Vec::new()));
-        let responses = vec![
-            ok_json(r#"{"code":401,"message":"token expired","data":null}"#),
-            ok_json(r#"{"code":200,"message":"success","data":{"token":"fresh-token"}}"#),
-            ok_json(r#"{"code":200,"message":"success","data":{"username":"admin"}}"#),
-        ];
+        let responses = vec![ok_json(
+            r#"{"code":401,"message":"token expired","data":null}"#,
+        )];
         let base_url = spawn_mock_server(responses, Some(Arc::clone(&requests))).await;
         let client =
             Client::new(base_url)
@@ -622,21 +619,15 @@ mod tests {
                     Some("123456".to_string()),
                 ));
 
-        let me: MeData = client
-            .execute(client.request(Method::GET, "/api/me"))
-            .await
-            .unwrap();
-        assert_eq!(me.username, "admin");
-        assert_eq!(client.token().as_deref(), Some("fresh-token"));
+        let result: Result<MeData> = client.execute(client.request(Method::GET, "/api/me")).await;
+        assert!(
+            result.is_err(),
+            "设置了 otp_code 后因验证码已过时，不应尝试重新登录，应直接报错返回"
+        );
 
         let requests = requests.lock().unwrap();
-        assert_eq!(requests.len(), 3);
+        assert_eq!(requests.len(), 1, "只应发送初始请求，不应触发重登");
         assert!(requests[0].contains("GET /api/me "));
-        assert!(requests[1].contains("POST /api/auth/login "));
-        assert!(requests[1].contains(r#""username":"admin""#));
-        assert!(requests[1].contains(r#""password":"password""#));
-        assert!(requests[1].contains(r#""otp_code":"123456""#));
-        assert!(requests[2].contains("GET /api/me "));
     }
 
     #[tokio::test]
