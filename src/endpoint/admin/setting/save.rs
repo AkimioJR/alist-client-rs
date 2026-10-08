@@ -79,7 +79,7 @@ impl<'a> super::Setting<'a> {
     /// # Examples
     ///
     /// ```no_run
-    /// use alist_client::schema::admin::setting::Setting;
+    /// use alist_client::schema::admin::setting::{Setting, SettingFlag, SettingGroup};
     /// use alist_client::{Authentication, Client};
     ///
     /// # async fn example() -> alist_client::Result<()> {
@@ -91,8 +91,8 @@ impl<'a> super::Setting<'a> {
     ///     help: String::new(),
     ///     value_type: "string".to_owned(),
     ///     options: String::new(),
-    ///     group: 1,
-    ///     flag: 0,
+    ///     group: SettingGroup::Site,
+    ///     flag: SettingFlag::Public,
     ///     index: 0,
     /// }];
     /// client.admin().setting().save(items).send_settings().await?;
@@ -143,14 +143,16 @@ mod tests {
         .await;
         let client = crate::Client::new(base_url).unwrap();
 
+        use crate::schema::admin::setting::{SettingFlag, SettingGroup};
+
         let settings = vec![Setting {
             key: "site_title".to_owned(),
             value: "AList".to_owned(),
             help: String::new(),
             value_type: "string".to_owned(),
             options: String::new(),
-            group: 1,
-            flag: 0,
+            group: SettingGroup::Site,
+            flag: SettingFlag::Public,
             index: 0,
         }];
         Request::new(&client, settings)

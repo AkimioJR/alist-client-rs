@@ -125,8 +125,9 @@ mod tests {
         assert_eq!(setting.key, "hide_files");
         assert_eq!(setting.value, "/\\/README.md/i");
         assert_eq!(setting.value_type, "text");
-        assert_eq!(setting.group, 4);
-        assert_eq!(setting.flag, 0);
+        use crate::schema::admin::setting::{SettingFlag, SettingGroup};
+        assert_eq!(setting.group, SettingGroup::Global);
+        assert_eq!(setting.flag, SettingFlag::Public);
 
         let recorded = requests.lock().unwrap();
         assert!(

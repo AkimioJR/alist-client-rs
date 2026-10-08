@@ -138,8 +138,9 @@ mod tests {
         assert_eq!(settings[0].key, "site_title");
         assert_eq!(settings[0].value, "AList");
         assert_eq!(settings[0].value_type, "string");
-        assert_eq!(settings[0].group, 1);
-        assert_eq!(settings[0].flag, 0);
+        use crate::schema::admin::setting::{SettingFlag, SettingGroup};
+        assert_eq!(settings[0].group, SettingGroup::Site);
+        assert_eq!(settings[0].flag, SettingFlag::Public);
         assert_eq!(settings[0].index, 3);
         assert_eq!(settings[1].key, "announcements");
         assert_eq!(settings[1].value_type, "text");

@@ -6,6 +6,7 @@
 use alist_client_derive::EndpointRequest;
 
 use crate::schema::admin::setting::Setting;
+pub use crate::schema::admin::setting::{SettingGroup, SettingGroups};
 
 /// 列出设置请求构建器。
 ///
@@ -18,16 +19,14 @@ use crate::schema::admin::setting::Setting;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 单个设置分组编号（可选参数）。
-    ///
-    /// 例如 `"1"`（站点）。
+    /// 单个设置分组（可选参数）。
     #[query]
-    group: Option<String>,
-    /// 逗号分隔的多个设置分组编号（可选参数）。
+    group: Option<SettingGroup>,
+    /// 多个设置分组（可选参数；逗号分隔）。
     ///
-    /// 例如 `"5,0"`；与 `group` 同时设置时服务端优先使用本参数。
+    /// 与 `group` 同时设置时服务端优先使用本参数。
     #[query]
-    groups: Option<String>,
+    groups: Option<SettingGroups>,
 }
 
 impl<'a> Request<'a> {
@@ -75,8 +74,13 @@ impl<'a> super::Setting<'a> {
     ///     .with_authentication(Authentication::token("ADMIN_TOKEN".to_owned()));
     /// // 全部设置项
     /// let settings = client.admin().setting().list().await?;
-    /// // 仅站点分组（分组编号见 Setting::group 字段文档）
-    /// let site_settings = client.admin().setting().list().group("1").await?;
+    /// // 仅站点分组
+    /// let site_settings = client
+    ///     .admin()
+    ///     .setting()
+    ///     .list()
+    ///     .group(alist_client::schema::admin::setting::SettingGroup::Site)
+    ///     .await?;
     /// println!("{settings:?}");
     /// println!("{site_settings:?}");
     /// # Ok(())
@@ -110,7 +114,7 @@ mod tests {
 
         // group：单分组
         let built = Request::new(&client)
-            .group("1")
+            .group(SettingGroup::Site)
             .build_request()
             .build()
             .unwrap();
@@ -120,7 +124,7 @@ mod tests {
 
         // groups：多分组（逗号按查询串规则编码为 %2C）
         let built = Request::new(&client)
-            .groups("5,0")
+            .groups([SettingGroup::OfflineDownload, SettingGroup::Single].into())
             .build_request()
             .build()
             .unwrap();
@@ -153,8 +157,9 @@ mod tests {
         assert_eq!(settings[0].key, "token");
         assert_eq!(settings[0].value, "alist-2a");
         assert_eq!(settings[0].value_type, "string");
-        assert_eq!(settings[0].group, 0);
-        assert_eq!(settings[0].flag, 1);
+        use crate::schema::admin::setting::{SettingFlag, SettingGroup};
+        assert_eq!(settings[0].group, SettingGroup::Single);
+        assert_eq!(settings[0].flag, SettingFlag::Private);
         assert_eq!(settings[0].index, 0);
 
         let recorded = requests.lock().unwrap();
