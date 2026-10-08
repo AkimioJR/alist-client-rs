@@ -78,19 +78,21 @@ struct RequestContext {
     url: String,
 }
 
-/// 从请求构建器提取方法与 URL（流式请求体等无法克隆时返回占位符）。
-fn request_context(builder: &RequestBuilder) -> RequestContext {
-    builder
-        .try_clone()
-        .and_then(|builder| builder.build().ok())
-        .map(|request| RequestContext {
-            method: request.method().to_string(),
-            url: request.url().to_string(),
-        })
-        .unwrap_or_else(|| RequestContext {
-            method: "?".to_string(),
-            url: "?".to_string(),
-        })
+impl RequestContext {
+    /// 从请求构建器提取方法与 URL（流式请求体等无法克隆时返回占位符）。
+    fn from_builder(builder: &RequestBuilder) -> Self {
+        builder
+            .try_clone()
+            .and_then(|builder| builder.build().ok())
+            .map(|request| RequestContext {
+                method: request.method().to_string(),
+                url: request.url().to_string(),
+            })
+            .unwrap_or_else(|| RequestContext {
+                method: "?".to_string(),
+                url: "?".to_string(),
+            })
+    }
 }
 
 /// 实例构造与建造者（Builder）链式配置。
@@ -229,7 +231,7 @@ impl Client {
     ///
     /// `data: null` 可解码为 `()` 或 `Option<T>`。
     pub(crate) async fn execute<R: DeserializeOwned>(&self, builder: RequestBuilder) -> Result<R> {
-        let context = request_context(&builder);
+        let context = RequestContext::from_builder(&builder);
         let mut retry_builder = builder.try_clone();
         let mut pending = Some(builder);
         let mut retried = false;
@@ -334,7 +336,7 @@ impl Client {
             req = req.otp_code(otp_code);
         }
         let builder = req.build_request();
-        let context = request_context(&builder);
+        let context = RequestContext::from_builder(&builder);
         let (data, response_body) = self.send_response(builder, &context, false).await?;
         let login: crate::schema::auth::LoginResponse =
             serde_json::from_value(data).map_err(|source| Error::Json {
