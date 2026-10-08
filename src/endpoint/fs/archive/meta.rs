@@ -2,9 +2,8 @@
 //!
 //! 对应 `POST /api/fs/archive/meta`；响应 `data` 为压缩包元信息（注释、
 //! 是否加密、递归文件树 [`ArchiveContentResponse`](crate::schema::fs::ArchiveContentResponse)、
-//! 原始下载地址与签名）。该端点未收录于 `docs/api/alistv3.openapi.yaml`，
-//! 请求/响应形状以 `examples/alist/server/handles/archive.go` 的
-//! `ArchiveMetaReq`/`ArchiveMetaResponse`（archive.go:25-44）为准。
+//! 原始下载地址与签名）。该端点未收录于 AList OpenAPI 规范，
+//! 请求/响应形状以 AList 服务端 `ArchiveMetaReq`/`ArchiveMetaResponse` 为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -25,13 +24,21 @@ use crate::schema::fs::ArchiveMetaResponse;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 压缩包的完整路径（必选）。
+    /// 压缩包的完整路径（必选参数）。
+    ///
+    /// 指向待读取元信息的压缩包在存储中的完整路径。
     path: String,
-    /// 目录（元信息）密码（可选）；对应 Go `ArchiveMetaReq.Password`。
+    /// 目录密码（可选参数）。
+    ///
+    /// 对应 AList 服务端 `ArchiveMetaReq.Password`。
     password: Option<String>,
-    /// 是否强制刷新服务端缓存的归档元信息（可选）；对应 Go `ArchiveMetaReq.Refresh`。
+    /// 是否强制刷新服务端缓存的归档元信息（可选参数）。
+    ///
+    /// 对应 AList 服务端 `ArchiveMetaReq.Refresh`。
     refresh: Option<bool>,
-    /// 加密压缩包的解压密码（可选）；对应 Go `ArchiveMetaReq.ArchivePass`。
+    /// 加密压缩包的解压密码（可选参数）。
+    ///
+    /// 对应 AList 服务端 `ArchiveMetaReq.ArchivePass`。
     archive_pass: Option<String>,
 }
 
@@ -59,10 +66,8 @@ impl<'a> super::Archive<'a> {
     /// 返回，`Client::execute` 会将其转换为
     /// [`Error::Api`](crate::Error::Api)。
     ///
-    /// 数据来源：`examples/alist/server/router.go:246-248`
-    /// （`a.Any("/meta", handles.FsArchiveMeta)`，携带 JSON 请求体的读端点
-    /// 按 POST 处理）与 `examples/alist/server/handles/archive.go:76-145`
-    /// （实现 `FsArchiveMeta`）。
+    /// 数据来源：AList 服务端路由定义中的 `/api/fs/archive/meta`（携带 JSON 请求体的读端点
+    /// 按 POST 处理）与 AList 服务端 `handles.FsArchiveMeta` 实现。
     ///
     /// # Arguments
     ///

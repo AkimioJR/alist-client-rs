@@ -1,10 +1,9 @@
 //! fs 端点：正则重命名。
 //!
 //! 对应 `POST /api/fs/regex_rename`；请求体为 `src_dir`/`src_name_regex`/
-//! `new_name_regex`（Go `RegexRenameReq`，fsbatch.go:209-213），服务端对源目录下
+//! `new_name_regex`（对应 AList 服务端 `RegexRenameReq`），服务端对源目录下
 //! 名称匹配正则的文件逐条以正则替换结果改名，响应 `data: null`。
-//! 端点文件模板与命名约定见 `docs/design.md`；
-//! API 路径以 `docs/api/alistv3.openapi.yaml` 与 `examples/alist/server/router.go` 为准。
+//! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -19,11 +18,17 @@ use alist_client_derive::EndpointRequest;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 源目录（必选；服务端枚举该目录下所有条目并逐条匹配）。
+    /// 源目录路径（必选参数）。
+    ///
+    /// 服务端枚举该目录下所有条目并逐条执行正则匹配。
     src_dir: String,
-    /// 源文件名匹配正则（必选；Go `regexp` 语法，非法正则服务端返回 500）。
+    /// 源文件名匹配正则（必选参数）。
+    ///
+    /// 遵循 Go `regexp` 正则表达式语法，非法正则服务端返回 500。
     src_name_regex: String,
-    /// 新文件名正则（必选；作为 `ReplaceAllString` 的替换模板，支持 `$1` 等分组引用）。
+    /// 新文件名替换模板（必选参数）。
+    ///
+    /// 作为 `ReplaceAllString` 的替换模板，支持 `$1` 等正则分组引用。
     new_name_regex: String,
 }
 
@@ -52,9 +57,8 @@ impl<'a> super::Fs<'a> {
     /// 对应 AList `POST /api/fs/regex_rename`；对 `src_dir` 下名称匹配
     /// `src_name_regex` 的条目，以 `new_name_regex` 作为替换模板逐条改名，
     /// 成功时响应 `data` 为 `null`。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `fs/regex_rename` 与
-    /// `examples/alist/server/handles/fsbatch.go`（实现为 `fs.FsRegexRename`，
-    /// 请求 `RegexRenameReq` fsbatch.go:209-213）。
+    /// 数据来源：AList OpenAPI 规范的 `/api/fs/regex_rename` 与
+    /// AList 服务端 `handles.FsRegexRename`（请求结构 `RegexRenameReq`）。
     ///
     /// # Arguments
     ///

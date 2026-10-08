@@ -1,19 +1,18 @@
 //! fs 端点：流式（原始字节流）上传。
 //!
 //! 对应 `PUT /api/fs/put`；请求信息全部位于 HTTP 头与原始字节请求体中，
-//! 服务端实现为 `examples/alist/server/handles/fsup.go` 的 `FsStream`
-//! （fsup.go:30-110，路由注册见 `server/router.go:239`）：
+//! 服务端实现为 AList 服务端 `handles.FsStream`（路由注册见服务端路由定义）：
 //!
 //! | 请求头 | 语义 |
 //! |---|---|
-//! | `File-Path` | 目标绝对路径；服务端 `url.PathUnescape`（fsup.go:31-35），客户端需 URL 编码 |
-//! | `Password` | 目录（元信息）密码；由 `server/middlewares/fsup.go:17` 读取 |
-//! | `Overwrite` | 仅 `"false"` 时禁止覆盖，缺省允许覆盖（fsup.go:38） |
-//! | `As-Task` | 仅 `"true"` 时转为后台上传任务（fsup.go:37） |
-//! | `Content-Length` | 服务端重新解析的文件大小（fsup.go:53-60），必须设置 |
-//! | `Last-Modified` | 文件修改时间，epoch 毫秒整数（fsup.go:19-28） |
-//! | `Content-Type` | 兼作文件 mimetype（fsup.go:74-77） |
-//! | `X-File-Md5` / `X-File-Sha1` / `X-File-Sha256` | 可选哈希校验（fsup.go:64-73） |
+//! | `File-Path` | 目标绝对路径；服务端按 `url.PathUnescape` 解析，客户端需 URL 编码 |
+//! | `Password` | 目录（元信息）密码；由服务端中间件读取 |
+//! | `Overwrite` | 仅 `"false"` 时禁止覆盖，缺省允许覆盖 |
+//! | `As-Task` | 仅 `"true"` 时转为后台上传任务 |
+//! | `Content-Length` | 服务端重新解析的文件大小，必须显式设置 |
+//! | `Last-Modified` | 文件修改时间，epoch 毫秒整数 |
+//! | `Content-Type` | 兼作文件 mimetype |
+//! | `X-File-Md5` / `X-File-Sha1` / `X-File-Sha256` | 可选哈希校验 |
 //!
 //! 直传成功时响应 `data` 为 `null`，转后台任务时为 `{"task": ...}`，
 //! 因此端点模型为 `Option<UploadResponse>`。本端点**手写**请求构建器
@@ -103,25 +102,45 @@ impl Payload {
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send_upload().await`"]
 pub struct Request<'a> {
     client: &'a crate::Client,
-    /// 目标绝对路径（`File-Path` 头，发送时 URL 编码）。
+    /// 目标绝对路径（必选参数）。
+    ///
+    /// 对应 `File-Path` 请求头，客户端发送时自动进行 URL 编码。
     path: String,
-    /// 请求载荷（内存字节、流式读取器或本地文件）。
+    /// 请求载荷（必选参数）。
+    ///
+    /// 包含内存字节、流式读取器或本地文件数据载荷。
     payload: Payload,
-    /// 目录（元信息）密码（`Password` 头）。
+    /// 目录密码（可选参数）。
+    ///
+    /// 对应 `Password` 请求头，目标目录受密码保护时提供。
     password: Option<String>,
-    /// 是否允许覆盖已有文件（`Overwrite` 头；服务端缺省允许）。
+    /// 是否允许覆盖已有文件（可选参数）。
+    ///
+    /// 对应 `Overwrite` 请求头；服务端缺省允许覆盖。
     overwrite: Option<bool>,
-    /// 是否转为后台上传任务（`As-Task` 头）。
+    /// 是否转为后台上传任务（可选参数）。
+    ///
+    /// 对应 `As-Task` 请求头；为 `true` 时转为异步任务。
     as_task: Option<bool>,
-    /// 文件修改时间，epoch 毫秒（`Last-Modified` 头）。
+    /// 文件修改时间（可选参数）。
+    ///
+    /// 对应 `Last-Modified` 请求头，传入 epoch 毫秒整数。
     last_modified: Option<i64>,
-    /// 文件 mimetype（`Content-Type` 头）。
+    /// 文件媒体类型（可选参数）。
+    ///
+    /// 对应 `Content-Type` 请求头；缺省由服务端按扩展名推断。
     content_type: Option<String>,
-    /// MD5 哈希（`X-File-Md5` 头）。
+    /// 文件的 MD5 哈希（可选参数）。
+    ///
+    /// 对应 `X-File-Md5` 请求头，用于服务端一致性校验。
     md5: Option<String>,
-    /// SHA-1 哈希（`X-File-Sha1` 头）。
+    /// 文件的 SHA-1 哈希（可选参数）。
+    ///
+    /// 对应 `X-File-Sha1` 请求头，用于服务端一致性校验。
     sha1: Option<String>,
-    /// SHA-256 哈希（`X-File-Sha256` 头）。
+    /// 文件的 SHA-256 哈希（可选参数）。
+    ///
+    /// 对应 `X-File-Sha256` 请求头，用于服务端一致性校验。
     sha256: Option<String>,
 }
 
@@ -167,7 +186,7 @@ impl<'a> Request<'a> {
     /// 是否允许覆盖已有文件（可选；`Overwrite` 头）。
     ///
     /// 缺省时服务端允许覆盖；仅显式传 `false` 时，目标文件已存在的上传
-    /// 会被服务端以 `403 file exists` 拒绝（fsup.go:45-51）。
+    /// 会被服务端以 `403 file exists` 拒绝。
     #[inline]
     pub fn overwrite(mut self, overwrite: bool) -> Self {
         self.overwrite = Some(overwrite);
@@ -177,7 +196,7 @@ impl<'a> Request<'a> {
     /// 是否转为后台上传任务（可选；`As-Task` 头）。
     ///
     /// 缺省时直传（响应 `data` 为 `null`）；传 `true` 时服务端创建后台任务
-    /// 并返回任务信息（fsup.go:90-94）。
+    /// 并返回任务信息。
     #[inline]
     pub fn as_task(mut self, as_task: bool) -> Self {
         self.as_task = Some(as_task);
@@ -186,7 +205,7 @@ impl<'a> Request<'a> {
 
     /// 文件修改时间（可选；`Last-Modified` 头，epoch 毫秒整数）。
     ///
-    /// 缺省时服务端以收到请求的时间作为修改时间（fsup.go:19-28）。
+    /// 缺省时服务端以收到请求的时间作为修改时间。
     #[inline]
     pub fn last_modified(mut self, last_modified: i64) -> Self {
         self.last_modified = Some(last_modified);
@@ -195,7 +214,7 @@ impl<'a> Request<'a> {
 
     /// 文件 mimetype（可选；`Content-Type` 头）。
     ///
-    /// 缺省时服务端按目标文件扩展名推断 mimetype（fsup.go:74-77）。
+    /// 缺省时服务端按目标文件扩展名推断 mimetype。
     #[inline]
     pub fn content_type(mut self, content_type: impl Into<String>) -> Self {
         self.content_type = Some(content_type.into());
@@ -239,7 +258,7 @@ impl<'a> Request<'a> {
                 // 服务端 url.PathUnescape 解码；Cow 不满足 HeaderValue 约束，取所有权字符串
                 urlencoding::encode(&self.path).into_owned(),
             )
-            // 服务端重新解析 Content-Length（fsup.go:53-60），必须显式设置
+            // 服务端重新解析 Content-Length，必须显式设置
             .header(CONTENT_LENGTH, content_length);
         if let Some(password) = &self.password {
             builder = builder.header("Password", password);
@@ -279,7 +298,7 @@ impl<'a> Request<'a> {
     /// AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。注意：内存字节请求体可克隆，401/403 自动重登
     /// 重试可用；`stream` feature 的流式请求体无法克隆，401/403 自动重试
-    /// 不可用，将直接返回原始错误（见 `docs/design.md` §8）。
+    /// 不可用，将直接返回原始错误。
     pub async fn send_upload(self) -> crate::Result<Option<UploadResponse>> {
         self.client.execute(self.into_builder().await?).await
     }
@@ -306,7 +325,7 @@ impl<'a> super::Upload<'a> {
     /// 以原始字节流上传文件。
     ///
     /// 对应 AList `PUT /api/fs/put`（服务端实现 `FsStream`，
-    /// `examples/alist/server/handles/fsup.go:30-110`）。请求信息全部位于
+    /// AList 服务端 `handles.FsStream`）。请求信息全部位于
     /// HTTP 头与原始字节请求体中；`Content-Length` 由本端点按内容长度自动
     /// 设置。目标文件路径通过 `File-Path` 头 URL 编码后发送。
     ///
@@ -398,7 +417,7 @@ impl<'a> super::Upload<'a> {
     ///
     /// 读取器经 `tokio_util::io::ReaderStream` 包装为分块流式请求体发送，
     /// 不会整体读入内存；`content_length` 随 `Content-Length` 头发送
-    /// （服务端重新解析，fsup.go:53-60），必须与读取器可提供的字节数一致。
+    /// （服务端重新解析），必须与读取器可提供的字节数一致。
     ///
     /// # Arguments
     ///

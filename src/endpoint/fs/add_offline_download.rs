@@ -1,12 +1,10 @@
 //! fs 端点：添加离线下载任务。
 //!
 //! 对应 `POST /api/fs/add_offline_download`；请求体为 `urls`/`path`/`tool`/
-//! `delete_policy`（Go `AddOfflineDownloadReq`，offline_download.go:338-343）。
+//! `delete_policy`（对应 AList 服务端 `AddOfflineDownloadReq`）。
 //! 响应是 `{"tasks": [...]}` 任务数组（每个 URL 至多一个后台任务，
-//! offline_download.go:383-385，openapi 示例一致），以 [`OfflineDownloadResponse`]
-//! 建模。
-//! 端点文件模板与命名约定见 `docs/design.md`；
-//! API 路径以 `docs/api/alistv3.openapi.yaml` 与 `examples/alist/server/router.go` 为准。
+//! 与 OpenAPI 规范示例一致），以 [`OfflineDownloadResponse`] 建模。
+//! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -29,14 +27,21 @@ use crate::schema::fs::OfflineDownloadResponse;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 下载目标目录（必选；须具备离线下载权限）。
+    /// 下载目标目录（必选参数）。
+    ///
+    /// 调用方须具备对应目录的离线下载权限。
     path: String,
-    /// 下载链接列表（必选；每个 URL 至多产生一个后台任务）。
+    /// 下载链接列表（必选参数）。
+    ///
+    /// 每个 URL 至多产生一个后台任务。
     urls: Vec<String>,
-    /// 离线下载工具名（必选；如 `aria2`、`SimpleHttp`、`qBittorrent`，
-    /// 或网盘内置工具 `115 Cloud`、`PikPak` 等）。
+    /// 离线下载工具名（必选参数）。
+    ///
+    /// 如 `aria2`、`SimpleHttp`、`qBittorrent`，或网盘内置工具 `115 Cloud`、`PikPak` 等。
     tool: String,
-    /// 临时文件删除策略（必选；见 [`DeletePolicy`]）。
+    /// 临时文件删除策略（必选参数）。
+    ///
+    /// 详见 [`DeletePolicy`]。
     delete_policy: DeletePolicy,
 }
 
@@ -70,10 +75,8 @@ impl<'a> super::Fs<'a> {
     /// 成功时响应 `data` 为 `{"tasks": [TaskInfo]}` 任务数组
     /// （[`OfflineDownloadResponse`]；
     /// 每个 URL 至多一个任务，单个 URL 创建失败会直接报错）。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/fs/add_offline_download`
-    /// 与 `examples/alist/server/handles/offline_download.go`（实现为
-    /// `handles.AddOfflineDownload`，请求 `AddOfflineDownloadReq`
-    /// offline_download.go:338-343，响应 offline_download.go:383-385）。
+    /// 数据来源：AList OpenAPI 规范的 `/api/fs/add_offline_download`
+    /// 与 AList 服务端 `handles.AddOfflineDownload`（请求结构 `AddOfflineDownloadReq`）。
     ///
     /// # Arguments
     ///
@@ -165,7 +168,7 @@ mod tests {
         assert_eq!(json["delete_policy"], "delete_on_upload_succeed");
     }
 
-    /// 2) 收发路径断言：mock 服务器返回 openapi 示例响应，断言请求原文与任务解码。
+    /// 2) 收发路径断言：mock 服务器返回 OpenAPI 示例响应，断言请求原文与任务解码。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_tasks() {
         use std::sync::{Arc, Mutex};

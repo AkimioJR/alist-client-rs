@@ -1,8 +1,8 @@
 //! fs 上传子句柄。
 //!
-//! 对应 `examples/alist/server/router.go` 中 `PUT /api/fs/put`（流式上传）与
+//! 对应 AList 服务端路由定义中 `PUT /api/fs/put`（流式上传）与
 //! `PUT /api/fs/form`（表单上传）两个路由；上传行为细节见
-//! `examples/alist/server/handles/fsup.go`（`File-Path`/`As-Task`/`Overwrite`
+//! AList 服务端上传实现（`File-Path`/`As-Task`/`Overwrite`
 //! 等请求头与哈希校验头）。
 //!
 //! # 上传方案选型指南

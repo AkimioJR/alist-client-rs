@@ -2,8 +2,8 @@
 //!
 //! 覆盖目录列表、文件信息、目录树、搜索、目录/重命名/移动/复制/删除、
 //! 离线下载以及归档（[`archive`]）与上传（[`upload`]）子句柄，
-//! API 路径见 `docs/api/alistv3.openapi.yaml` 的 `fs` 分组与
-//! `examples/alist/server/router.go` 的 `_fs` 路由。
+//! API 路径见 AList OpenAPI 规范的 `fs` 分组与
+//! AList 服务端路由定义的 `_fs` 路由。
 //!
 //! 通过 [`Client::fs`](crate::Client::fs) 获取句柄，推荐即建即用。
 

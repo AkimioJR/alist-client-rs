@@ -4,10 +4,9 @@
 //! `{content: [...], total: N}` 分页形状（共享模型
 //! [`PageResponse`]，元素为
 //! [`ObjResponse`]）。该端点未收录于
-//! `docs/api/alistv3.openapi.yaml`，请求/响应形状以
-//! `examples/alist/server/handles/archive.go` 的 `ArchiveListReq`/`ArchiveListResponse`
-//! （archive.go:147-156）为准；分页字段与 `internal/model/req.go` 的
-//! `PageRequest`（`page`/`per_page`）一致，随 JSON 请求体发送。
+//! AList OpenAPI 规范，请求/响应形状以
+//! AList 服务端 `ArchiveListReq`/`ArchiveListResponse`
+//! 为准；分页字段与服务端 `PageRequest`（`page`/`per_page`）一致，随 JSON 请求体发送。
 
 use alist_client_derive::EndpointRequest;
 
@@ -31,19 +30,33 @@ use crate::schema::{common::PageResponse, fs::ObjResponse};
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 压缩包的完整路径（必选）。
+    /// 压缩包的完整路径（必选参数）。
+    ///
+    /// 指向待浏览压缩包在存储中的完整路径。
     path: String,
-    /// 目录（元信息）密码（可选）；对应 Go `ArchiveMetaReq.Password`。
+    /// 目录密码（可选参数）。
+    ///
+    /// 对应 AList 服务端 `ArchiveMetaReq.Password`。
     password: Option<String>,
-    /// 是否强制刷新服务端缓存的归档元信息（可选）；对应 Go `ArchiveMetaReq.Refresh`。
+    /// 是否强制刷新服务端缓存的归档元信息（可选参数）。
+    ///
+    /// 对应 AList 服务端 `ArchiveMetaReq.Refresh`。
     refresh: Option<bool>,
-    /// 加密压缩包的解压密码（可选）；对应 Go `ArchiveMetaReq.ArchivePass`。
+    /// 加密压缩包的解压密码（可选参数）。
+    ///
+    /// 对应 AList 服务端 `ArchiveMetaReq.ArchivePass`。
     archive_pass: Option<String>,
-    /// 页码，从 1 开始（可选，随 JSON 请求体发送）；缺省时服务端按第 1 页处理。
+    /// 页码，从 1 开始（可选参数）。
+    ///
+    /// 随 JSON 请求体发送；缺省时服务端按第 1 页处理。
     page: Option<i32>,
-    /// 每页条数（可选，随 JSON 请求体发送）；服务端对小于 1 的值返回全部条目。
+    /// 每页条数（可选参数）。
+    ///
+    /// 随 JSON 请求体发送；服务端对小于 1 的值返回全部条目。
     per_page: Option<i32>,
-    /// 压缩包内部路径（可选）；缺省列出压缩包根目录。
+    /// 压缩包内部路径（可选参数）。
+    ///
+    /// 缺省列出压缩包根目录。
     inner_path: Option<String>,
 }
 
@@ -72,10 +85,8 @@ impl<'a> super::Archive<'a> {
     /// （缺省为压缩包根）下直接子项的分页列表（`content` 与 `total`）。
     /// 压缩包密码错误时 AList 以响应 `code: 202` 返回。
     ///
-    /// 数据来源：`examples/alist/server/router.go:246-248`
-    /// （`a.Any("/list", handles.FsArchiveList)`，携带 JSON 请求体的读端点
-    /// 按 POST 处理）与 `examples/alist/server/handles/archive.go:158-222`
-    /// （实现 `FsArchiveList`；分页经 `pagination(objs, &req.PageRequest)`）。
+    /// 数据来源：AList 服务端路由定义中的 `/api/fs/archive/list`（携带 JSON 请求体的读端点
+    /// 按 POST 处理）与 AList 服务端 `handles.FsArchiveList` 实现。
     ///
     /// # Arguments
     ///

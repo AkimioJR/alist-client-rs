@@ -1,10 +1,9 @@
 //! fs 端点：批量重命名。
 //!
 //! 对应 `POST /api/fs/batch_rename`；请求体为 `src_dir` 与 `rename_objects`
-//! 数组（Go `BatchRenameReq`，fsbatch.go:147-153），服务端逐条尽力改写
+//! 数组（对应 AList 服务端 `BatchRenameReq`），服务端逐条尽力改写
 //! （空名项被跳过），响应 `data: null`。
-//! 端点文件模板与命名约定见 `docs/design.md`；
-//! API 路径以 `docs/api/alistv3.openapi.yaml` 与 `examples/alist/server/router.go` 为准。
+//! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -21,10 +20,13 @@ use crate::schema::fs::RenameObject;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 源目录（必选；`rename_objects` 中的名称均相对该目录）。
+    /// 源目录路径（必选参数）。
+    ///
+    /// `rename_objects` 中的源文件名均相对于该目录。
     src_dir: String,
-    /// 重命名项列表（必选；每项含 `src_name`/`new_name`，
-    /// 服务端跳过空名项并逐条校验新名称合法性）。
+    /// 重命名项列表（必选参数）。
+    ///
+    /// 每项含 `src_name` 与 `new_name`，服务端跳过空名项并逐条校验新名称合法性。
     rename_objects: Vec<RenameObject>,
 }
 
@@ -52,9 +54,8 @@ impl<'a> super::Fs<'a> {
     /// `rename_objects` 逐条改写，成功时响应 `data` 为 `null`。
     /// 注意服务端为逐条尽力而为：某条失败（新名称非法、路径受限等）会直接
     /// 以错误结束请求，但此前已完成的条目不会回滚。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `fs/batch_rename` 与
-    /// `examples/alist/server/handles/fsbatch.go`（实现为 `fs.FsBatchRename`，
-    /// 请求 `BatchRenameReq` fsbatch.go:147-153）。
+    /// 数据来源：AList OpenAPI 规范的 `/api/fs/batch_rename` 与
+    /// AList 服务端 `handles.FsBatchRename`（请求结构 `BatchRenameReq`）。
     ///
     /// # Arguments
     ///

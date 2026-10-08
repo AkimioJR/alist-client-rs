@@ -3,12 +3,10 @@
 //! 对应 `POST /api/fs/list`；分页参数 `page`/`per_page` 位于 JSON 请求体
 //! （`per_page = -1` 表示返回全部条目，`0` 或缺省由服务端回退为默认页大小
 //! `DefaultPerPage = 200`，超过 `MaxPerPage = 500` 会被收敛为 500，
-//! 见 `examples/alist/server/handles/fsread.go` 的 `normalizeListPage`，
-//! fsread.go:84-88、253-269），响应含 content/total/readme/header/write/provider，
+//! 见 AList 服务端 `normalizeListPage` 实现），响应含 content/total/readme/header/write/provider，
 //! 新版服务端还返回 page/per_page/has_more/pages_total/filtered_total
 //! （schema 层以 `#[serde(default)]` + `null_to_default` 兼容新旧版本）。
-//! 端点文件模板与命名约定见 `docs/design.md`；
-//! API 路径以 `docs/api/alistv3.openapi.yaml` 与 `examples/alist/server/router.go` 为准。
+//! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -32,24 +30,31 @@ use crate::schema::fs::FsListResponse;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 目标目录路径（必选；相对于某存储的完整路径）。
-    path: String,
-    /// 目录密码（可选；目录受密码保护时必填）。
-    password: Option<String>,
-    /// 页码（可选，从 1 开始；缺省或非正数由服务端回退为第 1 页）。
+    /// 目标目录路径（必选参数）。
     ///
+    /// 相对于某存储挂载路径的完整路径。
+    path: String,
+    /// 目录密码（可选参数）。
+    ///
+    /// 目录受密码保护时必填。
+    password: Option<String>,
+    /// 页码，从 1 开始（可选参数）。
+    ///
+    /// 缺省或非正数由服务端回退为第 1 页。
     /// 启用 `into-stream` feature 时，[`Request::into_stream`] 会自动从当前页
     /// （缺省第 1 页）起逐页递增翻页。
     page: Option<i32>,
-    /// 每页条数（可选）。
+    /// 每页条数（可选参数）。
     ///
-    /// `-1` 表示返回全部条目（Go `AllPerPage`）；`0` 或缺省由服务端回退为
+    /// `-1` 表示返回全部条目（对应服务端 `AllPerPage`）；`0` 或缺省由服务端回退为
     /// 默认页大小 200；大于 500 时服务端收敛为 500。
     ///
     /// 注意：`per_page = -1` 时服务端对任意页码都返回完整列表，
     /// 请勿与 [`Request::into_stream`] 搭配使用（流不会终止）。
     per_page: Option<i32>,
-    /// 是否强制刷新存储缓存（可选；无写权限时刷新请求被服务端以 403 拒绝）。
+    /// 是否强制刷新存储缓存（可选参数）。
+    ///
+    /// 无写权限时刷新请求会被服务端以 403 拒绝。
     refresh: Option<bool>,
 }
 
@@ -77,9 +82,8 @@ impl<'a> super::Fs<'a> {
     /// （[`FsListResponse`]）。新版服务端额外返回
     /// `page`/`per_page`/`has_more`/`pages_total`/`filtered_total` 分页元信息，
     /// 老版本缺失时对应字段归约为零值。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/fs/list` 与
-    /// `examples/alist/server/handles/fsread.go`（实现为 `fs.FsList`，
-    /// 请求 `ListReq` fsread.go:22-27，响应 `FsListResponse` fsread.go:52-64）。
+    /// 数据来源：AList OpenAPI 规范的 `/api/fs/list` 与
+    /// AList 服务端 `handles.FsList`（请求结构 `ListReq`，响应结构 `FsListResponse`）。
     ///
     /// # Arguments
     ///
@@ -178,7 +182,7 @@ mod tests {
         assert!(json.get("refresh").is_none(), "未设置的可选字段应被跳过");
     }
 
-    /// 3) 收发路径断言：mock 服务器返回 openapi `/api/fs/list` 示例
+    /// 3) 收发路径断言：mock 服务器返回 OpenAPI `/api/fs/list` 示例
     /// （老版本形状），断言 POST 方法、认证头注入与 schema 兼容解码。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_list() {

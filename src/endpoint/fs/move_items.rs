@@ -1,12 +1,10 @@
 //! fs 端点：移动文件。
 //!
 //! 对应 `POST /api/fs/move`；方法名取 `move_items` 以避开 Rust 关键字 `move`。
-//! 请求体为 `src_dir`/`dst_dir`/`names`/`overwrite`（Go `MoveCopyReq`，
-//! fsmanage.go:66-74；`overwrite` 为新版服务端新增的覆盖开关，openapi 未收录，
-//! 以 Go 源码为准），响应 `data: null`。跨存储移动会被服务端拒绝
-//! （MoveBetweenTwoStorages）。
-//! 端点文件模板与命名约定见 `docs/design.md`；
-//! API 路径以 `docs/api/alistv3.openapi.yaml` 与 `examples/alist/server/router.go` 为准。
+//! 请求体为 `src_dir`/`dst_dir`/`names`/`overwrite`（对应 AList 服务端 `MoveCopyReq`；
+//! `overwrite` 为新版服务端新增的覆盖开关），响应 `data: null`。跨存储移动会被服务端拒绝
+//! （`MoveBetweenTwoStorages`）。
+//! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -21,13 +19,21 @@ use alist_client_derive::EndpointRequest;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 源目录（必选）。
+    /// 源目录路径（必选参数）。
+    ///
+    /// 待移动文件所在的源目录。
     src_dir: String,
-    /// 目标目录（必选；须与源目录位于同一存储，跨存储移动被服务端拒绝）。
+    /// 目标目录路径（必选参数）。
+    ///
+    /// 须与源目录位于同一存储，跨存储移动会被服务端拒绝。
     dst_dir: String,
-    /// 待移动的文件/目录名列表（必选，相对 `src_dir`；为空时服务端返回 400）。
+    /// 待移动的文件或目录名列表（必选参数）。
+    ///
+    /// 各项均相对于 `src_dir`；为空时服务端返回 400。
     names: Vec<String>,
-    /// 是否允许覆盖目标同名文件（可选；缺省不允许，已存在时服务端返回 403）。
+    /// 是否允许覆盖目标同名文件（可选参数）。
+    ///
+    /// 缺省不允许，目标同名文件已存在时服务端返回 403。
     overwrite: Option<bool>,
 }
 
@@ -57,9 +63,8 @@ impl<'a> super::Fs<'a> {
     /// 对应 AList `POST /api/fs/move`（方法名取 `move_items` 以避开 Rust
     /// 关键字 `move`）；将 `src_dir` 下的 `names` 移动到 `dst_dir`，
     /// 成功时响应 `data` 为 `null`。
-    /// 数据来源：`examples/alist/server/router.go:233`（路由注册）与
-    /// `examples/alist/server/handles/fsmanage.go`（实现为 `fs.FsMove`，
-    /// 请求 `MoveCopyReq` fsmanage.go:66-74）。
+    /// 数据来源：AList 服务端路由定义中的 `/api/fs/move` 与
+    /// AList 服务端 `handles.FsMove`（请求结构 `MoveCopyReq`）。
     ///
     /// # Arguments
     ///

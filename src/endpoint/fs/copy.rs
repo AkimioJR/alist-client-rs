@@ -1,12 +1,10 @@
 //! fs 端点：复制文件。
 //!
 //! 对应 `POST /api/fs/copy`；请求体为 `src_dir`/`dst_dir`/`names`/`overwrite`/
-//! `skip_existing`（Go `MoveCopyReq`，fsmanage.go:66-74，`skip_existing` 仅对复制
-//! 生效）。新版服务端返回 `{"tasks": [...]}` 后台任务信息
-//! （fsmanage.go:215-217），老版本成功时 `data` 为 `null`，因此端点模型为
-//! `Option<CopyResponse>`。
-//! 端点文件模板与命名约定见 `docs/design.md`；
-//! API 路径以 `docs/api/alistv3.openapi.yaml` 与 `examples/alist/server/router.go` 为准。
+//! `skip_existing`（对应 AList 服务端 `MoveCopyReq`，`skip_existing` 仅对复制
+//! 生效）。新版服务端返回 `{"tasks": [...]}` 后台任务信息，
+//! 老版本成功时 `data` 为 `null`，因此端点模型为 `Option<CopyResponse>`。
+//! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -23,16 +21,25 @@ use crate::schema::fs::CopyResponse;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 源目录（必选）。
+    /// 源目录路径（必选参数）。
+    ///
+    /// 待复制文件所在的源目录。
     src_dir: String,
-    /// 目标目录（必选）。
+    /// 目标目录路径（必选参数）。
+    ///
+    /// 复制目标目录。
     dst_dir: String,
-    /// 待复制的文件/目录名列表（必选，相对 `src_dir`；为空时服务端返回 400）。
+    /// 待复制的文件或目录名列表（必选参数）。
+    ///
+    /// 各项均相对于 `src_dir`；为空时服务端返回 400。
     names: Vec<String>,
-    /// 是否允许覆盖目标同名文件（可选；缺省不允许，已存在时服务端返回 403）。
+    /// 是否允许覆盖目标同名文件（可选参数）。
+    ///
+    /// 缺省不允许，目标同名文件已存在时服务端返回 403。
     overwrite: Option<bool>,
-    /// 是否跳过目标已存在且大小相同的文件（可选；仅对复制生效，
-    /// 启用后不再返回 403，改为静默跳过）。
+    /// 是否跳过目标已存在且大小相同的文件（可选参数）。
+    ///
+    /// 仅对复制操作生效；启用后不再返回 403，改为静默跳过。
     skip_existing: Option<bool>,
 }
 
@@ -62,11 +69,10 @@ impl<'a> super::Fs<'a> {
     ///
     /// 对应 AList `POST /api/fs/copy`；将 `src_dir` 下的 `names` 复制到
     /// `dst_dir`。新版服务端为每个需要后台处理的条目创建复制任务，响应 `data`
-    /// 为 `{"tasks": [TaskInfo]}`（fsmanage.go:215-217）；全部同步完成或老版本
+    /// 为 `{"tasks": [TaskInfo]}`；全部同步完成或老版本
     /// 服务端成功时 `data` 为 `null`，因此端点模型为 `Option<CopyResponse>`。
-    /// 数据来源：`examples/alist/server/router.go:235`（路由注册）与
-    /// `examples/alist/server/handles/fsmanage.go`（实现为 `fs.FsCopy`，
-    /// 请求 `MoveCopyReq` fsmanage.go:66-74）。
+    /// 数据来源：AList 服务端路由定义中的 `/api/fs/copy` 与
+    /// AList 服务端 `handles.FsCopy`（请求结构 `MoveCopyReq`）。
     ///
     /// # Arguments
     ///

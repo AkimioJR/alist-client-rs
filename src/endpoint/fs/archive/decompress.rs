@@ -3,10 +3,9 @@
 //! 对应 `POST /api/fs/archive/decompress`；响应 `data` 为
 //! `{task: [...]}`（后台解压任务列表，同步完成的条目不会出现在其中，
 //! 全部同步完成时 `task` 为空数组）。该端点未收录于
-//! `docs/api/alistv3.openapi.yaml`，请求/响应形状以
-//! `examples/alist/server/handles/archive.go` 的 `ArchiveDecompressReq`
-//! （archive.go:240-248）与 `FsArchiveDecompress`（archive.go:318-320，
-//! `gin.H{"task": getTaskInfos(tasks)}`）为准。
+//! AList OpenAPI 规范，请求/响应形状以
+//! AList 服务端 `handles.FsArchiveDecompress` 与请求结构 `ArchiveDecompressReq`
+//! 为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -28,22 +27,34 @@ use crate::schema::fs::ArchiveDecompressResponse;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 压缩包所在目录（必选）；对应 Go `ArchiveDecompressReq.SrcDir`。
+    /// 压缩包所在目录（必选参数）。
+    ///
+    /// 对应 AList 服务端 `ArchiveDecompressReq.SrcDir`。
     src_dir: String,
-    /// 解压目标目录（必选）；对应 Go `ArchiveDecompressReq.DstDir`。
+    /// 解压目标目录（必选参数）。
+    ///
+    /// 对应 AList 服务端 `ArchiveDecompressReq.DstDir`。
     dst_dir: String,
-    /// 待解压条目在压缩包内的名称列表（必选）；对应 Go
-    /// `ArchiveDecompressReq.Name`（JSON 键 `name`，服务端 `StringOrArray`
-    /// 同时接受单个字符串与字符串数组，本客户端统一发送数组形状）。
+    /// 待解压条目在压缩包内的名称列表（必选参数）。
+    ///
+    /// 对应 AList 服务端 `ArchiveDecompressReq.Name`（JSON 键 `name`；服务端
+    /// `StringOrArray` 同时接受单字符串与字符串数组，本客户端统一发送数组形状）。
     name: Vec<String>,
-    /// 加密压缩包的解压密码（可选）；对应 Go `ArchiveDecompressReq.ArchivePass`。
+    /// 加密压缩包的解压密码（可选参数）。
+    ///
+    /// 对应 AList 服务端 `ArchiveDecompressReq.ArchivePass`。
     archive_pass: Option<String>,
-    /// 压缩包内部路径（可选）；限定解压范围，缺省从压缩包根开始。
+    /// 压缩包内部路径（可选参数）。
+    ///
+    /// 限定解压范围，缺省从压缩包根开始。
     inner_path: Option<String>,
-    /// 解压前是否缓存完整压缩包（可选）；对应 Go `ArchiveDecompressReq.CacheFull`。
+    /// 解压前是否缓存完整压缩包（可选参数）。
+    ///
+    /// 对应 AList 服务端 `ArchiveDecompressReq.CacheFull`。
     cache_full: Option<bool>,
-    /// 是否将解压结果放入以压缩包名命名的新目录（可选）；对应 Go
-    /// `ArchiveDecompressReq.PutIntoNewDir`。
+    /// 是否将解压结果放入以压缩包名命名的新目录（可选参数）。
+    ///
+    /// 对应 AList 服务端 `ArchiveDecompressReq.PutIntoNewDir`。
     put_into_new_dir: Option<bool>,
 }
 
@@ -79,17 +90,15 @@ impl<'a> super::Archive<'a> {
     /// 条目被同步解压时不出现在其中，全部同步完成时 `task` 为空数组。
     /// 压缩包密码错误时 AList 以响应 `code: 202` 返回。
     ///
-    /// 数据来源：`examples/alist/server/router.go:249`
-    /// （`a.POST("/decompress", handles.FsArchiveDecompress)`）与
-    /// `examples/alist/server/handles/archive.go:250-321`（实现
-    /// `FsArchiveDecompress`）。
+    /// 数据来源：AList 服务端路由定义中的 POST `/api/fs/archive/decompress` 与
+    /// AList 服务端 `handles.FsArchiveDecompress` 实现。
     ///
     /// # Arguments
     ///
     /// * `src_dir` - 压缩包所在目录。
     /// * `dst_dir` - 解压目标目录。
     /// * `name` - 待解压条目在压缩包内的名称列表（相对压缩包根，
-    ///   如 `["docs/a.txt", "images"]`）。
+    ///   如 `["sub/a.txt", "images"]`）。
     ///
     /// # Returns
     ///

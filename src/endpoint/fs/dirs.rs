@@ -1,10 +1,9 @@
 //! fs 端点：获取目录列表。
 //!
 //! 对应 `POST /api/fs/dirs`；仅返回目录下的子目录（`name`/`modified`），
-//! 请求体为 `path`/`password`/`force_root`（Go `DirReq`，fsread.go:29-33；
-//! `force_root = true` 供管理员忽略根路径限制，fsread.go:167-171）。
-//! 端点文件模板与命名约定见 `docs/design.md`；
-//! API 路径以 `docs/api/alistv3.openapi.yaml` 与 `examples/alist/server/router.go` 为准。
+//! 请求体为 `path`/`password`/`force_root`（对应 AList 服务端 `DirReq`；
+//! `force_root = true` 供管理员忽略根路径限制）。
+//! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -21,11 +20,17 @@ use crate::schema::fs::DirResponse;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 目标目录路径（必选）。
+    /// 目标目录路径（必选参数）。
+    ///
+    /// 获取该目录下的子目录列表。
     path: String,
-    /// 目录密码（可选；目录受密码保护时必填）。
+    /// 目录密码（可选参数）。
+    ///
+    /// 目录受密码保护时必填。
     password: Option<String>,
-    /// 是否忽略用户根目录限制、按绝对路径取目录（可选；仅管理员生效）。
+    /// 是否忽略用户根目录限制（可选参数）。
+    ///
+    /// 为 `true` 时按绝对路径获取目录，仅管理员有效。
     force_root: Option<bool>,
 }
 
@@ -48,9 +53,8 @@ impl<'a> super::Fs<'a> {
     ///
     /// 对应 AList `POST /api/fs/dirs`；返回目录下的子目录列表
     /// （`Vec<DirResponse>`，每项含 `name` 与 `modified`），不含文件。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/fs/dirs` 与
-    /// `examples/alist/server/handles/fsread.go`（实现为 `fs.FsDirs`，
-    /// 请求 `DirReq` fsread.go:29-33，响应 `DirResponse` fsread.go:208-211）。
+    /// 数据来源：AList OpenAPI 规范的 `/api/fs/dirs` 与
+    /// AList 服务端 `handles.FsDirs`（请求结构 `DirReq`，响应结构 `DirResponse`）。
     ///
     /// # Arguments
     ///
@@ -113,7 +117,7 @@ mod tests {
         assert!(json.get("password").is_none(), "未设置的可选字段应被跳过");
     }
 
-    /// 2) 收发路径断言：mock 服务器返回 openapi `/api/fs/dirs` 示例，断言解码。
+    /// 2) 收发路径断言：mock 服务器返回 OpenAPI `/api/fs/dirs` 示例，断言解码。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_dirs() {
         use std::sync::{Arc, Mutex};

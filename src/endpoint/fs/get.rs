@@ -2,10 +2,9 @@
 //!
 //! 对应 `POST /api/fs/get`；返回对象详情（含直链原始 URL `raw_url`、签名 `sign`、
 //! 相关文件 `related` 与存储驱动 `provider`）。请求体仅 `path`/`password` 两个字段
-//! （openapi 文档多列出的 `page`/`per_page`/`refresh` 在 Go 侧 `FsGetReq`
-//! 中不存在，以 Go 源码为准，fsread.go:341-344）。
-//! 端点文件模板与命名约定见 `docs/design.md`；
-//! API 路径以 `docs/api/alistv3.openapi.yaml` 与 `examples/alist/server/router.go` 为准。
+//! （OpenAPI 规范多列出的 `page`/`per_page`/`refresh` 在 AList 服务端 `FsGetReq`
+//! 中不存在，以服务端 Go 源码实现为准）。
+//! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -22,9 +21,13 @@ use crate::schema::fs::FsGetResponse;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 目标文件/目录路径（必选）。
+    /// 目标文件或目录路径（必选参数）。
+    ///
+    /// 指向需要获取元信息的目标对象。
     path: String,
-    /// 目录密码（可选；目录受密码保护时必填）。
+    /// 目录密码（可选参数）。
+    ///
+    /// 目标目录受密码保护时必填。
     password: Option<String>,
 }
 
@@ -49,9 +52,8 @@ impl<'a> super::Fs<'a> {
     /// 签名与哈希信息等基础字段（`obj`），外加直链 `raw_url`（目录恒为空串）、
     /// 元信息 `readme`/`header`、存储驱动 `provider`、是否 Web 代理 `web_proxy`
     /// 以及同目录同前缀的相关文件 `related`。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/fs/get` 与
-    /// `examples/alist/server/handles/fsread.go`（实现为 `fs.FsGet`，
-    /// 请求 `FsGetReq` fsread.go:341-344，响应 `FsGetResponse` fsread.go:346-354）。
+    /// 数据来源：AList OpenAPI 规范的 `/api/fs/get` 与
+    /// AList 服务端 `handles.FsGet`（请求结构 `FsGetReq`，响应结构 `FsGetResponse`）。
     ///
     /// # Arguments
     ///
@@ -123,7 +125,7 @@ mod tests {
         assert_eq!(json, serde_json::json!({ "path": "/t" }));
     }
 
-    /// 3) 收发路径断言：mock 服务器返回 openapi `/api/fs/get` 示例，
+    /// 3) 收发路径断言：mock 服务器返回 OpenAPI `/api/fs/get` 示例，
     /// 断言 POST 方法与 schema 兼容解码（`related: null`、无 `web_proxy` 的老形状）。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_obj() {

@@ -1,20 +1,19 @@
 //! fs 端点：表单（multipart/form-data）上传。
 //!
 //! 对应 `PUT /api/fs/form`；请求信息全部位于 HTTP 头与 multipart 请求体中，
-//! 服务端实现为 `examples/alist/server/handles/fsup.go` 的 `FsForm`
-//! （fsup.go:112-200，路由注册见 `server/router.go:240`）：
+//! 服务端实现为 AList 服务端 `handles.FsForm`（路由注册见服务端路由定义）：
 //!
 //! | 请求头 | 语义 |
 //! |---|---|
-//! | `File-Path` | 目标绝对路径；服务端 `url.PathUnescape`（fsup.go:113-118），客户端需 URL 编码 |
-//! | `Password` | 目录（元信息）密码；由 `server/middlewares/fsup.go:17` 读取 |
-//! | `Overwrite` | 仅 `"false"` 时禁止覆盖，缺省允许覆盖（fsup.go:120） |
-//! | `As-Task` | 仅 `"true"` 时转为后台上传任务（fsup.go:119） |
-//! | `Last-Modified` | 文件修改时间，epoch 毫秒整数（fsup.go:19-28） |
-//! | `X-File-Md5` / `X-File-Sha1` / `X-File-Sha256` | 可选哈希校验（fsup.go:155-164） |
+//! | `File-Path` | 目标绝对路径；服务端按 `url.PathUnescape` 解析，客户端需 URL 编码 |
+//! | `Password` | 目录（元信息）密码；由服务端中间件读取 |
+//! | `Overwrite` | 仅 `"false"` 时禁止覆盖，缺省允许覆盖 |
+//! | `As-Task` | 仅 `"true"` 时转为后台上传任务 |
+//! | `Last-Modified` | 文件修改时间，epoch 毫秒整数 |
+//! | `X-File-Md5` / `X-File-Sha1` / `X-File-Sha256` | 可选哈希校验 |
 //!
-//! multipart 文件字段名必须为 `file`（fsup.go:143 `c.FormFile("file")`）；
-//! 文件 mimetype 取自文件分部的 `Content-Type`（fsup.go:165-168），缺省由
+//! multipart 文件字段名必须为 `file`（服务端按 `FormFile("file")` 读取）；
+//! 文件 mimetype 取自文件分部的 `Content-Type`，缺省由
 //! 服务端按扩展名推断。`Content-Length` 由 reqwest 按表单总长度自动携带。
 //! 直传成功时响应 `data` 为 `null`，转后台任务时为 `{"task": ...}`，
 //! 因此端点模型为 `Option<UploadResponse>`。本端点**手写**请求构建器
@@ -34,27 +33,49 @@ use crate::schema::common::UploadResponse;
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send_upload().await`"]
 pub struct Request<'a> {
     client: &'a crate::Client,
-    /// 目标绝对路径（`File-Path` 头，发送时 URL 编码）。
+    /// 目标绝对路径（必选参数）。
+    ///
+    /// 对应 `File-Path` 请求头，客户端发送时自动进行 URL 编码。
     path: String,
-    /// 文件字节内容（multipart `file` 字段）。
+    /// 文件字节内容（必选参数）。
+    ///
+    /// 对应 multipart 请求体中的 `file` 字段。
     content: Bytes,
-    /// multipart 文件分部文件名；缺省取目标路径的末段。
+    /// 表单分部文件名（可选参数）。
+    ///
+    /// multipart 文件分部的文件名；缺省取目标路径的末段。
     file_name: Option<String>,
-    /// 目录（元信息）密码（`Password` 头）。
+    /// 目录密码（可选参数）。
+    ///
+    /// 对应 `Password` 请求头，目标目录受密码保护时提供。
     password: Option<String>,
-    /// 是否允许覆盖已有文件（`Overwrite` 头；服务端缺省允许）。
+    /// 是否允许覆盖已有文件（可选参数）。
+    ///
+    /// 对应 `Overwrite` 请求头；服务端缺省允许覆盖。
     overwrite: Option<bool>,
-    /// 是否转为后台上传任务（`As-Task` 头）。
+    /// 是否转为后台上传任务（可选参数）。
+    ///
+    /// 对应 `As-Task` 请求头；为 `true` 时转为异步任务。
     as_task: Option<bool>,
-    /// 文件修改时间，epoch 毫秒（`Last-Modified` 头）。
+    /// 文件修改时间（可选参数）。
+    ///
+    /// 对应 `Last-Modified` 请求头，传入 epoch 毫秒整数。
     last_modified: Option<i64>,
-    /// 文件 mimetype（multipart 文件分部的 `Content-Type`）。
+    /// 文件媒体类型（可选参数）。
+    ///
+    /// 对应 multipart 文件分部的 `Content-Type` 报头；缺省由服务端按扩展名推断。
     content_type: Option<String>,
-    /// MD5 哈希（`X-File-Md5` 头）。
+    /// 文件的 MD5 哈希（可选参数）。
+    ///
+    /// 对应 `X-File-Md5` 请求头，用于服务端一致性校验。
     md5: Option<String>,
-    /// SHA-1 哈希（`X-File-Sha1` 头）。
+    /// 文件的 SHA-1 哈希（可选参数）。
+    ///
+    /// 对应 `X-File-Sha1` 请求头，用于服务端一致性校验。
     sha1: Option<String>,
-    /// SHA-256 哈希（`X-File-Sha256` 头）。
+    /// 文件的 SHA-256 哈希（可选参数）。
+    ///
+    /// 对应 `X-File-Sha256` 请求头，用于服务端一致性校验。
     sha256: Option<String>,
 }
 
@@ -116,7 +137,7 @@ impl<'a> Request<'a> {
     /// 是否允许覆盖已有文件（可选；`Overwrite` 头）。
     ///
     /// 缺省时服务端允许覆盖；仅显式传 `false` 时，目标文件已存在的上传
-    /// 会被服务端以 `403 file exists` 拒绝（fsup.go:127-133）。
+    /// 会被服务端以 `403 file exists` 拒绝。
     #[inline]
     pub fn overwrite(mut self, overwrite: bool) -> Self {
         self.overwrite = Some(overwrite);
@@ -126,7 +147,7 @@ impl<'a> Request<'a> {
     /// 是否转为后台上传任务（可选；`As-Task` 头）。
     ///
     /// 缺省时直传（响应 `data` 为 `null`）；传 `true` 时服务端创建后台任务
-    /// 并返回任务信息（fsup.go:180-188）。
+    /// 并返回任务信息。
     #[inline]
     pub fn as_task(mut self, as_task: bool) -> Self {
         self.as_task = Some(as_task);
@@ -135,7 +156,7 @@ impl<'a> Request<'a> {
 
     /// 文件修改时间（可选；`Last-Modified` 头，epoch 毫秒整数）。
     ///
-    /// 缺省时服务端以收到请求的时间作为修改时间（fsup.go:19-28）。
+    /// 缺省时服务端以收到请求的时间作为修改时间。
     #[inline]
     pub fn last_modified(mut self, last_modified: i64) -> Self {
         self.last_modified = Some(last_modified);
@@ -144,7 +165,7 @@ impl<'a> Request<'a> {
 
     /// 文件 mimetype（可选；随 multipart `file` 分部的 `Content-Type` 发送）。
     ///
-    /// 缺省时服务端按目标文件扩展名推断 mimetype（fsup.go:165-168）。
+    /// 缺省时服务端按目标文件扩展名推断 mimetype。
     #[inline]
     pub fn content_type(mut self, content_type: impl Into<String>) -> Self {
         self.content_type = Some(content_type.into());
@@ -231,7 +252,7 @@ impl<'a> Request<'a> {
     /// 语义同 `Client::execute`：当网络请求失败或
     /// AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。注意：multipart 请求体无法克隆，401/403 自动
-    /// 重登重试不可用，将直接返回原始错误（见 `docs/design.md` §8）。
+    /// 重登重试不可用，将直接返回原始错误。
     pub async fn send_upload(self) -> crate::Result<Option<UploadResponse>> {
         self.client.execute(self.into_builder()?).await
     }
@@ -257,8 +278,8 @@ impl<'a> core::future::IntoFuture for Request<'a> {
 impl<'a> super::Upload<'a> {
     /// 以 multipart/form-data 表单上传文件。
     ///
-    /// 对应 AList `PUT /api/fs/form`（服务端实现 `FsForm`，
-    /// `examples/alist/server/handles/fsup.go:112-200`）。文件以名为 `file`
+    /// 对应 AList `PUT /api/fs/form`（表单上传，服务端实现见
+    /// AList 服务端 `handles.FsForm`）。文件以名为 `file`
     /// 的 multipart 字段发送；目标文件路径通过 `File-Path` 头 URL 编码后
     /// 发送；`Content-Length` 由 reqwest 按表单总长度自动携带。
     ///

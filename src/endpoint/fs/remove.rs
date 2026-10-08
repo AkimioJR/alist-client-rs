@@ -1,9 +1,8 @@
 //! fs 端点：删除文件或文件夹。
 //!
-//! 对应 `POST /api/fs/remove`；请求体为 `dir` 与 `names` 数组（Go `RemoveReq`，
-//! fsmanage.go:290-293），服务端对每个名称逐条递归删除，响应 `data: null`。
-//! 端点文件模板与命名约定见 `docs/design.md`；
-//! API 路径以 `docs/api/alistv3.openapi.yaml` 与 `examples/alist/server/router.go` 为准。
+//! 对应 `POST /api/fs/remove`；请求体为 `dir` 与 `names` 数组（对应 AList 服务端 `RemoveReq`），
+//! 服务端对每个名称逐条递归删除，响应 `data: null`。
+//! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -18,9 +17,13 @@ use alist_client_derive::EndpointRequest;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 待删除项所在的父目录（必选；对应 Go `RemoveReq.Dir`）。
+    /// 待删除项所在的父目录（必选参数）。
+    ///
+    /// 对应 AList 服务端 `RemoveReq.Dir`。
     dir: String,
-    /// 待删除的文件/目录名列表（必选，相对 `dir`；为空时服务端返回 400）。
+    /// 待删除的文件或目录名列表（必选参数）。
+    ///
+    /// 各项均相对于 `dir`；为空时服务端返回 400。
     names: Vec<String>,
 }
 
@@ -46,9 +49,8 @@ impl<'a> super::Fs<'a> {
     ///
     /// 对应 AList `POST /api/fs/remove`；删除 `dir` 下 `names` 列出的
     /// 文件/目录（目录递归删除），成功时响应 `data` 为 `null`。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `fs/remove` 与
-    /// `examples/alist/server/handles/fsmanage.go`（实现为 `fs.FsRemove`，
-    /// 请求 `RemoveReq` fsmanage.go:290-293）。
+    /// 数据来源：AList OpenAPI 规范的 `/api/fs/remove` 与
+    /// AList 服务端 `handles.FsRemove`（请求结构 `RemoveReq`）。
     ///
     /// # Arguments
     ///

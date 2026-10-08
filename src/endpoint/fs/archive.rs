@@ -1,6 +1,6 @@
 //! fs 归档子句柄。
 //!
-//! 对应 `examples/alist/server/router.go` 中 `/api/fs/archive` 下的
+//! 对应 AList 服务端路由定义中 `/api/fs/archive` 下的
 //! `meta`、`list`、`decompress` 三个路由，用于浏览压缩包内容与解压。
 
 pub mod decompress;

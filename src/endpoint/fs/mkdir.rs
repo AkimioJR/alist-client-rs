@@ -1,10 +1,8 @@
 //! fs 端点：新建文件夹。
 //!
-//! 对应 `POST /api/fs/mkdir`；请求体仅 `path` 一个字段（Go `MkdirOrLinkReq`
-// 只声明 `Path`，fsmanage.go:25-27；openapi 请求示例同样只有 `path`），
-//! 响应 `data: null`，以 `()` 作为端点模型。
-//! 端点文件模板与命名约定见 `docs/design.md`；
-//! API 路径以 `docs/api/alistv3.openapi.yaml` 与 `examples/alist/server/router.go` 为准。
+//! 对应 `POST /api/fs/mkdir`；请求体仅 `path` 一个字段（对应 AList 服务端 `MkdirOrLinkReq`
+//! 与 OpenAPI 请求示例），响应 `data: null`，以 `()` 作为端点模型。
+//! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -19,7 +17,9 @@ use alist_client_derive::EndpointRequest;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 新目录完整路径（必选；父目录必须已存在）。
+    /// 新目录完整路径（必选参数）。
+    ///
+    /// 父目录必须已存在。
     path: String,
 }
 
@@ -39,9 +39,8 @@ impl<'a> super::Fs<'a> {
     /// 新建文件夹。
     ///
     /// 对应 AList `POST /api/fs/mkdir`；成功时响应 `data` 为 `null`。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `fs/mkdir` 与
-    /// `examples/alist/server/handles/fsmanage.go`（实现为 `fs.FsMkdir`，
-    /// 请求 `MkdirOrLinkReq` fsmanage.go:25-27）。
+    /// 数据来源：AList OpenAPI 规范的 `/api/fs/mkdir` 与
+    /// AList 服务端 `handles.FsMkdir`（请求结构 `MkdirOrLinkReq`）。
     ///
     /// # Arguments
     ///

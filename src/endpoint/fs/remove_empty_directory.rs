@@ -1,10 +1,9 @@
 //! fs 端点：删除空文件夹。
 //!
 //! 对应 `POST /api/fs/remove_empty_directory`；请求体为 `src_dir`
-//! （Go `RemoveEmptyDirectoryReq`，fsmanage.go:336-338），服务端广度优先递归
+//! （对应 AList 服务端 `RemoveEmptyDirectoryReq`），服务端广度优先递归
 //! 清理该目录下的空目录（删除子级后会回查父级），响应 `data: null`。
-//! 端点文件模板与命名约定见 `docs/design.md`；
-//! API 路径以 `docs/api/alistv3.openapi.yaml` 与 `examples/alist/server/router.go` 为准。
+//! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -20,7 +19,9 @@ use alist_client_derive::EndpointRequest;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 起始目录（必选；服务端递归清理其下的空目录，不处理文件）。
+    /// 起始目录路径（必选参数）。
+    ///
+    /// 服务端递归清理其下的空目录，不处理文件。
     src_dir: String,
 }
 
@@ -41,9 +42,8 @@ impl<'a> super::Fs<'a> {
     ///
     /// 对应 AList `POST /api/fs/remove_empty_directory`；递归删除 `src_dir`
     /// 下的全部空目录（仅目录，文件不受影响），成功时响应 `data` 为 `null`。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `fs/remove_empty_directory` 与
-    /// `examples/alist/server/handles/fsmanage.go`（实现为 `fs.FsRemoveEmptyDirectory`，
-    /// 请求 `RemoveEmptyDirectoryReq` fsmanage.go:336-338）。
+    /// 数据来源：AList OpenAPI 规范的 `/api/fs/remove_empty_directory` 与
+    /// AList 服务端 `handles.FsRemoveEmptyDirectory`（请求结构 `RemoveEmptyDirectoryReq`）。
     ///
     /// # Arguments
     ///

@@ -2,12 +2,10 @@
 //!
 //! 对应 `POST /api/fs/search`；依赖服务端索引（索引未启用时返回
 //! `SearchNotAvailable` 错误）。请求体为 `parent`/`keywords`/`scope`/`page`/
-//! `per_page`/`password`（Go `SearchReq` = `model.SearchReq` + `password`，
-//! `server/handles/search.go:17-20` 与 `internal/model/search.go:15-21`），
-//! 其中 `page`/`per_page` 由服务端 `Validate` 强制要求 ≥ 1（search.go:30-38）。
+//! `per_page`/`password`（对应 AList 服务端 `SearchReq` 与 `model.SearchReq`），
+//! 其中 `page`/`per_page` 由服务端校验强制要求 ≥ 1。
 //! 响应为 `{ "content": [...], "total": n }` 分页形态。
-//! 端点文件模板与命名约定见 `docs/design.md`；
-//! API 路径以 `docs/api/alistv3.openapi.yaml` 与 `examples/alist/server/router.go` 为准。
+//! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -29,22 +27,31 @@ use crate::schema::{common::PageResponse, fs::SearchResponse};
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 搜索目录（必选；结果限定在该目录之下）。
-    parent: String,
-    /// 搜索关键词（必选）。
-    keywords: String,
-    /// 每页条数（必选；服务端 `model.SearchReq.Validate` 要求 ≥ 1，
-    /// 缺省时服务端直接返回 400，因此作为必选参数传入）。
-    per_page: i32,
-    /// 页码（可选，从 1 开始）。
+    /// 搜索目录路径（必选参数）。
     ///
-    /// 服务端 `Validate` 要求 ≥ 1，缺省时会被拒绝，故默认以第 1 页发送；
+    /// 搜索结果限定在该目录之下。
+    parent: String,
+    /// 搜索关键词（必选参数）。
+    ///
+    /// 用于在索引中检索文件或目录名。
+    keywords: String,
+    /// 每页条数（必选参数）。
+    ///
+    /// 服务端校验强制要求 ≥ 1，缺失时直接返回 400。
+    per_page: i32,
+    /// 页码，从 1 开始（可选参数）。
+    ///
+    /// 服务端校验要求 ≥ 1，缺省时会被拒绝，故默认以第 1 页发送；
     /// 启用 `into-stream` feature 时，[`Request::into_stream`] 会自动逐页递增。
     page: Option<i32>,
-    /// 搜索范围（可选）：全部（[`SearchScope::All`]，服务端缺省值）、
+    /// 搜索范围（可选参数）。
+    ///
+    /// 支持全部（[`SearchScope::All`]，服务端缺省值）、
     /// 仅文件夹（[`SearchScope::Folder`]）、仅文件（[`SearchScope::File`]）。
     scope: Option<SearchScope>,
-    /// 搜索目录的密码（可选；目录受密码保护时必填）。
+    /// 搜索目录密码（可选参数）。
+    ///
+    /// 目录受密码保护时必填。
     password: Option<String>,
 }
 
@@ -78,9 +85,8 @@ impl<'a> super::Fs<'a> {
     /// 目录之下匹配 `keywords` 的文件/目录，返回分页结果
     /// （[`PageResponse<SearchResponse>`](crate::schema::common::PageResponse)）。
     /// 服务端需已启用搜索索引，否则返回 `SearchNotAvailable` 错误。
-    /// 数据来源：`docs/api/alistv3.openapi.yaml` 的 `/api/fs/search` 与
-    /// `examples/alist/server/handles/search.go`（实现为 `handles.Search`，
-    /// 请求 `SearchReq` search.go:17-20，元素 `SearchResponse` search.go:22-25）。
+    /// 数据来源：AList OpenAPI 规范的 `/api/fs/search` 与
+    /// AList 服务端 `handles.Search`（请求结构 `SearchReq`，条目结构 `SearchResponse`）。
     ///
     /// # Arguments
     ///
@@ -187,7 +193,7 @@ mod tests {
         assert!(json.get("password").is_none(), "未设置的可选字段应被跳过");
     }
 
-    /// 3) 收发路径断言：mock 服务器返回 openapi `/api/fs/search` 示例，
+    /// 3) 收发路径断言：mock 服务器返回 OpenAPI `/api/fs/search` 示例，
     /// 断言 POST 方法与分页解码。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_page() {

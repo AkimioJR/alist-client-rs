@@ -1,11 +1,10 @@
 //! fs 端点：聚合移动。
 //!
 //! 对应 `POST /api/fs/recursive_move`；请求体为 `src_dir`/`dst_dir`/
-//! `conflict_policy`（Go `RecursiveMoveReq`，fsbatch.go:19-22），服务端递归枚举
+//! `conflict_policy`（对应 AList 服务端 `RecursiveMoveReq`），服务端递归枚举
 //! 源目录下全部文件并逐条移动；成功时以 `SuccessWithMsgResp` 返回
 //! 「Successfully moved N file(s)」消息，`data` 为 `null`，以 `()` 作为端点模型。
-//! 端点文件模板与命名约定见 `docs/design.md`；
-//! API 路径以 `docs/api/alistv3.openapi.yaml` 与 `examples/alist/server/router.go` 为准。
+//! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
 
 use alist_client_derive::EndpointRequest;
 
@@ -22,11 +21,17 @@ pub use crate::schema::fs::ConflictPolicy;
 pub struct Request<'a> {
     #[endpoint(skip)]
     client: &'a crate::Client,
-    /// 源目录（必选；服务端递归枚举其下全部文件）。
+    /// 源目录路径（必选参数）。
+    ///
+    /// 服务端递归枚举其下全部文件。
     src_dir: String,
-    /// 目标目录（必选）。
+    /// 目标目录路径（必选参数）。
+    ///
+    /// 移动目标目录。
     dst_dir: String,
-    /// 冲突处理策略（可选）：直接覆盖（[`ConflictPolicy::Overwrite`]）、
+    /// 冲突处理策略（可选参数）。
+    ///
+    /// 支持直接覆盖（[`ConflictPolicy::Overwrite`]）、
     /// 目标已存在时取消并返回 403（[`ConflictPolicy::Cancel`]）、
     /// 跳过已存在文件（[`ConflictPolicy::Skip`]）；缺省时非 `overwrite` 策略同样先检查目标。
     conflict_policy: Option<ConflictPolicy>,
@@ -57,9 +62,8 @@ impl<'a> super::Fs<'a> {
     /// 的全部文件移动到 `dst_dir`。与 [`Fs::move_items`](super::Fs::move_items)
     /// 不同，本端点由服务端递归枚举文件并逐条 `fs.Move`，成功时响应 `data`
     /// 为 `null`、`message` 为移动结果摘要（如 `Successfully moved 3 files`）。
-    /// 数据来源：`examples/alist/server/router.go:234`（路由注册）与
-    /// `examples/alist/server/handles/fsbatch.go`（实现为 `fs.FsRecursiveMove`，
-    /// 请求 `RecursiveMoveReq` fsbatch.go:19-22，响应 fsbatch.go:144）。
+    /// 数据来源：AList 服务端路由定义中的 `/api/fs/recursive_move` 与
+    /// AList 服务端 `handles.FsRecursiveMove`（请求结构 `RecursiveMoveReq`）。
     ///
     /// # Arguments
     ///
@@ -150,8 +154,7 @@ mod tests {
         );
     }
 
-    /// 3) 收发路径断言：`SuccessWithMsgResp` 的 `data` 为 `null`（fsbatch.go:144），
-    /// 解码为 `()`；断言请求原文。
+    /// 3) 收发路径断言：服务端成功消息响应的 `data` 为 `null`，解码为 `()`；断言请求原文。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_null_data() {
         use std::sync::{Arc, Mutex};
