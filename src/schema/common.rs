@@ -1,8 +1,8 @@
 //! AList 共享数据模型（无条件编译）。
 //!
 //! 本文件建模所有端点共用的响应与分页/任务结构，字段与
-//! `examples/alist/server/common/resp.go`、`internal/model/req.go`、`server/handles/task.go`
-//! 及 `docs/api/alistv3.openapi.yaml` 的示例保持一致。
+//! AList 服务端通用响应模块、请求模型模块、任务处理模块
+//! 及 AList OpenAPI 规范的示例保持一致。
 //!
 //! ## 响应语义
 //!
@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 
 /// AList 标准 JSON 响应封装。
 ///
-/// 对应 `examples/alist/server/common/resp.go` 的 `Resp[T]`。
+/// 对应 AList 服务端通用响应模块的 `Resp[T]`。
 /// [`Client`](crate::Client) 用 [`serde_json::Value`] 解出 `data` 后再二次反序列化为端点模型，
 /// 因此 `data: null` 可以自然解码为 `()` 或 `Option<T>`。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -29,18 +29,22 @@ pub struct Response<T> {
     pub code: i32,
     /// 服务端消息。
     pub message: String,
-    /// 端点特定数据；错误响应通常为 `null`。
+    /// 端点特定数据。
+    ///
+    /// 错误响应通常为 `null`。
     pub data: T,
 }
 
 /// 分页请求参数。
 ///
-/// 对应 `examples/alist/internal/model/req.go` 的 `PageReq`（JSON/form 键为 `page`/`per_page`）。
+/// 对应 AList 服务端请求模型模块的 `PageReq`（JSON/form 键为 `page`/`per_page`）。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct PageRequest {
     /// 页码，从 1 开始。
     pub page: i32,
-    /// 每页条数；部分 fs 端点接受 `0` 表示全部。
+    /// 每页条数。
+    ///
+    /// 部分文件系统端点接受 `0` 表示全部。
     pub per_page: i32,
 }
 
@@ -65,7 +69,7 @@ impl PageRequest {
 
 /// 通用分页响应。
 ///
-/// 对应 `examples/alist/server/common/resp.go` 的 `PageResp`
+/// 对应 AList 服务端通用响应模块的 `PageResp`
 /// 以及 admin 列表端点返回的 `{ "content": [...], "total": ... }` 结构。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PageResponse<T> {
@@ -77,7 +81,7 @@ pub struct PageResponse<T> {
 
 /// 后台任务信息。
 ///
-/// 对应 `examples/alist/server/handles/task.go` 的 `TaskInfo`，
+/// 对应 AList 服务端任务处理模块的 `TaskInfo`，
 /// 由上传/离线下载等长耗时操作返回。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TaskInfo {
@@ -85,35 +89,49 @@ pub struct TaskInfo {
     pub id: String,
     /// 服务端生成的任务名称。
     pub name: String,
-    /// 创建者用户名；匿名任务为空字符串。
+    /// 创建者用户名。
+    ///
+    /// 匿名任务为空字符串。
     #[serde(default)]
     pub creator: String,
-    /// 创建者角色 ID 列表（Go 侧为 `model.Roles []int`）。
+    /// 创建者角色 ID 列表。
+    ///
+    /// 对应服务端角色列表。
     #[serde(default)]
     pub creator_role: Vec<i32>,
-    /// 任务状态数值（tache 状态机的枚举值）。
+    /// 任务状态数值。
+    ///
+    /// 取自 tache 状态机的枚举值。
     pub state: i32,
     /// 人类可读的状态文本。
     pub status: String,
-    /// 进度百分比；服务端对 NaN 会回退为 `100`。
+    /// 进度百分比。
+    ///
+    /// 服务端对 NaN 会回退为 `100`。
     pub progress: f64,
-    /// 开始时间；未开始为 `null`。
+    /// 开始时间。
+    ///
+    /// 未开始为 `null`。
     #[serde(default)]
     pub start_time: Option<DateTime<Utc>>,
-    /// 结束时间；未结束为 `null`。
+    /// 结束时间。
+    ///
+    /// 未结束为 `null`。
     #[serde(default)]
     pub end_time: Option<DateTime<Utc>>,
     /// 任务涉及的总字节数。
     #[serde(default)]
     pub total_bytes: i64,
-    /// 失败原因；未失败为空字符串。
+    /// 失败原因。
+    ///
+    /// 未失败为空字符串。
     #[serde(default)]
     pub error: String,
 }
 
 /// 上传端点的响应数据。
 ///
-/// 对应 `examples/alist/server/handles/fsup.go` 中 `FsStream`/`FsForm` 以
+/// 对应 AList 服务端上传处理模块中流式或表单上传以
 /// `gin.H{"task": getTaskInfo(t)}` 返回的结构。
 /// 直传成功（未启用 `As-Task`）时端点 `data` 为 `null`，
 /// 因此调用方应以 `Option<UploadResponse>` 作为端点模型。
@@ -127,7 +145,7 @@ pub struct UploadResponse {
 mod tests {
     use super::*;
 
-    /// 示例 JSON 钉扎测试：钉住 openapi/Go 源码中的响应结构，防止模型漂移。
+    /// 示例 JSON 钉扎测试：钉住 OpenAPI 与服务端源码中的响应结构，防止模型漂移。
     #[test]
     fn response_decodes_success_and_error_examples() {
         let ok: Response<serde_json::Value> = serde_json::from_value(serde_json::json!({
@@ -196,7 +214,7 @@ mod tests {
         assert_eq!(resp.total, 3);
     }
 
-    /// 钉扎 `examples/alist/server/handles/task.go` TaskInfo 的 JSON 形状。
+    /// 钉扎 AList 服务端任务处理模块 TaskInfo 的 JSON 形状。
     #[test]
     fn task_info_decodes_upload_task_example() {
         let task: TaskInfo = serde_json::from_value(serde_json::json!({

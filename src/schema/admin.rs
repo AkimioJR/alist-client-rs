@@ -2,7 +2,7 @@
 //!
 //! 子模块与 `admin/*-schema` feature 一一对应：
 //! 端点 feature（如 `admin-meta`）会自动拉取镜像的 `admin-meta-schema`。
-//! 模块布局与 `examples/alist/server/router.go` 的 admin 路由分组保持一致。
+//! 模块布局与 AList 服务端路由的 admin 分组保持一致。
 
 #[cfg(feature = "admin-meta-schema")]
 pub mod meta;

@@ -24,7 +24,7 @@
 //!   子句柄（如 [`admin::meta::Meta`]）由父句柄的访问器创建。
 //! - 每个端点文件（如 `fs/list.rs`）定义一个 `Request` 构建器，
 //!   通过 `alist-client-derive` 的 `#[derive(EndpointRequest)]` 生成
-//!   `build_request`/`send`/`IntoFuture`/可选参数 setter；完整模板见 `docs/design.md`。
+//!   `build_request`/`send`/`IntoFuture`/可选参数 setter；完整模板见项目设计文档。
 //! - 模块与 feature 的对应关系：`auth`/`fs`/`public` 单 feature；
 //!   `admin` 聚合全部 `admin-*` 子 feature，子 feature 也可单独启用
 //!   （此时 [`admin::Admin`] 句柄仍可用，但只包含已启用子域的访问器）。

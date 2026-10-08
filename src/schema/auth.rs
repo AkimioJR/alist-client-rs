@@ -6,22 +6,22 @@
 //!
 //! ## 字段形状来源
 //!
-//! - `docs/api/alistv3.openapi.yaml` 的 `auth` 分组与 `/api/me` 路径（登录/2FA/me 示例）；
-//! - `examples/alist/server/handles/auth.go`：`LoginReq`（auth.go:34）、登录响应
-//!   `gin.H{"token", "device_key"}`（auth.go:114）、`RegisterReq`（auth.go:118）、
-//!   `UserResp`（auth.go:147）、`Verify2FAReq`（auth.go:245）与
-//!   `Generate2FA` 响应（auth.go:239）；
-//! - `examples/alist/internal/model/user.go` 的 `User` JSON 字段（user.go:25-58）；
-//! - `examples/alist/internal/model/role.go` 的 `PermissionEntry`（role.go:10-13）。
+//! - AList OpenAPI 规范的 auth 分组与 `/api/me` 路径（登录/2FA/me 示例）；
+//! - AList 服务端认证处理模块：`LoginReq`、登录响应
+//!   `gin.H{"token", "device_key"}`、`RegisterReq`、
+//!   `UserResp`、`Verify2FAReq` 与
+//!   `Generate2FA` 响应；
+//! - AList 服务端 model.User 数据模型的 JSON 字段；
+//! - AList 服务端 model.Role 数据模型的 `PermissionEntry`。
 //!
 //! ## 跨版本兼容
 //!
-//! - `/api/me` 的 `role`：Go 侧为 `model.Roles []int`（user.go:33、roles.go:9），
-//!   但老服务器与 openapi 示例（`role: 2`）返回单值 int，历史部署还可能返回
-//!   `null`（Go nil 切片序列化结果）；统一展开为 `Vec<i32>`；
-//! - `role_names`/`permissions` 为服务端新增字段（auth.go:150-151）：老服务器不返回，
-//!   新服务器在无角色时返回 Go nil 切片序列化的 `null`，需同时容忍缺失与显式 `null`；
-//! - `device_key` 为新版本登录响应新增字段（auth.go:114），老服务器仅返回 `token`。
+//! - `/api/me` 的 `role`：服务端底层模型为角色 ID 列表，
+//!   但老服务器与 OpenAPI 示例（`role: 2`）返回单值 int，历史部署还可能返回
+//!   `null`（服务端 nil 切片序列化结果）；统一展开为 `Vec<i32>`；
+//! - `role_names`/`permissions` 为服务端新增字段：老服务器不返回，
+//!   新服务器在无角色时返回服务端 nil 切片序列化的 `null`，需同时容忍缺失与显式 `null`；
+//! - `device_key` 为新版本登录响应新增字段，老服务器仅返回 `token`。
 
 #[cfg(feature = "auth-schema")]
 use serde::de::DeserializeOwned;
@@ -29,62 +29,71 @@ use serde::{Deserialize, Serialize};
 
 /// `/api/auth/login` 与 `/api/auth/login/hash` 的登录请求体。
 ///
-/// 对应 `examples/alist/server/handles/auth.go` 的 `LoginReq`（auth.go:34-38）。
+/// 对应 AList 服务端认证处理模块的 `LoginReq`。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg(feature = "auth-schema")]
 pub struct LoginRequest {
     /// 用户名。
     pub username: String,
-    /// 密码：`/api/auth/login` 传明文（服务端会做静态盐 SHA-256 哈希，
-    /// auth.go:47 `model.StaticHash`）；`/api/auth/login/hash` 传预哈希值
+    /// 登录密码。
+    ///
+    /// 对于 `/api/auth/login` 传入明文（服务端会做静态盐 SHA-256 哈希）；
+    /// 对于 `/api/auth/login/hash` 传入预哈希值
     /// `sha256(密码-https://github.com/alist-org/alist)`。
     pub password: String,
-    /// 可选的两步验证码；启用 2FA 的账号登录时必填。
+    /// 可选的两步验证码。
+    ///
+    /// 启用 2FA 的账号登录时必填。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub otp_code: Option<String>,
 }
 
 /// 登录成功响应数据（`/api/auth/login` 与 `/api/auth/login/hash` 共用）。
 ///
-/// 对应 auth.go:114 `gin.H{"token": token, "device_key": key}`；
+/// 对应 AList 服务端登录响应 `gin.H{"token": token, "device_key": key}`；
 /// 与 [`crate::Client`] 内部自动刷新 token 的登录实现使用同一 JSON 形状。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct LoginResponse {
     /// 临时 JWT token，放入 `Authorization` 头使用。
     pub token: String,
-    /// 当前登录设备键；新版本服务端返回，老服务器缺失时为 [`None`]。
+    /// 当前登录设备键。
+    ///
+    /// 新版本服务端返回，老服务器缺失时为 [`None`]。
     #[serde(default)]
     pub device_key: Option<String>,
 }
 
 /// `/api/auth/register` 的注册请求体。
 ///
-/// 对应 auth.go:118-121 的 `RegisterReq`；该端点不在 openapi 中，
-/// 路径见 `examples/alist/server/router.go:75`。
+/// 对应 AList 服务端认证处理模块的 `RegisterReq`；该端点不在 OpenAPI 规范中。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg(feature = "auth-schema")]
 pub struct RegisterRequest {
     /// 新用户名。
     pub username: String,
-    /// 明文密码；服务端注册时自行加盐哈希（auth.go:139 `SetPassword`）。
+    /// 明文密码。
+    ///
+    /// 服务端注册时自行加盐哈希。
     pub password: String,
 }
 
 /// `/api/auth/2fa/generate` 的响应数据。
 ///
-/// 对应 auth.go:239-242 `gin.H{"qr", "secret"}`。
+/// 对应 AList 服务端生成 2FA 响应结构。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg(feature = "auth-schema")]
 pub struct Generate2FaResponse {
     /// 二维码 PNG 图片的 data URL（`data:image/png;base64,...`）。
     pub qr: String,
-    /// TOTP 密钥；交由 `/api/auth/2fa/verify` 校验后才正式启用。
+    /// TOTP 密钥。
+    ///
+    /// 交由 `/api/auth/2fa/verify` 校验后才正式启用。
     pub secret: String,
 }
 
 /// `/api/auth/2fa/verify` 的请求体。
 ///
-/// 对应 auth.go:245-248 的 `Verify2FAReq`。
+/// 对应 AList 服务端认证处理模块的 `Verify2FAReq`。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg(feature = "auth-schema")]
 pub struct Verify2FaRequest {
@@ -96,7 +105,7 @@ pub struct Verify2FaRequest {
 
 /// 按路径前缀划分的权限位掩码条目。
 ///
-/// 对应 `examples/alist/internal/model/role.go` 的 `PermissionEntry`（role.go:10-13）。
+/// 对应 AList 服务端 model.Role 数据模型的 `PermissionEntry`。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg(feature = "auth-schema")]
 pub struct PermissionEntry {
@@ -108,38 +117,49 @@ pub struct PermissionEntry {
 
 /// `/api/me` 返回的当前用户信息。
 ///
-/// 对应 `examples/alist/server/handles/auth.go` 的 `UserResponse`（auth.go:147-152，
-/// 内嵌 `model.User` 的 JSON 字段，user.go:25-58；`password` 由 handler 置空，
-/// auth.go:162）。新服务器追加的 `role_names`/`permissions` 字段与
+/// 对应 AList 服务端认证处理模块的 `UserResponse`（内嵌 `model.User` 的 JSON 字段；
+/// `password` 由处理函数置空）。新服务器追加的 `role_names`/`permissions` 字段与
 /// `role` 的历史形状均做了兼容处理，详见模块文档。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg(feature = "auth-schema")]
 pub struct UserResponse {
-    /// 数字用户 ID（Go `uint`）。
+    /// 数字用户 ID。
+    ///
+    /// 对应服务端用户主键 ID。
     pub id: u64,
     /// 用户名。
     pub username: String,
-    /// 密码字段；`/api/me` 恒为空字符串，个别部署可能缺失或为 `null`。
+    /// 密码字段。
+    ///
+    /// `/api/me` 恒为空字符串，个别部署可能缺失或为 `null`。
     #[serde(default)]
     pub password: Option<String>,
-    /// 用户根目录（Go `model.User.BasePath`）。
+    /// 用户根目录路径。
     pub base_path: String,
-    /// 角色 ID 列表；兼容数组、单值 int 与 `null` 三种历史形状。
+    /// 角色 ID 列表。
+    ///
+    /// 兼容数组、单值 int 与 `null` 三种历史形状。
     #[serde(deserialize_with = "deserialize_role_ids")]
     pub role: Vec<i32>,
     /// 账号是否被禁用。
     pub disabled: bool,
-    /// 聚合权限位掩码（Go `Permission int32`）。
+    /// 聚合权限位掩码。
     pub permission: i32,
-    /// SSO 平台用户 ID；未绑定时为空字符串或 [`None`]。
+    /// SSO 平台用户 ID。
+    ///
+    /// 未绑定时为空字符串或 [`None`]。
     #[serde(default)]
     pub sso_id: Option<String>,
     /// 是否已启用两步验证。
     pub otp: bool,
-    /// 角色名称列表；新服务器字段，缺失或 `null` 时归约为空列表。
+    /// 角色名称列表。
+    ///
+    /// 新服务器字段，缺失或 `null` 时归约为空列表。
     #[serde(default, deserialize_with = "null_to_default")]
     pub role_names: Vec<String>,
-    /// 按路径划分的权限条目；新服务器字段，缺失或 `null` 时归约为空列表。
+    /// 按路径划分的权限条目。
+    ///
+    /// 新服务器字段，缺失或 `null` 时归约为空列表。
     #[serde(default, deserialize_with = "null_to_default")]
     pub permissions: Vec<PermissionEntry>,
 }
@@ -187,7 +207,7 @@ mod tests {
     /// 正向钉扎：openapi `POST /api/auth/login` 返回示例。
     #[test]
     fn login_response_decodes_openapi_example() {
-        // 示例来源：docs/api/alistv3.openapi.yaml 的 /api/auth/login 200 响应
+        // 示例来源：AList OpenAPI 规范的 /api/auth/login 200 响应
         let resp: Response<LoginResponse> = serde_json::from_value(serde_json::json!({
             "code": 200,
             "message": "success",
@@ -199,7 +219,7 @@ mod tests {
         assert_eq!(resp.data.device_key, None);
     }
 
-    /// 兼容钉扎：新版本登录响应携带 `device_key`（auth.go:114）。
+    /// 兼容钉扎：新版本登录响应携带 `device_key`。
     #[test]
     fn login_response_tolerates_device_key_from_go_source() {
         let resp: LoginResponse = serde_json::from_value(serde_json::json!({
@@ -214,7 +234,7 @@ mod tests {
     #[cfg(feature = "auth-schema")]
     #[test]
     fn login_request_serializes_with_api_field_names() {
-        // 示例来源：docs/api/alistv3.openapi.yaml 的 /api/auth/login 请求示例
+        // 示例来源：AList OpenAPI 规范的 /api/auth/login 请求示例
         let req = LoginRequest {
             username: "akimio".to_owned(),
             password: "JuXQMCe4m6LstB".to_owned(),
@@ -242,7 +262,7 @@ mod tests {
         );
     }
 
-    /// 序列化键名钉扎：`RegisterRequest` 键与 Go `RegisterReq`（auth.go:118-121）一致。
+    /// 序列化键名钉扎：`RegisterRequest` 键与服务端 `RegisterReq` 一致。
     #[cfg(feature = "auth-schema")]
     #[test]
     fn register_request_serializes_with_api_field_names() {
@@ -263,7 +283,7 @@ mod tests {
     #[cfg(feature = "auth-schema")]
     #[test]
     fn generate_2fa_response_decodes_openapi_example() {
-        // 示例来源：docs/api/alistv3.openapi.yaml 的 /api/auth/2fa/generate 200 响应
+        // 示例来源：AList OpenAPI 规范的 /api/auth/2fa/generate 200 响应
         let resp: Generate2FaResponse = serde_json::from_value(serde_json::json!({
             "qr": "data:image/png;base64,iVBORw0KGgoAAAANSUhE",
             "secret": "RPQZG4MDS3"
@@ -273,7 +293,7 @@ mod tests {
         assert_eq!(resp.secret, "RPQZG4MDS3");
     }
 
-    /// 序列化键名钉扎：`Verify2FaRequest` 键与 openapi 请求示例（`code`/`secret`）一致。
+    /// 序列化键名钉扎：`Verify2FaRequest` 键与 OpenAPI 请求示例（`code`/`secret`）一致。
     #[cfg(feature = "auth-schema")]
     #[test]
     fn verify_2fa_request_serializes_with_api_field_names() {
@@ -290,11 +310,11 @@ mod tests {
         );
     }
 
-    /// 正向钉扎：openapi `/api/me` 返回示例；`role` 钉住老服务器单值 int 形状。
+    /// 正向钉扎：OpenAPI `/api/me` 返回示例；`role` 钉住老服务器单值 int 形状。
     #[cfg(feature = "auth-schema")]
     #[test]
     fn me_response_decodes_openapi_example_with_single_int_role() {
-        // 示例来源：docs/api/alistv3.openapi.yaml 的 /api/me 200 响应
+        // 示例来源：AList OpenAPI 规范的 /api/me 200 响应
         let me: MeResponse = serde_json::from_value(serde_json::json!({
             "id": 1,
             "username": "admin",
@@ -320,12 +340,11 @@ mod tests {
         assert!(me.permissions.is_empty());
     }
 
-    /// 正向钉扎：Go 源码形状——`role` 为数组、`permissions` 携带路径权限条目。
+    /// 正向钉扎：服务端源码形状——`role` 为数组、`permissions` 携带路径权限条目。
     #[cfg(feature = "auth-schema")]
     #[test]
     fn me_response_decodes_go_shape_with_array_role_and_permissions() {
-        // 形状来源：examples/alist/server/handles/auth.go UserResp（auth.go:147-190）
-        // 与 examples/alist/internal/model/role.go PermissionEntry（role.go:10-13）
+        // 形状来源：AList 服务端认证处理模块 UserResp 与 model.Role 数据模型 PermissionEntry
         let me: MeResponse = serde_json::from_value(serde_json::json!({
             "id": 2,
             "username": "user",

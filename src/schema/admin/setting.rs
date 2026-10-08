@@ -4,74 +4,82 @@
 //!
 //! - [`Setting`]：设置条目，同时用作 `list`/`get`/`get_by_keys` 的响应模型与
 //!   `save` 的请求体元素，
-//!   对应 `examples/alist/internal/model/setting.go` 的 `SettingItem`；
+//!   对应 AList 服务端 model.Setting 数据模型中的 `SettingItem`；
 //! - [`SetAria2Request`] / [`SetQbitRequest`]：`set_aria2`/`set_qbit` 的扁平请求体形状，
-//!   对应 `examples/alist/server/handles/offline_download.go` 的 Go `SetAria2Req`/`SetQbittorrentReq`；
+//!   对应 AList 服务端离线下载处理模块的请求结构；
 //!   端点构建器（`set_aria2::Request`、`set_qbit::Request`）以同名字段直接生成同形 JSON。
 //!
-//! 字段形状以 `docs/api/alistv3.openapi.yaml` 的 `admin/setting` 分组与上述 Go 源码为准；
-//! 注意 Go `SettingItem.Index uint`（JSON 键 `index`）未被 openapi 文档收录，但服务端会实际返回，
+//! ## 字段形状来源
+//!
+//! 字段形状以 AList OpenAPI 规范的 admin/setting 分组与 AList 服务端源码为准；
+//! 注意设置项 `index` 字段未被 OpenAPI 规范收录，但服务端会实际返回，
 //! 这里以 `#[serde(default)]` 接住，保证对老版本服务端的兼容。
 
 use serde::{Deserialize, Serialize};
 
 /// AList 设置条目。
 ///
-/// 对应 `examples/alist/internal/model/setting.go` 的 `SettingItem`：
+/// 对应 AList 服务端 model.Setting 数据模型中的 `SettingItem`：
 /// `GET /api/admin/setting/list`、`GET /api/admin/setting/get` 的响应元素，
 /// 同时是 `POST /api/admin/setting/save` 的请求体元素。
 /// 设置值统一为字符串承载，实际类型由 [`Setting::value_type`] 描述。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Setting {
-    /// 设置键（唯一标识），例如 `site_title`、`token`；对应 Go `SettingItem.Key`。
+    /// 设置键（唯一标识），例如 `site_title`、`token`。
     pub key: String,
-    /// 设置值；数值/布尔等一律以字符串形式存储，对应 Go `SettingItem.Value`。
+    /// 设置值。
+    ///
+    /// 数值/布尔等一律以字符串形式存储。
     pub value: String,
-    /// 帮助信息；对应 Go `SettingItem.Help`。
+    /// 帮助信息。
     pub help: String,
-    /// 值类型：`string` / `number` / `bool` / `select`；
-    /// 对应 Go `SettingItem.Type`（JSON 键为 `type`，Rust 字段名因此改名）。
+    /// 值类型：`string` / `number` / `bool` / `select`。
+    ///
+    /// 对应 JSON 键为 `type`，Rust 字段名因此改名。
     #[serde(rename = "type")]
     pub value_type: String,
-    /// `select` 类型的候选项（逗号分隔）；对应 Go `SettingItem.Options`。
+    /// `select` 类型的候选项（逗号分隔）。
     pub options: String,
-    /// 前端分组编号；对应 Go `SettingItem.Group`。取值参考 Go 常量
-    /// （`internal/model/setting.go`）：`0`-单独项（SINGLE，含令牌等）、`1`-站点、
+    /// 前端分组编号。
+    ///
+    /// 取值参考服务端常量：`0`-单独项（SINGLE，含令牌等）、`1`-站点、
     /// `2`-样式、`3`-预览、`4`-全局、`5`-离线下载（含 aria2/qBittorrent 等）、
     /// `6`-索引、`7`-单点登录、`8`-LDAP、`9`-S3、`10`-FTP、`11`-流量、`12`-FRP。
     pub group: i32,
-    /// 可见性标志；对应 Go `SettingItem.Flag`：`0`-公开、`1`-私有、`2`-只读、`3`-弃用。
+    /// 可见性标志。
+    ///
+    /// 取值含义：`0`-公开、`1`-私有、`2`-只读、`3`-弃用。
     pub flag: i32,
-    /// 排序序号；对应 Go `SettingItem.Index uint`（JSON 键 `index`）。
-    /// openapi 文档未收录该字段，老版本服务端可能不返回，缺失时归零。
+    /// 排序序号。
+    ///
+    /// OpenAPI 规范未收录该字段，老版本服务端可能不返回，缺失时归零。
     #[serde(default)]
     pub index: u64,
 }
 
 /// `POST /api/admin/setting/set_aria2` 的请求体形状。
 ///
-/// 对应 `examples/alist/server/handles/offline_download.go` 的 Go `SetAria2Req`
-/// 与 `docs/api/alistv3.openapi.yaml` `admin/setting/set_aria2` 的请求体；
+/// 对应 AList 服务端离线下载处理模块与 AList OpenAPI 规范 `admin/setting/set_aria2` 的请求体；
 /// 仅含 `uri`/`secret` 两个字段（保存后服务端立即初始化 aria2 连接）。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SetAria2Request {
-    /// aria2 JSON-RPC 地址，例如 `http://localhost:6800/jsonrpc`；对应 Go `SetAria2Req.Uri`。
+    /// aria2 JSON-RPC 地址，例如 `http://localhost:6800/jsonrpc`。
     pub uri: String,
-    /// aria2 RPC 密钥；未设置时为空字符串；对应 Go `SetAria2Req.Secret`。
+    /// aria2 RPC 密钥。
+    ///
+    /// 未设置时为空字符串。
     pub secret: String,
 }
 
 /// `POST /api/admin/setting/set_qbit` 的请求体形状。
 ///
-/// 对应 `examples/alist/server/handles/offline_download.go` 的 `SetQbittorrentReq`
-/// 与 `docs/api/alistv3.openapi.yaml` `admin/setting/set_qbit` 的请求体；
+/// 对应 AList 服务端离线下载处理模块与 AList OpenAPI 规范 `admin/setting/set_qbit` 的请求体；
 /// 仅含 `url`/`seedtime` 两个字段。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SetQbitRequest {
-    /// qBittorrent WebUI 地址（可内嵌凭据），例如 `http://user:pass@localhost:8080/`；
-    /// 对应 Go `SetQbittorrentReq.Url`。
+    /// qBittorrent WebUI 地址（可内嵌凭据），例如 `http://user:pass@localhost:8080/`。
     pub url: String,
-    /// 做种时间（字符串形式的数值）；对应 Go `SetQbittorrentReq.Seedtime`。
+    /// 做种时间（字符串形式的数值）。
     pub seedtime: String,
 }
 
@@ -80,7 +88,7 @@ mod tests {
     use super::*;
     use crate::schema::common::Response;
 
-    /// 正向钉扎：`docs/api/alistv3.openapi.yaml` `admin/setting/list` 返回示例
+    /// 正向钉扎：AList OpenAPI 规范 `admin/setting/list` 返回示例
     /// （`data` 为设置项数组，非分页结构）。
     #[test]
     fn setting_list_decodes_openapi_example() {
@@ -125,7 +133,7 @@ mod tests {
         assert!(progress.value.contains("\"is_done\":true"));
     }
 
-    /// 正向钉扎：`docs/api/alistv3.openapi.yaml` `admin/setting/get` 返回示例
+    /// 正向钉扎：AList OpenAPI 规范 `admin/setting/get` 返回示例
     /// （`data` 为单个设置项；`value` 为正则文本）。
     #[test]
     fn setting_get_decodes_openapi_example() {
@@ -150,8 +158,8 @@ mod tests {
         assert_eq!(resp.data.flag, 0);
     }
 
-    /// 兼容钉扎：Go `SettingItem.Index uint`（`internal/model/setting.go`）会随响应返回，
-    /// openapi 文档示例缺失该字段；两种形状（含/不含 `index`）都必须能解码。
+    /// 兼容钉扎：服务端设置项的 `index` 字段会随响应返回，
+    /// OpenAPI 规范示例缺失该字段；两种形状（含/不含 `index`）都必须能解码。
     #[test]
     fn setting_tolerates_index_field_presence() {
         let with_index: Setting = serde_json::from_value(serde_json::json!({
@@ -209,7 +217,7 @@ mod tests {
         );
     }
 
-    /// 序列化键名钉扎：`docs/api/alistv3.openapi.yaml` `admin/setting/set_aria2`
+    /// 序列化键名钉扎：AList OpenAPI 规范 `admin/setting/set_aria2`
     /// 请求体（`uri`/`secret`，无其它字段）。
     #[test]
     fn set_aria2_request_serializes_with_api_field_names() {
@@ -226,7 +234,7 @@ mod tests {
         );
     }
 
-    /// 序列化键名钉扎：`docs/api/alistv3.openapi.yaml` `admin/setting/set_qbit`
+    /// 序列化键名钉扎：AList OpenAPI 规范 `admin/setting/set_qbit`
     /// 请求体（`url`/`seedtime`，无其它字段）。
     #[test]
     fn set_qbit_request_serializes_with_api_field_names() {

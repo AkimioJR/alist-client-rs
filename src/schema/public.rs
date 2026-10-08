@@ -1,16 +1,13 @@
 //! public 公共域数据模型。
 //!
 //! 建模 `GET /api/public/settings` 返回的站点设置：
-//! 服务端以字符串键值映射返回全部公共设置项（Go 侧为
-//! `op.GetPublicSettingsMap()` 的 `map[string]string`，见
-//! `examples/alist/internal/op/setting.go:43-50`；处理函数
-//! `server/handles/setting.go:223-225`；公共项按 `PUBLIC`/`READONLY`
-//! 标记过滤，见 `internal/db/settingitem.go:34-40`），因此主模型为开放的
+//! 服务端以字符串键值映射返回全部公共设置项（服务端
+//! `op.GetPublicSettingsMap()` 的 `map[string]string`；
+//! 公共项按 `PUBLIC`/`READONLY` 标记过滤），因此主模型为开放的
 //! [`PublicSettings`]（`HashMap<String, String>`）。
-//! [`KnownPublicSettings`] 为 `docs/api/alistv3.openapi.yaml` 的
+//! [`KnownPublicSettings`] 为 AList OpenAPI 规范的
 //! `/api/public/settings` 响应已记录键的具名辅助结构。
-//! 字段形状以 `docs/api/alistv3.openapi.yaml`、`docs/api/alistv3.md`
-//! 的 `# public` 分组与 `examples/alist` Go 源码为准。
+//! 字段形状以 AList OpenAPI 规范与服务端源码为准。
 
 use std::collections::HashMap;
 
@@ -19,7 +16,7 @@ use serde::{Deserialize, Serialize};
 /// [`/api/public/settings`](crate::endpoint::public::Public::settings) 返回的
 /// 站点设置集合（响应 `data`）。
 ///
-/// 对应 Go `op.GetPublicSettingsMap()` 的 `map[string]string`：AList 把所有设置项
+/// 对应服务端 `op.GetPublicSettingsMap()` 的 `map[string]string`：AList 把所有设置项
 /// 一律以字符串序列化（布尔值是 `"true"`/`"false"`，数字是 `"30"` 这样的十进制文本），
 /// 且键集合随版本增减，故此处有意保持开放，不做封闭结构建模。
 pub type PublicSettings = HashMap<String, String>;
@@ -28,7 +25,7 @@ pub type PublicSettings = HashMap<String, String>;
 ///
 /// [`PublicSettings`] 是开放的字符串映射；需要按名访问常用键时，可把它反序列化为本结构：
 /// 未记录的键会被忽略（serde 默认行为），缺失的键为 [`Option::None`]。
-/// 键清单与类型（均为字符串）来源：`docs/api/alistv3.openapi.yaml` 的
+/// 键清单与类型（均为字符串）来源：AList OpenAPI 规范的
 /// `/api/public/settings` 响应字段表。
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct KnownPublicSettings {
@@ -38,7 +35,9 @@ pub struct KnownPublicSettings {
     /// 是否允许挂载（字符串化的布尔值）。
     #[serde(default)]
     pub allow_mounted: Option<String>,
-    /// 站点公告；未设置时为空字符串。
+    /// 站点公告。
+    ///
+    /// 未设置时为空字符串。
     #[serde(default)]
     pub announcement: Option<String>,
     /// 音频是否自动播放（字符串化的布尔值）。
@@ -107,7 +106,9 @@ pub struct KnownPublicSettings {
     /// 是否启用 SSO 登录（字符串化的布尔值）。
     #[serde(default)]
     pub sso_login_enabled: Option<String>,
-    /// SSO 登录平台名称；未配置时为空字符串。
+    /// SSO 登录平台名称。
+    ///
+    /// 未配置时为空字符串。
     #[serde(default)]
     pub sso_login_platform: Option<String>,
     /// 服务端版本号（如 `v3.25.1`）。
@@ -123,8 +124,7 @@ mod tests {
     use super::*;
     use crate::schema::common::Response;
 
-    /// `docs/api/alistv3.openapi.yaml` 的 `/api/public/settings` 200 示例
-    /// （与 `docs/api/alistv3.md` `# public` 组 `GET 获取站点设置` 的返回示例一致）。
+    /// AList OpenAPI 规范中的 `/api/public/settings` 200 响应示例。
     fn openapi_settings_example() -> serde_json::Value {
         serde_json::json!({
             "allow_indexed": "false",
@@ -158,7 +158,7 @@ mod tests {
         })
     }
 
-    /// 1) 正向钉扎：openapi 示例 JSON 按响应封装解码为 `PublicSettings` 映射。
+    /// 1) 正向钉扎：OpenAPI 示例 JSON 按响应封装解码为 `PublicSettings` 映射。
     #[test]
     fn public_settings_map_decodes_openapi_example() {
         let resp: Response<PublicSettings> = serde_json::from_value(serde_json::json!({
@@ -234,11 +234,7 @@ mod tests {
         };
         let value = serde_json::to_value(&known).unwrap();
         let map = value.as_object().unwrap();
-        assert_eq!(
-            map.len(),
-            28,
-            "应包含 openapi 已记录的全部 28 个键: {map:?}"
-        );
+        assert_eq!(map.len(), 28, "应包含已记录的全部 28 个键: {map:?}");
         assert_eq!(value["site_title"], "AList");
         assert_eq!(value["default_page_size"], "30");
     }

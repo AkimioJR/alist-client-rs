@@ -3,7 +3,7 @@
 //! 本 crate 将 [AList](https://github.com/AlistGo/alist) 的 JSON 响应（[`Response`](crate::schema::common::Response)）与文件系统/管理端点
 //! 建模为强类型 Rust API：HTTP 构建、发送、响应解码、认证刷新与客户端限速统一由
 //! [`Client`] 处理；各业务端点以「域句柄 + 请求构建器」的形式暴露；数据模型集中在
-//! [`schema`] 下。实现约定详见仓库内 `docs/design.md`。
+//! [`schema`] 下。实现约定详见项目设计文档。
 //!
 //! # 快速上手
 //!

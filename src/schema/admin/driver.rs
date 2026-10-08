@@ -5,12 +5,11 @@
 //! - `GET /api/admin/driver/names`：驱动名列表 [`DriverNamesResponse`]；
 //! - `GET /api/admin/driver/info`：单个驱动配置模板 [`DriverInfo`]。
 //!
-//! 字段形状来源：`docs/api/alistv3.openapi.yaml` 的 `admin/driver` 分组、
-//! `docs/api/alistv3.md` 的 `# admin/driver` 返回示例，以及
-//! `examples/alist/internal/driver/item.go`（`driver.Item`/`driver.Info`）、
-//! `examples/alist/internal/driver/config.go`（`driver.Config`）、
-//! `examples/alist/internal/op/driver.go`（模板组装逻辑）与
-//! `examples/alist/server/handles/driver.go`（处理函数）。
+//! ## 字段形状来源
+//!
+//! AList OpenAPI 规范的 admin/driver 分组与返回示例，以及
+//! AList 服务端驱动域数据模型（`driver.Item`/`driver.Info`、`driver.Config`）、
+//! 驱动模板组装逻辑与驱动处理函数。
 //!
 //! ## 宽松模型说明
 //!
@@ -36,17 +35,18 @@ pub type DriverNamesResponse = Vec<String>;
 
 /// 单个驱动的配置模板，`GET /api/admin/driver/info` 的 `data`。
 ///
-/// 对应 `examples/alist/internal/driver/item.go` 的 `driver.Info`：
+/// 对应 AList 服务端驱动域数据模型的 `driver.Info`：
 /// [`common`](DriverInfo::common) 为通用配置项（挂载路径、缓存策略等，由
-/// `internal/op/driver.go` 的 `getMainItems` 生成），[`additional`](DriverInfo::additional)
-/// 为驱动专有配置项（由各驱动 `Addition` 结构体反射生成），
+/// 服务端通用配置项逻辑生成），[`additional`](DriverInfo::additional)
+/// 为驱动专有配置项（由各驱动结构体反射生成），
 /// [`config`](DriverInfo::config) 为驱动行为开关。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DriverInfo {
     /// 通用配置项列表（对应 Go `driver.Info.Common`）。
     #[serde(default, deserialize_with = "null_to_default")]
     pub common: Vec<DriverItem>,
-    /// 驱动专有配置项列表（对应 Go `driver.Info.Additional`）；
+    /// 驱动专有配置项列表（对应 Go `driver.Info.Additional`）。
+    ///
     /// 驱动无专有配置时服务端可能返回 `null` 或空数组。
     #[serde(default, deserialize_with = "null_to_default")]
     pub additional: Vec<DriverItem>,
@@ -57,7 +57,7 @@ pub struct DriverInfo {
 
 /// 驱动配置项描述，即存储表单中的一个字段。
 ///
-/// 对应 `examples/alist/internal/driver/item.go` 的 `driver.Item`；
+/// 对应 AList 服务端驱动域数据模型的 `driver.Item`；
 /// [`default`](DriverItem::default)/[`options`](DriverItem::options) 等均为
 /// 字符串形式，由前端按 [`value_type`](DriverItem::value_type) 解释。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -81,18 +81,17 @@ pub struct DriverItem {
     /// 帮助文本。
     #[serde(default)]
     pub help: String,
-    /// 表单展示条件，如 `auth_mode=token`；为空或缺失表示总是展示。
+    /// 表单展示条件，如 `auth_mode=token`。
     ///
-    /// 服务端新增字段（对应 Go `Item.ShowWhen`，带 `omitempty`，老版本不返回）。
+    /// 为空或缺失表示总是展示。对应服务端可选字段，老版本不返回。
     #[serde(default)]
     pub show_when: Option<String>,
 }
 
 /// 驱动行为配置开关。
 ///
-/// 对应 `examples/alist/internal/driver/config.go` 的 `driver.Config`；
-/// `CheckStatus`/`NoOverwriteUpload`/`ProxyRangeOption` 三个字段标记 `json:"-"`，
-/// 不会出现在响应中，故不建模。
+/// 对应 AList 服务端驱动域配置模型 `driver.Config`；
+/// 部分仅服务端内部使用的字段已忽略。
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct DriverConfig {
     /// 驱动名，与模板映射的键一致。
@@ -138,8 +137,8 @@ where
 mod tests {
     use super::*;
 
-    /// 正向钉扎：`docs/api/alistv3.md` `GET 列出特定驱动信息` 的 UC 驱动返回示例（节选，
-    /// 字段值逐一取自原文），逐字段断言 [`DriverInfo`] 解码形状。
+    /// 正向钉扎：`GET /api/admin/driver/info` 的 UC 驱动返回示例（节选），
+    /// 逐字段断言 [`DriverInfo`] 解码形状。
     #[test]
     fn driver_info_decodes_openapi_uc_example() {
         let info: DriverInfo = serde_json::from_value(serde_json::json!({
@@ -202,8 +201,7 @@ mod tests {
         assert_eq!(info.config.alert, "");
     }
 
-    /// 兼容钉扎：`additional` 显式 `null`（Go `getAdditionalItems` 对无配置项驱动返回
-    /// nil 切片，序列化为 `null`）、`config` 缺失字段、`show_when` 缺失时均不失败。
+    /// 兼容钉扎：`additional` 显式 `null`（服务端对无配置项驱动返回 nil 切片，序列化为 `null`）、`config` 缺失字段、`show_when` 缺失时均不失败。
     #[test]
     fn driver_info_tolerates_null_and_missing_fields() {
         let info: DriverInfo = serde_json::from_value(serde_json::json!({
@@ -226,8 +224,7 @@ mod tests {
         assert_eq!(info.common[0].show_when, None);
     }
 
-    /// 新增字段钉扎：`show_when` 来自 `examples/alist/internal/driver/item.go`
-    /// 的 `Item.ShowWhen`（文档 openapi 示例尚未收录该字段），非空时应解出。
+    /// 新增字段钉扎：`show_when` 字段在非空时应正确解码。
     #[test]
     fn driver_item_decodes_show_when_from_go_source() {
         let item: DriverItem = serde_json::from_value(serde_json::json!({
@@ -261,8 +258,7 @@ mod tests {
         assert!(value.get("value_type").is_none(), "不应出现重命名后的键");
     }
 
-    /// 宽松模型钉扎：`docs/api/alistv3.md` `GET 查询所有驱动配置模板列表` 的
-    /// `115 Cloud` 条目（节选，字段值取自原文）可解为 [`DriverListResponse`]，
+    /// 宽松模型钉扎：查询所有驱动配置模板列表示例可解为 [`DriverListResponse`]，
     /// 且单个条目可按需转换为强类型 [`DriverInfo`]。
     #[test]
     fn driver_list_response_decodes_openapi_example_and_bridges_to_driver_info() {
@@ -311,7 +307,7 @@ mod tests {
         assert_eq!(info.additional[0].default, "56");
     }
 
-    /// 正向钉扎：`docs/api/alistv3.md` `GET /api/admin/driver/names` 返回示例（节选）。
+    /// 正向钉扎：`GET /api/admin/driver/names` 返回示例（节选）。
     #[test]
     fn driver_names_response_decodes_openapi_example() {
         let names: DriverNamesResponse =

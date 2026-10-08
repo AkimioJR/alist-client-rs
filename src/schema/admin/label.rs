@@ -4,11 +4,12 @@
 //! `/api/admin/label/create`、`/api/admin/label/update`、`/api/admin/label/delete`（写入）
 //! 涉及的数据形状：标签条目 [`Label`] 与创建响应 [`CreateLabelResponse`]。
 //!
-//! 该路由分组未被 `docs/api/alistv3.openapi.yaml` 与 `docs/api/alistv3.md` 收录，
-//! 字段形状以 `examples/alist` 的 Go 源码为准：
-//! 条目字段来自 `internal/model/label.go` 的 `model.Label`（gorm 模型 + JSON tag），
-//! 响应包装来自 `server/common/resp.go` 的 `Resp[T]`/`PageResp`，
-//! 各操作的请求/响应形状来自 `server/handles/label.go` 的
+//! ## 字段形状来源
+//!
+//! 该路由分组未被 AList OpenAPI 规范收录，字段形状以 AList 服务端源码为准：
+//! 条目字段来自 model.Label 数据模型，
+//! 响应包装来自通用响应模块，
+//! 各操作的请求/响应形状来自服务端标签处理模块的
 //! `ListLabel`/`GetLabel`/`CreateLabel`/`UpdateLabel`/`DeleteLabel`。
 
 use chrono::{DateTime, Utc};
@@ -26,33 +27,42 @@ where
 
 /// 标签条目。
 ///
-/// 对应 `examples/alist/internal/model/label.go` 的 `model.Label`；
+/// 对应 AList 服务端 model.Label 数据模型；
 /// 由 `/api/label/list`（分页包装内）、`/api/label/get` 与 `/api/admin/label/update` 返回。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Label {
-    /// 标签 ID；对应 Go `model.Label.ID`（gorm 主键 `uint`）。
+    /// 标签 ID。
+    ///
+    /// 对应服务端主键 ID。
     pub id: u64,
-    /// 标签类型；对应 Go `model.Label.Type`（`int`，JSON 键为保留字 `type`）。
+    /// 标签类型。
+    ///
+    /// JSON 键为保留字 `type`，在 Rust 中重命名为 `label_type`。
     #[serde(rename = "type")]
     pub label_type: i32,
-    /// 标签名称；对应 Go `model.Label.Name`（服务端按名称查重，创建时必填）。
+    /// 标签名称。
+    ///
+    /// 服务端按名称查重，创建时必填。
     pub name: String,
-    /// 标签描述；对应 Go `model.Label.Description`；缺失或 `null` 时归约为空串。
+    /// 标签描述。
+    ///
+    /// 缺失或 `null` 时归约为空串。
     #[serde(default, deserialize_with = "null_to_default")]
     pub description: String,
-    /// 标签背景色；对应 Go `model.Label.BgColor`；缺失或 `null` 时归约为空串。
+    /// 标签背景色。
+    ///
+    /// 缺失或 `null` 时归约为空串。
     #[serde(default, deserialize_with = "null_to_default")]
     pub bg_color: String,
-    /// 创建时间；对应 Go `model.Label.CreateTime`（非指针 `time.Time`）。
-    /// 服务端在创建/更新时以当前时间覆盖（`db.CreateLabel`/`db.UpdateLabel`），
-    /// gorm 行总是携带该字段，JSON 中永不缺失或为 `null`。
+    /// 创建时间。
+    ///
+    /// 对应服务端创建时间戳，JSON 中永不缺失或为 `null`。
     pub create_time: DateTime<Utc>,
 }
 
 /// 创建标签的响应数据。
 ///
-/// 对应 `examples/alist/server/handles/label.go` 的 `CreateLabel`：
-/// 成功时以 `gin.H{"id": id}` 返回新建标签的数据库 ID。
+/// 对应 AList 服务端标签创建处理函数：成功时以 `gin.H{"id": id}` 返回新建标签的数据库 ID。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CreateLabelResponse {
     /// 新建标签的 ID。
@@ -63,7 +73,7 @@ pub struct CreateLabelResponse {
 mod tests {
     use super::*;
 
-    /// 正向钉扎：按 `examples/alist/internal/model/label.go` 的 JSON tag
+    /// 正向钉扎：按 AList 服务端 model.Label 数据模型的 JSON 字段
     /// 构造 Go 服务端 `ListLabel`/`GetLabel` 的实际返回形状（`time.Time` 以
     /// RFC3339 纳秒精度序列化），逐字段断言。
     #[test]
@@ -124,8 +134,7 @@ mod tests {
         assert_eq!(label.create_time.to_rfc3339(), "2024-06-01T12:00:00+00:00");
     }
 
-    /// 分页钉扎：`/api/label/list` 的 `PageResponse<Label>` 包装形态
-    /// （`examples/alist/server/common/resp.go` 的 `PageResp`）。
+    /// 分页钉扎：`/api/label/list` 的 `PageResponse<Label>` 包装形态。
     #[test]
     fn label_list_wraps_into_page_response() {
         let page: crate::schema::common::PageResponse<Label> =
@@ -167,7 +176,7 @@ mod tests {
         assert!(value["create_time"].is_string(), "{value}");
     }
 
-    /// 创建响应钉扎：`handles/label.go` 的 `CreateLabel` 成功时返回 `gin.H{"id": id}`。
+    /// 创建响应钉扎：服务端标签创建成功时返回 `gin.H{"id": id}`。
     #[test]
     fn create_label_response_decodes_handler_shape() {
         let resp: crate::schema::common::Response<CreateLabelResponse> =

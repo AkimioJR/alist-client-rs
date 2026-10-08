@@ -2,17 +2,15 @@
 //!
 //! 覆盖 `/api/admin/task/upload` 下上传任务端点的响应模型：
 //!
-//! - 任务详情复用共享模型 [`TaskInfo`]（`examples/alist/server/handles/task.go`
-//!   的 `TaskInfo` 结构体，已由 `schema/common.rs` 建模，此处 re-export 便于按域引用）；
+//! - 任务详情复用共享模型 [`TaskInfo`]（由 `schema/common.rs` 建模，此处 re-export 便于按域引用）；
 //! - 未完成/已完成列表（`GET /undone`、`GET /done`）的响应 `data` 为任务数组
-//!   （`task.go` 的 `common.SuccessResp(c, getTaskInfos(...))`，**非分页包裹**），
-//!   以 [`TaskInfoList`] 表达；
+//!   （服务端返回任务切片，**非分页包裹**），以 [`TaskInfoList`] 表达；
 //! - 单任务查询（`POST /info`）的响应 `data` 为单个任务对象；
 //! - 取消/删除/重试/清空端点的 `data` 为 `null`，端点以 `()` 接收，无需专门模型。
 //!
-//! 数据来源：`docs/api/alistv3.openapi.yaml` 的 `admin/task/upload` 分组、
-//! `docs/api/alistv3.md` 的 `# admin/task/upload` 分节与
-//! `examples/alist/server/handles/task.go`（`taskRoute`，`SetupTaskRoute` 挂载 `/upload` 子组）。
+//! ## 字段形状来源
+//!
+//! 数据来源：AList OpenAPI 规范的 `admin/task/upload` 分组与 AList 服务端任务处理模块。
 
 pub use crate::schema::common::TaskInfo;
 
@@ -20,8 +18,7 @@ pub use crate::schema::common::TaskInfo;
 ///
 /// `GET /api/admin/task/upload/undone` 与 `GET /api/admin/task/upload/done`
 /// 的响应 `data`：任务数组（非分页，无 `content`/`total` 包裹）。
-/// 老文档示例中的任务元素为精简形状（`state` 甚至写作字符串），
-/// 与 Go 侧 `tache.State`（整型）及完整字段冲突，以 Go 源码为准。
+/// 字段形状以 AList 服务端源码为准。
 pub type TaskInfoList = Vec<TaskInfo>;
 
 #[cfg(test)]
@@ -29,11 +26,9 @@ mod tests {
     use super::*;
     use crate::schema::common::Response;
 
-    /// 正向钉扎：`GET /api/admin/task/upload/done` 的响应 + 任务数组形状。
+    /// 正向钉扎：`GET /api/admin/task/upload/done` 的响应与任务数组形状。
     ///
-    /// 响应 `data` 为数组的形状取自 `docs/api/alistv3.md` `# admin/task/upload`
-    /// 分节「获取已完成任务」的返回示例；任务元素字段取自
-    /// `examples/alist/server/handles/task.go` 的 `TaskInfo`（Go 为准，老文档精简形状不采用）。
+    /// 响应 `data` 为数组；任务元素字段以 AList 服务端 `TaskInfo` 结构体为准。
     #[test]
     fn task_info_list_decodes_done_endpoint_response() {
         let resp: Response<TaskInfoList> = serde_json::from_value(serde_json::json!({
@@ -70,9 +65,7 @@ mod tests {
 
     /// 正向钉扎：`POST /api/admin/task/upload/info` 的 `data` 为**单个**任务对象。
     ///
-    /// `docs/api/alistv3.openapi.yaml` 的 info 返回示例误写为数组；
-    /// Go 源码（`task.go:152-154`）为 `common.SuccessResp(c, getTaskInfo(task))`
-    /// 单对象，以 Go 为准钉住。
+    /// 服务端源码返回单个任务对象，以此为准钉住。
     #[test]
     fn info_endpoint_decodes_single_task_object() {
         let resp: Response<TaskInfo> = serde_json::from_value(serde_json::json!({
@@ -101,7 +94,7 @@ mod tests {
         assert!(task.end_time.is_some());
     }
 
-    /// 兼容钉扎：老服务器只返回老文档示例中的精简字段集时也能解出
+    /// 兼容钉扎：服务端只返回精简字段集时也能解出
     /// （缺失字段走 `#[serde(default)]`）。
     ///
     /// 注意：老文档示例把 `state` 写作字符串（`"succeeded"`），与 Go 侧

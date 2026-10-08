@@ -10,7 +10,7 @@ use thiserror::Error;
 
 /// AList JSON 响应中的逻辑状态码。
 ///
-/// 参考实现见 `examples/alist/server/common/resp.go` 与 `internal/errs`。
+/// 参考实现见 AList 服务端通用响应模块与内部错误定义。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ApiStatusCode {
     /// 成功响应（响应 `code` 为 `200` 或 `0`）。
@@ -84,9 +84,9 @@ impl From<i32> for ApiStatusCode {
     }
 }
 
-/// `alist/internal/errs` 中常量错误信息的稳定命名。
+/// AList 服务端内部常量错误信息的稳定命名。
 ///
-/// AList 响应不携带符号化错误 ID，因此只能按 `internal/errs` 的常量文本做子串匹配分类。
+/// AList 响应不携带符号化错误 ID，因此只能按服务端内部错误模块的常量文本做子串匹配分类。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum InternalErrorKind {
     /// `not implement`。
@@ -265,7 +265,7 @@ pub enum Error {
         code: ApiStatusCode,
         /// 服务端消息。
         message: String,
-        /// 按 `alist/internal/errs` 常量文本做的尽力分类。
+        /// 按服务端内部错误常量文本做的尽力分类。
         kind: Option<InternalErrorKind>,
         /// 错误响应中的原始 `data`。
         data: Value,

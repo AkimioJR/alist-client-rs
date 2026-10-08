@@ -10,13 +10,14 @@
 //!   [`UploadResponse`]（上传请求载荷全部位于
 //!   HTTP 头与原始 body，无 JSON 请求模型）。
 //!
-//! 字段形状的数据来源（与 Go 源码冲突时以 Go 为准）：
-//! `docs/api/alistv3.openapi.yaml` 的 `fs` 分组与 `examples/alist` 的
-//! `server/handles/fsread.go`（列表/详情/目录树）、`server/handles/fsmanage.go`
-//! （新建/重命名/移动/复制/删除）、`server/handles/fsbatch.go`（批量/正则重命名、
-//! 聚合移动）、`server/handles/search.go` 与 `internal/model/search.go`（搜索）、
-//! `server/handles/offline_download.go`（离线下载）、`server/handles/archive.go`
-//! 与 `internal/model/archive.go`（归档）、`server/handles/fsup.go`（上传）。
+//! ## 字段形状来源
+//!
+//! 字段形状以 AList OpenAPI 规范的 fs 分组与 AList 服务端各业务模块为准：
+//! 包括 fsread 模块（列表/详情/目录树）、fsmanage 模块
+//! （新建/重命名/移动/复制/删除）、fsbatch 模块（批量/正则重命名、
+//! 聚合移动）、search 模块与 model.Search 数据模型（搜索）、
+//! offline_download 模块（离线下载）、archive 模块
+//! 与 model.Archive 数据模型（归档）、fsup 模块（上传）。
 //!
 //! 跨版本兼容说明：新版服务端在 fs 列表/详情对象上新增 `id`/`path`/`virtual_path`/
 //! `hashinfo`/`hash_info`/`storage_class`/`label_list` 与 `filtered_total`/`page`/
@@ -41,7 +42,7 @@ where
 }
 
 /// 兼容单字符串与字符串数组两种 JSON 形状（对应 Go `handles.StringOrArray`，
-/// `server/handles/archive.go:224-238` 的自定义 `UnmarshalJSON`）。
+/// AList 服务端 archive 模块的自定义反序列化逻辑）。
 fn deserialize_string_or_array<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
 where
     D: serde::Deserializer<'de>,
@@ -62,8 +63,8 @@ where
 
 /// 文件/目录对象（无标签版本）。
 ///
-/// 对应 `examples/alist/server/handles/fsread.go` 的 `ObjResponse`（fsread.go:35-50），
-/// 同时作为归档内部列表条目（`archive.go:41-44` 的 `ArchiveContentResponse` 嵌入字段）。
+/// 对应 AList 服务端 fsread 模块的 `ObjResponse`，
+/// 同时作为归档内部列表条目（archive 模块嵌入字段）。
 /// `id`/`path`/`virtual_path`/`hashinfo`/`hash_info`/`storage_class` 为新版服务端
 /// 新增字段，老版本缺失时归约为空值。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -88,7 +89,9 @@ pub struct ObjResponse {
     /// 创建时间；openapi 未将其列入必填（老版本可能缺失），归约为 `None`。
     #[serde(default)]
     pub created: Option<DateTime<Utc>>,
-    /// 下载签名；用于构造带签名的直链。
+    /// 下载签名。
+    ///
+    /// 用于构造带签名的直链。
     pub sign: String,
     /// 缩略图地址。
     pub thumb: String,
@@ -109,8 +112,8 @@ pub struct ObjResponse {
 
 /// 文件对象携带的标签条目。
 ///
-/// 对应 `examples/alist/internal/model/label.go` 的 `model.Label`，
-/// 出现在目录列表条目的 `label_list` 字段中（`fsread.go:66-82` 的 `ObjLabelResponse`）。
+/// 对应 AList 服务端 model.Label 数据模型，
+/// 出现在目录列表条目的 `label_list` 字段中。
 /// 与 admin 域的标签模型形状一致，但独立定义以避免 feature 交叉依赖。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ObjLabel {
@@ -133,7 +136,7 @@ pub struct ObjLabel {
 
 /// 目录列表条目（带标签版本）。
 ///
-/// 对应 `examples/alist/server/handles/fsread.go` 的 `ObjLabelResponse`（fsread.go:66-82），
+/// 对应 AList 服务端 fsread 模块的 `ObjLabelResponse`，
 /// 即 `/api/fs/list` 响应 `content` 的元素类型；`label_list` 与新增的
 /// `id`/`path`/`virtual_path`/`storage_class` 在老版本服务端缺失时归约为空值。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -181,7 +184,7 @@ pub struct ObjLabelResponse {
 
 /// 目录列表响应。
 ///
-/// 对应 `examples/alist/server/handles/fsread.go` 的 `FsListResponse`（fsread.go:52-64）。
+/// 对应 AList 服务端 fsread 模块的 `FsListResponse`。
 /// 新版服务端额外返回 `filtered_total`/`page`/`per_page`/`has_more`/`pages_total`
 /// 分页元信息（`has_more`/`pages_total` 可用于翻页终止判断），老版本缺失时归约为零值；
 /// `content` 在目录为空时可能为 `null`，归约为空数组。
@@ -222,7 +225,7 @@ pub struct FsListResponse {
 
 /// 子目录条目。
 ///
-/// 对应 `examples/alist/server/handles/fsread.go` 的 `DirResponse`（fsread.go:208-211），
+/// 对应 AList 服务端 fsread 模块的 `DirResponse`，
 /// 即 `/api/fs/dirs` 响应数组的元素类型。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DirResponse {
@@ -234,7 +237,7 @@ pub struct DirResponse {
 
 /// 文件/目录详情响应。
 ///
-/// 对应 `examples/alist/server/handles/fsread.go` 的 `FsGetResponse`（fsread.go:346-354），
+/// 对应 AList 服务端 fsread 模块的 `FsGetResponse`，
 /// 即 `/api/fs/get` 响应 `data`；Go 侧嵌入 `ObjResponse`（JSON 平铺），
 /// 此处以 `serde(flatten)` 复用 [`ObjResponse`]。
 /// `web_proxy` 为新版服务端字段（老版本缺失归约为 `false`）；
@@ -244,7 +247,9 @@ pub struct FsGetResponse {
     /// 对象基础字段（Go 侧嵌入的 `ObjResponse`，JSON 平铺）。
     #[serde(flatten)]
     pub obj: ObjResponse,
-    /// 直链原始 URL；目录恒为空串。
+    /// 直链原始 URL。
+    ///
+    /// 目录恒为空串。
     pub raw_url: String,
     /// 目录说明（元信息 `readme`）。
     pub readme: String,
@@ -262,8 +267,8 @@ pub struct FsGetResponse {
 
 /// 搜索结果条目。
 ///
-/// 对应 `examples/alist/server/handles/search.go` 的 `SearchResponse`（search.go:22-25，
-/// 由 `internal/model/search.go` 的 `SearchNode` 附加 `type` 字段构成），
+/// 对应 AList 服务端 search 模块的 `SearchResponse`
+/// （由 model.Search 数据模型的 `SearchNode` 附加 `type` 字段构成），
 /// 即 `/api/fs/search` 响应 `content` 的元素类型。
 /// `type` 为新版服务端附加字段，老版本缺失时归约为 `0`。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -284,7 +289,7 @@ pub struct SearchResponse {
 /// 搜索范围类型。
 ///
 /// 对应 AList `POST /api/fs/search` 请求体中的 `scope` 字段（Go `model.SearchReq.Scope`，
-/// `internal/model/search.go:19`；OpenAPI `0-全部 1-文件夹 2-文件`）：
+/// AList 服务端 search 模块与 OpenAPI 规范（`0-全部 1-文件夹 2-文件`）：
 /// - `0` 为全部（文件与文件夹，默认值）；
 /// - `1` 为仅文件夹 / 目录；
 /// - `2` 为仅文件。
@@ -343,8 +348,8 @@ impl<'de> Deserialize<'de> for SearchScope {
 
 /// 批量重命名的单项。
 ///
-/// 对应 `examples/alist/server/handles/fsbatch.go` 的 `BatchRenameReq.RenameObjects`
-/// 元素（fsbatch.go:148-152），作为 `/api/fs/batch_rename` 请求体 `rename_objects` 的元素。
+/// 对应 AList 服务端 fsbatch 模块的 `BatchRenameReq.RenameObjects`
+/// 元素，作为 `/api/fs/batch_rename` 请求体 `rename_objects` 的元素。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RenameObject {
     /// 原文件名。
@@ -356,7 +361,7 @@ pub struct RenameObject {
 /// 聚合移动冲突处理策略。
 ///
 /// 对应 AList `POST /api/fs/recursive_move` 请求体中的 `conflict_policy` 字段（Go `handles` 常量，
-/// `examples/alist/server/handles/const.go:4-6` 与 `handles/fsbatch.go:117-126`）：
+/// AList 服务端 fsbatch 模块中常量定义）：
 /// - `overwrite`: 直接覆盖已存在的目标文件；
 /// - `cancel`: 目标已存在时取消操作并返回 403；
 /// - `skip`: 跳过已存在的目标文件。
@@ -394,7 +399,7 @@ impl AsRef<str> for ConflictPolicy {
 /// 离线下载临时文件删除策略。
 ///
 /// 对应 AList `POST /api/fs/add_offline_download` 请求体中的 `delete_policy` 字段
-/// （Go `tool.DeletePolicy`，`internal/offline_download/tool/add.go:27-31`）：
+/// （对应 AList 服务端 offline_download 工具模块的 `tool.DeletePolicy`）：
 /// - `delete_on_upload_succeed`: 上传成功后删除本地临时文件（默认推荐）；
 /// - `delete_on_upload_failed`: 上传失败后删除本地临时文件；
 /// - `delete_never`: 从不删除本地临时文件；
@@ -436,8 +441,7 @@ impl AsRef<str> for DeletePolicy {
 
 /// 复制端点的响应数据。
 ///
-/// 对应 `examples/alist/server/handles/fsmanage.go` 的 `FsCopy` 返回的
-/// `gin.H{"tasks": ...}`（fsmanage.go:215-217）；跨存储复制会创建后台任务。
+/// 对应 AList 服务端 fsmanage 模块中 `FsCopy` 返回的结构；跨存储复制会创建后台任务。
 /// 老版本服务端复制成功时 `data` 为 `null`，因此端点模型为 `Option<CopyResponse>`。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CopyResponse {
@@ -448,8 +452,8 @@ pub struct CopyResponse {
 
 /// 离线下载端点的响应数据。
 ///
-/// 对应 `examples/alist/server/handles/offline_download.go` 的 `AddOfflineDownload`
-/// 返回的 `gin.H{"tasks": ...}`（offline_download.go:383-385）：每个 URL 至多产生一个
+/// 对应 AList 服务端 offline_download 模块的 `AddOfflineDownload`
+/// 返回的结构：每个 URL 至多产生一个后台任务；任务 ID 恒为字符串。
 /// 后台任务，响应为任务数组（而非单个任务对象），与 openapi 示例一致。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct OfflineDownloadResponse {
@@ -460,7 +464,7 @@ pub struct OfflineDownloadResponse {
 
 /// 归档元信息中的排序设置。
 ///
-/// 对应 `examples/alist/internal/model/storage.go` 的 `model.Sort`（storage.go:24-28），
+/// 对应 AList 服务端 model.Storage 数据模型的 `model.Sort`，
 /// 由归档驱动随元信息返回（`ArchiveMetaResponse.Sort`）。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ArchiveSort {
@@ -474,8 +478,8 @@ pub struct ArchiveSort {
 
 /// 压缩包元信息响应。
 ///
-/// 对应 `examples/alist/server/handles/archive.go` 的 `ArchiveMetaResponse`
-/// （archive.go:32-39），即 `POST /api/fs/archive/meta` 响应 `data`。
+/// 对应 AList 服务端 archive 模块的 `ArchiveMetaResponse`，
+/// 即 `POST /api/fs/archive/meta` 响应 `data`。
 /// 压缩包为空或驱动未提供树形结构时 `content` 可能为 `null`，归约为空数组。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ArchiveMetaResponse {
@@ -491,14 +495,16 @@ pub struct ArchiveMetaResponse {
     pub sort: Option<ArchiveSort>,
     /// 归档预览直链（`/ae` 或 `/ad` 前缀）。
     pub raw_url: String,
-    /// 归档直链签名；未开启签名时为空串。
+    /// 归档直链签名。
+    ///
+    /// 未开启签名时为空串。
     pub sign: String,
 }
 
 /// 压缩包内的文件条目（树形）。
 ///
-/// 对应 `examples/alist/server/handles/archive.go` 的 `ArchiveContentResponse`
-/// （archive.go:41-44）：嵌入 `ObjResponse`（JSON 平铺）并递归携带 `children`；
+/// 对应 AList 服务端 archive 模块的 `ArchiveContentResponse`：
+/// 嵌入 `ObjResponse`（JSON 平铺）并递归携带 `children`；
 /// 目录无子项时服务端返回 `null`，归约为空数组。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ArchiveContentResponse {
@@ -512,8 +518,8 @@ pub struct ArchiveContentResponse {
 
 /// 压缩包内部列表响应。
 ///
-/// 对应 `examples/alist/server/handles/archive.go` 的 `ArchiveListResponse`
-/// （archive.go:153-156），即 `POST /api/fs/archive/list` 响应 `data`。
+/// 对应 AList 服务端 archive 模块的 `ArchiveListResponse`，
+/// 即 `POST /api/fs/archive/list` 响应 `data`。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ArchiveListResponse {
     /// 当前页的压缩包内部条目；为空时归约为空数组。
@@ -525,8 +531,8 @@ pub struct ArchiveListResponse {
 
 /// 解压端点的响应数据。
 ///
-/// 对应 `examples/alist/server/handles/archive.go` 的 `FsArchiveDecompress` 返回的
-/// `gin.H{"task": ...}`（archive.go:318-320）：JSON 键为单数 `task`，但值是任务数组
+/// 对应 AList 服务端 archive 模块中 `FsArchiveDecompress` 返回的
+/// 结构：JSON 键为单数 `task`，但值是任务数组（每个被解压的文件对应一个任务）。
 /// （每个解压目标一项）。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ArchiveDecompressResponse {
@@ -537,8 +543,8 @@ pub struct ArchiveDecompressResponse {
 
 /// 解压目标名集合：兼容单个字符串与字符串数组两种 JSON 形状。
 ///
-/// 对应 `examples/alist/server/handles/archive.go` 的 `StringOrArray`
-/// （archive.go:224-238），作为 `POST /api/fs/archive/decompress` 请求体 `name` 字段的
+/// 对应 AList 服务端 archive 模块的 `StringOrArray`，
+/// 作为 `POST /api/fs/archive/decompress` 请求体 `name` 字段的
 /// 类型；序列化恒为数组形状（与 Go 行为一致），反序列化兼容单值。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(transparent)]
@@ -556,10 +562,9 @@ impl StringOrArray {
 
 /// 上传端点（`PUT /api/fs/put` 流式上传与 `PUT /api/fs/form` 表单上传）的响应数据。
 ///
-/// 即 `examples/alist/server/handles/fsup.go` 中 `FsStream`/`FsForm` 以
-/// `gin.H{"task": getTaskInfo(t)}` 返回的结构，复用共享模型
+/// 即 AList 服务端上传处理模块以 `gin.H{"task": getTaskInfo(t)}` 返回的结构，复用共享模型
 /// [`UploadResponse`](crate::schema::common::UploadResponse)。
-/// 直传成功（未启用 `As-Task` 头）时端点 `data` 为 `null`（fsup.go:104-109），
+/// 直传成功（未启用 `As-Task` 头）时端点 `data` 为 `null`，
 /// 因此端点模型为 `Option<UploadResponse>`；上传请求载荷全部位于 HTTP 头与原始 body，
 /// 无 JSON 请求模型。
 pub type UploadResponse = crate::schema::common::UploadResponse;
@@ -568,7 +573,7 @@ pub type UploadResponse = crate::schema::common::UploadResponse;
 mod tests {
     use super::*;
 
-    /// 正向钉扎：`docs/api/alistv3.openapi.yaml` 的 `/api/fs/list` 返回示例
+    /// 正向钉扎：AList OpenAPI 规范的 `/api/fs/list` 返回示例（含 content 数组与 total 字段）。
     /// （老版本形状：条目无 `id`/`path`/`virtual_path`/`label_list`，
     /// 响应无 `filtered_total` 等新增分页字段）。
     #[test]
@@ -622,7 +627,7 @@ mod tests {
         assert_eq!(resp.pages_total, 0);
     }
 
-    /// 兼容钉扎：按 `examples/alist/server/handles/fsread.go` 的 `FsListResponse`/
+    /// 兼容钉扎：按 AList 服务端 fsread 模块的 `FsListResponse` 形状反序列化真实响应。
     /// `ObjLabelResponse` JSON tag 构造新版服务端形状（含新增字段与标签列表）。
     #[test]
     fn fs_list_response_decodes_new_server_shape() {
@@ -701,7 +706,7 @@ mod tests {
         assert_eq!(resp.total, 0);
     }
 
-    /// 正向钉扎：`docs/api/alistv3.openapi.yaml` 的 `/api/fs/get` 返回示例
+    /// 正向钉扎：AList OpenAPI 规范的 `/api/fs/get` 返回示例（含 raw_url 与 provider 字段）。
     /// （`related: null`、无 `web_proxy` 字段的老版本形状）。
     #[test]
     fn fs_get_response_decodes_openapi_example() {
@@ -732,7 +737,7 @@ mod tests {
         assert!(!resp.web_proxy, "老版本缺失的 web_proxy 归约为 false");
     }
 
-    /// 正向钉扎：`docs/api/alistv3.openapi.yaml` 的 `/api/fs/dirs` 返回示例。
+    /// 正向钉扎：AList OpenAPI 规范的 `/api/fs/dirs` 返回示例。
     #[test]
     fn dir_response_decodes_openapi_example() {
         let dirs: Vec<DirResponse> = serde_json::from_value(serde_json::json!([
@@ -743,7 +748,7 @@ mod tests {
         assert_eq!(dirs[0].name, "a");
     }
 
-    /// 正向钉扎：`docs/api/alistv3.openapi.yaml` 的 `/api/fs/search` 返回示例；
+    /// 正向钉扎：AList OpenAPI 规范的 `/api/fs/search` 返回示例；
     /// 兼容老版本无 `type` 字段的形状。
     #[test]
     fn search_response_decodes_openapi_example() {
@@ -768,7 +773,7 @@ mod tests {
         assert_eq!(old.r#type, 0);
     }
 
-    /// 序列化键名钉扎：批量重命名单项按 fsbatch.go 的 JSON tag 序列化。
+    /// 序列化键名钉扎：批量重命名单项按服务端 fsbatch 模块的 JSON 标签序列化。
     #[test]
     fn rename_object_serializes_with_api_field_names() {
         let item = RenameObject {
@@ -781,7 +786,7 @@ mod tests {
         );
     }
 
-    /// 正向钉扎：`docs/api/alistv3.openapi.yaml` 的 `/api/fs/add_offline_download`
+    /// 正向钉扎：AList OpenAPI 规范的 `/api/fs/add_offline_download` 返回示例；
     /// 返回示例；`/api/fs/copy` 响应同构（`gin.H{"tasks": ...}`）。
     #[test]
     fn offline_download_response_decodes_openapi_example() {
@@ -806,8 +811,8 @@ mod tests {
         assert!(copy.tasks.is_empty());
     }
 
-    /// 钉扎：`examples/alist/server/handles/archive.go` 的 `ArchiveMetaResponse`/
-    /// `ArchiveContentResponse` JSON tag 形状（树形 children、可选 sort）。
+    /// 钉扎：AList 服务端 archive 模块的 `ArchiveMetaResponse`/
+    /// `ArchiveContentResponse` JSON 标签形状（树形 children、可选 sort）。
     #[test]
     fn archive_meta_response_decodes_go_server_shape() {
         let resp: ArchiveMetaResponse = serde_json::from_value(serde_json::json!({
@@ -864,7 +869,7 @@ mod tests {
         assert!(no_sort.content.is_empty());
     }
 
-    /// 钉扎：`examples/alist/server/handles/archive.go` 的 `ArchiveListResponse` 形状。
+    /// 钉扎：AList 服务端 archive 模块的 `ArchiveListResponse` 形状。
     #[test]
     fn archive_list_response_decodes_go_server_shape() {
         let resp: ArchiveListResponse = serde_json::from_value(serde_json::json!({
@@ -886,7 +891,7 @@ mod tests {
         assert_eq!(resp.content[0].name, "inner.txt");
     }
 
-    /// 钉扎：解压响应 `gin.H{"task": ...}`（archive.go:318-320）——键为单数 `task`、值为数组。
+    /// 钉扎：解压响应——键为单数 `task`、值为数组。
     #[test]
     fn archive_decompress_response_decodes_task_array() {
         let resp: ArchiveDecompressResponse = serde_json::from_value(serde_json::json!({
@@ -900,7 +905,7 @@ mod tests {
         assert_eq!(resp.task[0].id, "abc");
     }
 
-    /// 钉扎：`StringOrArray`（archive.go:224-238）——单字符串归约为单元素数组，
+    /// 钉扎：`StringOrArray`——单字符串归约为单元素数组，
     /// 序列化恒为数组形状。
     #[test]
     fn string_or_array_accepts_single_and_array_shapes() {
@@ -915,7 +920,7 @@ mod tests {
         );
     }
 
-    /// 钉扎：上传响应复用 [`crate::schema::common::UploadResponse`]（fsup.go `gin.H{"task": ...}`）。
+    /// 钉扎：上传响应复用 [`crate::schema::common::UploadResponse`]。
     #[test]
     fn upload_response_alias_reuses_common_model() {
         use crate::schema::common::Response;

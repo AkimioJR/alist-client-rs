@@ -2,7 +2,7 @@
 //!
 //! 模块布局与 AList API 分组一一对应：[`common`] 为无条件编译的共享模型，
 //! 其余子模块由对应的 `*-schema` feature 门控（端点 feature 会自动拉取镜像 schema feature，
-//! 见根 `Cargo.toml` 的 `[features]` 与 `docs/design.md`）。
+//! 见根 `Cargo.toml` 的 `[features]` 与项目设计文档）。
 
 pub mod common;
 

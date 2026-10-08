@@ -1,20 +1,21 @@
 //! admin-user 用户域数据模型。
 //!
 //! 本文件建模 `/api/admin/user` 组端点的用户条目 [`AdminUser`]，对应
-//! `examples/alist/internal/model/user.go` 的 `model.User`（JSON 导出字段），
+//! AList 服务端 model.User 数据模型（JSON 导出字段），
 //! 由 `GET /api/admin/user/list`（分页形态 `{"content": [...], "total": N}` 的元素）与
-//! `GET /api/admin/user/get`（单个对象）返回。字段示例取自
-//! `docs/api/alistv3.openapi.yaml` 的 admin/user 组与 `docs/api/alistv3.md`
-//! 的 `# admin/user` 分组。
+//! `GET /api/admin/user/get`（单个对象）返回。
 //!
 //! 创建/更新请求体（`POST /api/admin/user/create`、`/api/admin/user/update`）不在此定义：
 //! 请求形状由端点构建器 `src/endpoint/admin/user/create.rs` 与 `update.rs` 的
 //! `Request` 字段承载（请求体由 `EndpointRequest` 派生宏生成）。
 //!
+//! ## 字段形状来源
+//!
+//! 字段示例取自 AList OpenAPI 规范的 admin/user 分组。
+//!
 //! ## 兼容性说明
 //!
-//! - `role`：新版本服务端为数组（Go `model.Roles []int`，
-//!   `examples/alist/internal/model/roles.go:9`）；老版本服务端与 openapi 文档示例为
+//! - `role`：新版本服务端为数组；老版本服务端与 OpenAPI 规范示例为
 //!   单值整数（如 `"role": 2`）。[`AdminUser::role`] 统一反序列化为 `Vec<i32>`：
 //!   单值自动展开为单元素数组，缺失与显式 `null` 归约为空数组。
 //! - `sso_id`：服务端较新字段；缺失或显式 `null` 时归约为空字符串。
@@ -55,37 +56,39 @@ where
 
 /// AList 用户条目。
 ///
-/// 对应 `examples/alist/internal/model/user.go` 的 `model.User` JSON 导出字段
-/// （`PwdHash`/`PwdTS`/`Salt`/`OtpSecret`/`Authn` 等私有字段带 `json:"-"`，不出现在响应中）。
+/// 对应 AList 服务端 model.User 数据模型的 JSON 导出字段。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AdminUser {
-    /// 用户 ID；数据库自增主键（对应 Go `model.User.ID`）。
+    /// 用户 ID。
+    ///
+    /// 数据库自增主键。
     pub id: i64,
-    /// 用户名，全局唯一（对应 Go `model.User.Username`）。
+    /// 用户名，全局唯一。
     pub username: String,
-    /// 明文密码字段（对应 Go `model.User.Password`）。
+    /// 明文密码字段。
     ///
     /// 真实口令以加盐散列存储在服务端私有字段中；列表/详情响应中该字段恒为空字符串。
     pub password: String,
-    /// 用户可见的根目录路径（对应 Go `model.User.BasePath`）。
+    /// 用户可见的根目录路径。
     pub base_path: String,
-    /// 角色 ID 列表（对应 Go `model.User.Role`，`model.Roles []int`）。
+    /// 角色 ID 列表。
     ///
     /// 内置角色：`0` 普通用户、`1` 访客、`2` 管理员；
     /// 老版本单值形状自动展开为单元素数组。
     #[serde(default, deserialize_with = "deserialize_roles")]
     pub role: Vec<i32>,
-    /// 是否禁用该账号（对应 Go `model.User.Disabled`）。
+    /// 是否禁用该账号。
     #[serde(default)]
     pub disabled: bool,
-    /// 权限位掩码（对应 Go `model.User.Permission`）。
+    /// 权限位掩码。
     ///
     /// 按位控制可见隐藏文件、免密码访问、离线下载、上传、重命名/移动/复制/删除、
-    /// WebDAV 与 FTP 读写、压缩包读取与解压、路径限制、MCP 读写等能力，
-    /// 位定义见 `examples/alist/internal/model/user.go` 的 `Can*` 系列方法。
+    /// WebDAV 与 FTP 读写、压缩包读取与解压、路径限制、MCP 读写等能力。
     #[serde(default)]
     pub permission: i32,
-    /// SSO 平台唯一标识（对应 Go `model.User.SsoID`）；未绑定 SSO 时为空字符串。
+    /// SSO 平台唯一标识。
+    ///
+    /// 未绑定 SSO 时为空字符串。
     #[serde(default, deserialize_with = "null_to_default")]
     pub sso_id: String,
 }
@@ -95,8 +98,7 @@ mod tests {
     use super::*;
     use crate::schema::common::PageResponse;
 
-    /// 正向钉扎：`docs/api/alistv3.md` `# admin/user` GET「列出所有用户」返回示例
-    /// （与 `docs/api/alistv3.openapi.yaml` 的 `/api/admin/user/list` 示例一致），
+    /// 正向钉扎：AList OpenAPI 规范 GET「列出所有用户」返回示例，
     /// 验证 `PageResponse` 分页包裹形态与 `role` 单值形状的展开。
     #[test]
     fn admin_user_list_example_decodes_page_response() {
@@ -128,7 +130,7 @@ mod tests {
         assert_eq!(page.content[2].role, vec![0]);
     }
 
-    /// 正向钉扎：`docs/api/alistv3.md` `# admin/user` GET「列出某个用户」返回示例
+    /// 正向钉扎：AList OpenAPI 规范 GET「列出某个用户」返回示例
     /// （`/api/admin/user/get`，`role` 为单值 `2`）。
     #[test]
     fn admin_user_get_example_decodes_single_value_role() {
@@ -145,8 +147,7 @@ mod tests {
         assert_eq!(user.sso_id, "");
     }
 
-    /// 兼容钉扎：新版本服务端 `role` 为数组形状（Go `model.Roles []int`，
-    /// `examples/alist/internal/model/roles.go`）。
+    /// 兼容钉扎：新版本服务端 `role` 为数组形状。
     #[test]
     fn admin_user_accepts_array_role() {
         let user: AdminUser = serde_json::from_value(serde_json::json!({
