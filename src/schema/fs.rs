@@ -391,6 +391,49 @@ impl AsRef<str> for ConflictPolicy {
     }
 }
 
+/// 离线下载临时文件删除策略。
+///
+/// 对应 AList `POST /api/fs/add_offline_download` 请求体中的 `delete_policy` 字段
+/// （Go `tool.DeletePolicy`，`internal/offline_download/tool/add.go:27-31`）：
+/// - `delete_on_upload_succeed`: 上传成功后删除本地临时文件（默认推荐）；
+/// - `delete_on_upload_failed`: 上传失败后删除本地临时文件；
+/// - `delete_never`: 从不删除本地临时文件；
+/// - `delete_always`: 无论转存成功或失败，总是删除本地临时文件。
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DeletePolicy {
+    /// 上传成功后删除本地临时文件（默认值）。
+    #[default]
+    DeleteOnUploadSucceed,
+    /// 上传失败后删除本地临时文件。
+    DeleteOnUploadFailed,
+    /// 从不删除本地临时文件。
+    DeleteNever,
+    /// 无论转存成功或失败，总是删除本地临时文件。
+    DeleteAlways,
+}
+
+impl DeletePolicy {
+    /// 返回对应 AList 协议的字符串切片。
+    #[inline]
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::DeleteOnUploadSucceed => "delete_on_upload_succeed",
+            Self::DeleteOnUploadFailed => "delete_on_upload_failed",
+            Self::DeleteNever => "delete_never",
+            Self::DeleteAlways => "delete_always",
+        }
+    }
+}
+
+impl AsRef<str> for DeletePolicy {
+    #[inline]
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
 /// 复制端点的响应数据。
 ///
 /// 对应 `examples/alist/server/handles/fsmanage.go` 的 `FsCopy` 返回的
@@ -977,5 +1020,69 @@ mod tests {
         // 非法字符串反序列化报错
         assert!(serde_json::from_value::<ConflictPolicy>(serde_json::json!("other")).is_err());
         assert!(serde_json::from_value::<ConflictPolicy>(serde_json::json!("OVERWRITE")).is_err());
+    }
+
+    /// 钉扎：`DeletePolicy` 序列化与反序列化形状符合 AList 服务端蛇形命名约定（delete_on_upload_succeed 等）。
+    #[test]
+    fn delete_policy_serde_matches_snake_case_string_contract() {
+        assert_eq!(DeletePolicy::default(), DeletePolicy::DeleteOnUploadSucceed);
+        assert_eq!(
+            DeletePolicy::DeleteOnUploadSucceed.as_str(),
+            "delete_on_upload_succeed"
+        );
+        assert_eq!(
+            DeletePolicy::DeleteOnUploadFailed.as_str(),
+            "delete_on_upload_failed"
+        );
+        assert_eq!(DeletePolicy::DeleteNever.as_str(), "delete_never");
+        assert_eq!(DeletePolicy::DeleteAlways.as_str(), "delete_always");
+        assert_eq!(
+            DeletePolicy::DeleteOnUploadSucceed.as_ref(),
+            "delete_on_upload_succeed"
+        );
+
+        // 序列化
+        assert_eq!(
+            serde_json::to_value(DeletePolicy::DeleteOnUploadSucceed).unwrap(),
+            serde_json::json!("delete_on_upload_succeed")
+        );
+        assert_eq!(
+            serde_json::to_value(DeletePolicy::DeleteOnUploadFailed).unwrap(),
+            serde_json::json!("delete_on_upload_failed")
+        );
+        assert_eq!(
+            serde_json::to_value(DeletePolicy::DeleteNever).unwrap(),
+            serde_json::json!("delete_never")
+        );
+        assert_eq!(
+            serde_json::to_value(DeletePolicy::DeleteAlways).unwrap(),
+            serde_json::json!("delete_always")
+        );
+
+        // 反序列化
+        assert_eq!(
+            serde_json::from_value::<DeletePolicy>(serde_json::json!("delete_on_upload_succeed"))
+                .unwrap(),
+            DeletePolicy::DeleteOnUploadSucceed
+        );
+        assert_eq!(
+            serde_json::from_value::<DeletePolicy>(serde_json::json!("delete_on_upload_failed"))
+                .unwrap(),
+            DeletePolicy::DeleteOnUploadFailed
+        );
+        assert_eq!(
+            serde_json::from_value::<DeletePolicy>(serde_json::json!("delete_never")).unwrap(),
+            DeletePolicy::DeleteNever
+        );
+        assert_eq!(
+            serde_json::from_value::<DeletePolicy>(serde_json::json!("delete_always")).unwrap(),
+            DeletePolicy::DeleteAlways
+        );
+
+        // 非法字符串反序列化报错
+        assert!(
+            serde_json::from_value::<DeletePolicy>(serde_json::json!("delete_on_success")).is_err()
+        );
+        assert!(serde_json::from_value::<DeletePolicy>(serde_json::json!("unknown")).is_err());
     }
 }

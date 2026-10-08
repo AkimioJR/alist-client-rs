@@ -10,6 +10,7 @@
 
 use alist_client_derive::EndpointRequest;
 
+pub use crate::schema::fs::DeletePolicy;
 use crate::schema::fs::OfflineDownloadResponse;
 
 /// 添加离线下载任务请求构建器。
@@ -35,10 +36,8 @@ pub struct Request<'a> {
     /// 离线下载工具名（必选；如 `aria2`、`SimpleHttp`、`qBittorrent`，
     /// 或网盘内置工具 `115 Cloud`、`PikPak` 等）。
     tool: String,
-    /// 临时文件删除策略（必选；`delete_on_upload_succeed` 上传成功后删除、
-    /// `delete_on_upload_failed` 上传失败后删除、`delete_never` 从不删除、
-    /// `delete_always` 总是删除，见 `internal/offline_download/tool/add.go:27-31`）。
-    delete_policy: String,
+    /// 临时文件删除策略（必选；见 [`DeletePolicy`]）。
+    delete_policy: DeletePolicy,
 }
 
 impl<'a> Request<'a> {
@@ -51,14 +50,14 @@ impl<'a> Request<'a> {
         path: impl Into<String>,
         urls: Vec<String>,
         tool: impl Into<String>,
-        delete_policy: impl Into<String>,
+        delete_policy: DeletePolicy,
     ) -> Self {
         Self {
             client,
             path: path.into(),
             urls,
             tool: tool.into(),
-            delete_policy: delete_policy.into(),
+            delete_policy,
         }
     }
 }
@@ -81,8 +80,8 @@ impl<'a> super::Fs<'a> {
     /// * `path` - 下载目标目录。
     /// * `urls` - 下载链接列表。
     /// * `tool` - 离线下载工具名（如 `aria2`、`SimpleHttp`、`qBittorrent`）。
-    /// * `delete_policy` - 临时文件删除策略（`delete_on_upload_succeed` /
-    ///   `delete_on_upload_failed` / `delete_never` / `delete_always`）。
+    /// * `delete_policy` - 临时文件删除策略（[`DeletePolicy`]，如
+    ///   [`DeletePolicy::DeleteOnUploadSucceed`]）。
     ///
     /// # Returns
     ///
@@ -98,7 +97,10 @@ impl<'a> super::Fs<'a> {
     /// # Examples
     ///
     /// ```no_run
-    /// use alist_client::{Authentication, Client};
+    /// use alist_client::{
+    ///     Authentication, Client,
+    ///     schema::fs::DeletePolicy,
+    /// };
     ///
     /// # async fn example() -> alist_client::Result<()> {
     /// let client = Client::new("https://alist.example.com")?
@@ -107,7 +109,7 @@ impl<'a> super::Fs<'a> {
     ///     "/local",
     ///     vec!["https://www.example.com/demo.png".to_owned()],
     ///     "SimpleHttp",
-    ///     "delete_on_upload_succeed",
+    ///     DeletePolicy::DeleteOnUploadSucceed,
     /// ).await?;
     /// for task in &resp.tasks {
     ///     println!("离线下载任务：{}（{}）", task.name, task.id);
@@ -122,7 +124,7 @@ impl<'a> super::Fs<'a> {
         path: impl Into<String>,
         urls: Vec<String>,
         tool: impl Into<String>,
-        delete_policy: impl Into<String>,
+        delete_policy: DeletePolicy,
     ) -> Request<'a> {
         Request::new(self.client, path, urls, tool, delete_policy)
     }
@@ -141,7 +143,7 @@ mod tests {
             "/local",
             vec!["https://www.example.com/demo.png".to_owned()],
             "SimpleHttp",
-            "delete_on_upload_succeed",
+            DeletePolicy::DeleteOnUploadSucceed,
         )
         .build_request()
         .build()
@@ -186,7 +188,7 @@ mod tests {
                 "/local",
                 vec!["https://www.baidu.com/img/20d6cf.png".to_owned()],
                 "SimpleHttp",
-                "delete_on_upload_succeed",
+                DeletePolicy::DeleteOnUploadSucceed,
             )
             .send()
             .await
