@@ -6,6 +6,9 @@ name = "alist-client"
 version = "0.1.0"
 edition = "2024"
 description = "Async Rust client for the AList v3 API."
+repository = "https://github.com/AkimioJR/alist-client-rs"
+authors = ["AkimioJR <akimio.jr@gmail.com>"]
+readme = "README.md"
 
 [dependencies]
 alist-client-derive = { path = "alist-client-derive" }
