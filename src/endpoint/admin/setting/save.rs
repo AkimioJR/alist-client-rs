@@ -93,7 +93,7 @@ impl<'a> super::Setting<'a> {
     ///     options: String::new(),
     ///     group: SettingGroup::Site,
     ///     flag: SettingFlag::Public,
-    ///     index: 0,
+    ///     index: Some(0),
     /// }];
     /// client.admin().setting().save(items).send_settings().await?;
     /// # Ok(())
@@ -153,7 +153,7 @@ mod tests {
             options: String::new(),
             group: SettingGroup::Site,
             flag: SettingFlag::Public,
-            index: 0,
+            index: Some(0),
         }];
         Request::new(&client, settings)
             .send_settings()

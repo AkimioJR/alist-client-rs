@@ -448,11 +448,11 @@ pub struct Setting {
     pub group: SettingGroup,
     /// 可见性标志。
     pub flag: SettingFlag,
-    /// 排序序号。
+    /// 设置项排序序号。
     ///
-    /// OpenAPI 规范未收录该字段，老版本服务端可能不返回，缺失时归零。
+    /// 从 AList `v3.37.1` 起新增设置项排序序号；老版本缺失时为 [`None`]。
     #[serde(default)]
-    pub index: u64,
+    pub index: Option<i32>,
 }
 
 /// `POST /api/admin/setting/set_aria2` 的请求体形状。
@@ -523,8 +523,8 @@ mod tests {
         assert_eq!(aria2.value_type, "string");
         assert_eq!(aria2.group, SettingGroup::OfflineDownload);
         assert_eq!(aria2.flag, SettingFlag::Private);
-        // openapi 示例未含 index 字段 → serde(default) 归零（老版本服务端兼容）
-        assert_eq!(aria2.index, 0);
+        // openapi 示例未含 index 字段 → serde(default) 解析为 None（老版本服务端兼容）
+        assert_eq!(aria2.index, None);
 
         let progress = &resp.data[1];
         assert_eq!(progress.value_type, "text");
@@ -571,7 +571,7 @@ mod tests {
             "index": 3
         }))
         .unwrap();
-        assert_eq!(with_index.index, 3);
+        assert_eq!(with_index.index, Some(3));
 
         let without_index: Setting = serde_json::from_value(serde_json::json!({
             "key": "site_title",
@@ -583,7 +583,7 @@ mod tests {
             "flag": 0
         }))
         .unwrap();
-        assert_eq!(without_index.index, 0);
+        assert_eq!(without_index.index, None);
     }
 
     /// 序列化键名钉扎：`type` 键经 `#[serde(rename)]` 保留，`index` 一并序列化
@@ -598,7 +598,7 @@ mod tests {
             options: String::new(),
             group: SettingGroup::Site,
             flag: SettingFlag::Public,
-            index: 0,
+            index: Some(0),
         };
         assert_eq!(
             serde_json::to_value(&setting).unwrap(),

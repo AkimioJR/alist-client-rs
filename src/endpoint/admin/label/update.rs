@@ -164,7 +164,7 @@ mod tests {
             .unwrap();
         assert_eq!(label.id, 1);
         assert_eq!(label.name, "电影");
-        assert_eq!(label.description, "电影相关文件");
+        assert_eq!(label.description.as_deref(), Some("电影相关文件"));
 
         let recorded = requests.lock().unwrap();
         assert!(

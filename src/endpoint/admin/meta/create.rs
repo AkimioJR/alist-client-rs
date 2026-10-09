@@ -76,8 +76,8 @@ impl<'a> Request<'a> {
             h_sub: Some(meta.h_sub),
             readme: Some(meta.readme),
             r_sub: Some(meta.r_sub),
-            header: Some(meta.header),
-            header_sub: Some(meta.header_sub),
+            header: meta.header,
+            header_sub: meta.header_sub,
         }
     }
 }
@@ -174,9 +174,7 @@ mod tests {
                 "hide": "",
                 "h_sub": false,
                 "readme": "",
-                "r_sub": false,
-                "header": "",
-                "header_sub": false
+                "r_sub": false
             })
         );
     }

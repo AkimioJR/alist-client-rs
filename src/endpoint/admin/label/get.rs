@@ -69,7 +69,7 @@ impl<'a> super::Label<'a> {
     /// let client = Client::new("https://alist.example.com")?
     ///     .with_authentication(Authentication::token("TOKEN".to_owned()));
     /// let label = client.admin().label().get(1).await?;
-    /// println!("{}: {}", label.name, label.bg_color);
+    /// println!("{}: {:?}", label.name, label.bg_color);
     /// # Ok(())
     /// # }
     /// ```
@@ -113,7 +113,7 @@ mod tests {
         assert_eq!(label.id, 1);
         assert_eq!(label.label_type, 2);
         assert_eq!(label.name, "电影");
-        assert_eq!(label.bg_color, "#FF0000");
+        assert_eq!(label.bg_color.as_deref(), Some("#FF0000"));
 
         let recorded = requests.lock().unwrap();
         assert!(

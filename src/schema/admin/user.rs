@@ -25,6 +25,7 @@ use serde::{Deserialize, Serialize};
 /// 将显式 JSON `null` 归约为类型默认值的反序列化辅助。
 ///
 /// 服务端（尤其老版本）会对新增字段返回 `null`；字段缺失由 `#[serde(default)]` 接住。
+#[allow(dead_code)]
 fn null_to_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
     D: serde::Deserializer<'de>,
@@ -88,9 +89,9 @@ pub struct AdminUser {
     pub permission: i32,
     /// SSO 平台唯一标识。
     ///
-    /// 未绑定 SSO 时为空字符串。
-    #[serde(default, deserialize_with = "null_to_default")]
-    pub sso_id: String,
+    /// 从 AList `v3.13.1` 起单点登录重构引入；老版本缺失时为 [`None`]。
+    #[serde(default)]
+    pub sso_id: Option<String>,
 }
 
 #[cfg(test)]
@@ -144,7 +145,7 @@ mod tests {
         assert_eq!(user.base_path, "/");
         assert_eq!(user.role, vec![2]);
         assert!(!user.disabled);
-        assert_eq!(user.sso_id, "");
+        assert_eq!(user.sso_id.as_deref(), Some(""));
     }
 
     /// 兼容钉扎：新版本服务端 `role` 为数组形状。
@@ -166,7 +167,7 @@ mod tests {
             "role": 0, "disabled": false, "permission": 0
         }))
         .unwrap();
-        assert_eq!(user.sso_id, "");
+        assert_eq!(user.sso_id, None);
         assert_eq!(user.role, vec![0]);
         assert_eq!(user.permission, 0);
         assert!(!user.disabled);
@@ -181,7 +182,7 @@ mod tests {
         }))
         .unwrap();
         assert!(user.role.is_empty());
-        assert_eq!(user.sso_id, "");
+        assert_eq!(user.sso_id, None);
     }
 
     /// 序列化键名钉扎：[`AdminUser`] 的 JSON 键与 API 字段名一致。
@@ -195,7 +196,7 @@ mod tests {
             role: vec![2],
             disabled: false,
             permission: 0,
-            sso_id: String::new(),
+            sso_id: Some(String::new()),
         };
         assert_eq!(
             serde_json::to_value(&user).unwrap(),

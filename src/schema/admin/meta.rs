@@ -74,14 +74,14 @@ pub struct Meta {
     pub r_sub: bool,
     /// 自定义响应头。
     ///
-    /// 每行一条 `Header: Value`；该字段未被 OpenAPI 规范收录，以服务端源码为准。
+    /// 从 AList `v3.29.0` 起新增自定义响应头；老版本缺失时为 [`None`]。
     #[serde(default)]
-    pub header: String,
+    pub header: Option<String>,
     /// 自定义响应头是否应用于子目录。
     ///
-    /// 对应 JSON 键 `header_sub`；该字段未被 OpenAPI 规范收录，以服务端源码为准。
+    /// 从 AList `v3.29.0` 起新增自定义响应头是否应用到子目录；老版本缺失时为 [`None`]。
     #[serde(default)]
-    pub header_sub: bool,
+    pub header_sub: Option<bool>,
 }
 
 #[cfg(test)]
@@ -116,9 +116,9 @@ mod tests {
         assert!(!meta.h_sub);
         assert_eq!(meta.readme, "");
         assert!(!meta.r_sub);
-        // openapi 未收录的新字段缺失时回退默认值（跨版本兼容）
-        assert_eq!(meta.header, "");
-        assert!(!meta.header_sub);
+        // openapi 未收录的新字段缺失时解析为 None（跨版本兼容）
+        assert_eq!(meta.header, None);
+        assert_eq!(meta.header_sub, None);
     }
 
     /// AList 服务端 model.Meta 全字段形状：
@@ -150,8 +150,8 @@ mod tests {
         assert!(meta.h_sub);
         assert_eq!(meta.readme, "# Hello");
         assert!(!meta.r_sub);
-        assert_eq!(meta.header, "X-Custom: 1");
-        assert!(meta.header_sub);
+        assert_eq!(meta.header.as_deref(), Some("X-Custom: 1"));
+        assert_eq!(meta.header_sub, Some(true));
     }
 
     /// 老版本服务器缺失部分字段时全部回退零值，不应报错。
@@ -167,8 +167,8 @@ mod tests {
         assert_eq!(meta.password, "");
         assert!(!meta.p_sub);
         assert!(!meta.write);
-        assert_eq!(meta.header, "");
-        assert!(!meta.header_sub);
+        assert_eq!(meta.header, None);
+        assert_eq!(meta.header_sub, None);
     }
 
     /// 序列化键名与 Go JSON 标签一一对应（12 个字段全量输出）。
@@ -178,6 +178,8 @@ mod tests {
             id: 4,
             path: "/a".to_owned(),
             password: "c".to_owned(),
+            header: Some(String::new()),
+            header_sub: Some(false),
             ..Default::default()
         };
         assert_eq!(

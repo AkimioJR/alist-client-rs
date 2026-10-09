@@ -90,14 +90,14 @@ pub struct Storage {
     pub disabled: bool,
     /// 是否禁止建立索引。
     ///
-    /// 新版本服务端新增字段，老版本缺失时为 `false`。
+    /// 从 AList `v3.42.0` 起新增是否禁止建立索引；老版本缺失时为 [`None`]。
     #[serde(default)]
-    pub disable_index: bool,
-    /// 是否启用签名。
+    pub disable_index: Option<bool>,
+    /// 是否启用细粒度签名。
     ///
-    /// 新版本服务端新增字段，老版本缺失时为 `false`。
+    /// 从 AList `v3.15.0` 起新增细粒度签名开关；老版本缺失时为 [`None`]。
     #[serde(default)]
-    pub enable_sign: bool,
+    pub enable_sign: Option<bool>,
     /// 对象排序字段。
     pub order_by: String,
     /// 对象排序方向。
@@ -113,16 +113,16 @@ pub struct Storage {
     pub webdav_policy: WebdavPolicy,
     /// 是否代理 Range 请求。
     ///
-    /// 新版本服务端新增字段，老版本缺失时为 `false`。
+    /// 从 AList `v3.35.0` 起新增 Range 请求代理开关；老版本缺失时为 [`None`]。
     #[serde(default)]
-    pub proxy_range: bool,
+    pub proxy_range: Option<bool>,
     /// 下载代理 URL。
     pub down_proxy_url: String,
     /// 下载代理 URL 是否附加签名。
     ///
-    /// 新版本服务端新增字段，老版本缺失时为 `false`。
+    /// 从 AList `v3.56.0` 起新增下载代理是否附加签名；老版本缺失时为 [`None`]。
     #[serde(default)]
-    pub down_proxy_sign: bool,
+    pub down_proxy_sign: Option<bool>,
 }
 
 /// 存储创建/更新操作的响应数据。
@@ -179,17 +179,17 @@ mod tests {
         assert_eq!(storage.modified.timestamp(), 1_689_731_198);
         assert_eq!(storage.modified.timestamp_subsec_nanos(), 868_739_912);
         assert!(!storage.disabled);
-        assert!(!storage.enable_sign);
+        assert_eq!(storage.enable_sign, Some(false));
         assert_eq!(storage.order_by, "name");
         assert_eq!(storage.order_direction, "asc");
         assert_eq!(storage.extract_folder, "front");
         assert!(!storage.web_proxy);
         assert_eq!(storage.webdav_policy, WebdavPolicy::NativeProxy);
         assert_eq!(storage.down_proxy_url, "");
-        // OpenAPI 规范示例尚未收录的新版本字段缺失 → 默认 false
-        assert!(!storage.disable_index);
-        assert!(!storage.proxy_range);
-        assert!(!storage.down_proxy_sign);
+        // OpenAPI 规范示例尚未收录的新版本字段缺失 → 为 None
+        assert_eq!(storage.disable_index, None);
+        assert_eq!(storage.proxy_range, None);
+        assert_eq!(storage.down_proxy_sign, None);
     }
 
     /// 兼容钉扎：AList OpenAPI 规范 `/api/admin/storage/get`
@@ -224,9 +224,10 @@ mod tests {
         assert_eq!(storage.driver, "Aliyundrive");
         assert_eq!(storage.cache_expiration, 30);
         assert_eq!(storage.webdav_policy, WebdavPolicy::Redirect302);
-        assert!(storage.disable_index);
-        assert!(!storage.proxy_range);
-        assert!(storage.down_proxy_sign);
+        assert_eq!(storage.disable_index, Some(true));
+        assert_eq!(storage.proxy_range, Some(false));
+        assert_eq!(storage.down_proxy_sign, Some(true));
+        assert_eq!(storage.enable_sign, None);
     }
 
     /// 兼容钉扎：`list` 端点响应 `data` 的 `PageResponse<Storage>` 分页包裹形态。
@@ -259,6 +260,10 @@ mod tests {
         assert_eq!(page.total, 5);
         assert_eq!(page.content.len(), 1);
         assert_eq!(page.content[0].mount_path, "/lll");
+        assert_eq!(page.content[0].enable_sign, Some(false));
+        assert_eq!(page.content[0].disable_index, None);
+        assert_eq!(page.content[0].proxy_range, None);
+        assert_eq!(page.content[0].down_proxy_sign, None);
     }
 
     /// 正向钉扎 + 序列化键名：create 端点响应 `data` 为 `{"id": N}`。

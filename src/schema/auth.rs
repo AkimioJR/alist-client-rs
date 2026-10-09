@@ -58,7 +58,7 @@ pub struct LoginResponse {
     pub token: String,
     /// 当前登录设备键。
     ///
-    /// 新版本服务端返回，老服务器缺失时为 [`None`]。
+    /// 从 AList `v3.52.0` 起新增会话设备键；老服务器缺失时为 [`None`]。
     #[serde(default)]
     pub device_key: Option<String>,
 }
@@ -154,12 +154,12 @@ pub struct UserResponse {
     pub otp: bool,
     /// 角色名称列表。
     ///
-    /// 新服务器字段，缺失或 `null` 时归约为空列表。
+    /// 从 AList `v3.46.0` 起新增；老版本缺失或 `null` 时归约为空列表。
     #[serde(default, deserialize_with = "null_to_default")]
     pub role_names: Vec<String>,
     /// 按路径划分的权限条目。
     ///
-    /// 新服务器字段，缺失或 `null` 时归约为空列表。
+    /// 从 AList `v3.46.0` 起新增；老版本缺失或 `null` 时归约为空列表。
     #[serde(default, deserialize_with = "null_to_default")]
     pub permissions: Vec<PermissionEntry>,
 }

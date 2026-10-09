@@ -16,6 +16,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 /// 将显式 `null` 归约为 `T` 的默认值（老版本服务端可能对新字段返回 `null`）。
+#[allow(dead_code)]
 fn null_to_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
     D: serde::Deserializer<'de>,
@@ -46,14 +47,14 @@ pub struct Label {
     pub name: String,
     /// 标签描述。
     ///
-    /// 缺失或 `null` 时归约为空串。
-    #[serde(default, deserialize_with = "null_to_default")]
-    pub description: String,
+    /// 从 AList `v3.46.0` 起新增标签描述；老版本缺失时为 [`None`]。
+    #[serde(default)]
+    pub description: Option<String>,
     /// 标签背景色。
     ///
-    /// 缺失或 `null` 时归约为空串。
-    #[serde(default, deserialize_with = "null_to_default")]
-    pub bg_color: String,
+    /// 从 AList `v3.46.0` 起新增标签背景色；老版本缺失时为 [`None`]。
+    #[serde(default)]
+    pub bg_color: Option<String>,
     /// 创建时间。
     ///
     /// 对应服务端创建时间戳，JSON 中永不缺失或为 `null`。
@@ -90,8 +91,8 @@ mod tests {
         assert_eq!(label.id, 1);
         assert_eq!(label.label_type, 2);
         assert_eq!(label.name, "电影");
-        assert_eq!(label.description, "电影相关文件");
-        assert_eq!(label.bg_color, "#FF0000");
+        assert_eq!(label.description.as_deref(), Some("电影相关文件"));
+        assert_eq!(label.bg_color.as_deref(), Some("#FF0000"));
         assert_eq!(
             label.create_time.to_rfc3339(),
             "2024-06-01T04:00:00.123456789+00:00"
@@ -110,8 +111,8 @@ mod tests {
             "create_time": "2024-06-01T12:00:00Z"
         }))
         .unwrap();
-        assert_eq!(label.description, "");
-        assert_eq!(label.bg_color, "");
+        assert_eq!(label.description, None);
+        assert_eq!(label.bg_color, None);
         assert_eq!(label.create_time.to_rfc3339(), "2024-06-01T12:00:00+00:00");
     }
 
@@ -129,8 +130,8 @@ mod tests {
             "create_time": "2024-06-01T12:00:00Z"
         }))
         .unwrap();
-        assert_eq!(label.description, "");
-        assert_eq!(label.bg_color, "");
+        assert_eq!(label.description, None);
+        assert_eq!(label.bg_color, None);
         assert_eq!(label.create_time.to_rfc3339(), "2024-06-01T12:00:00+00:00");
     }
 
@@ -163,8 +164,8 @@ mod tests {
             id: 1,
             label_type: 2,
             name: "电影".to_owned(),
-            description: "电影相关文件".to_owned(),
-            bg_color: "#FF0000".to_owned(),
+            description: Some("电影相关文件".to_owned()),
+            bg_color: Some("#FF0000".to_owned()),
             create_time: "2024-06-01T12:00:00Z".parse().unwrap(),
         };
         let value = serde_json::to_value(&label).unwrap();

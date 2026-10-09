@@ -160,7 +160,7 @@ mod tests {
         use crate::schema::admin::setting::{SettingFlag, SettingGroup};
         assert_eq!(settings[0].group, SettingGroup::Single);
         assert_eq!(settings[0].flag, SettingFlag::Private);
-        assert_eq!(settings[0].index, 0);
+        assert_eq!(settings[0].index, None);
 
         let recorded = requests.lock().unwrap();
         assert!(
