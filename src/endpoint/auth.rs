@@ -1,7 +1,7 @@
 //! auth 认证端点句柄。
 //!
-//! 覆盖登录（明文/哈希）、注册、两步验证与当前用户信息等端点，
-//! API 路径见 AList OpenAPI 规范的 `auth` 分组。
+//! 覆盖登录（明文/哈希）、注册、两步验证、当前用户信息以及登录会话管理（查询与踢出设备会话）等端点，
+//! API 路径见 AList OpenAPI 规范的 `auth` 分组与 AList 服务端路由定义。
 //!
 //! 通过 [`Client::auth`](crate::Client::auth) 获取句柄，推荐即建即用：
 //!
@@ -25,11 +25,15 @@ pub mod login;
 pub mod login_hash;
 
 #[cfg(feature = "auth")]
+pub mod evict_session;
+#[cfg(feature = "auth")]
 pub mod generate_2fa;
 #[cfg(feature = "auth")]
 pub mod me;
 #[cfg(feature = "auth")]
 pub mod register;
+#[cfg(feature = "auth")]
+pub mod sessions;
 #[cfg(feature = "auth")]
 pub mod verify_2fa;
 

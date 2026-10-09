@@ -1,8 +1,8 @@
 //! auth 认证域数据模型。
 //!
 //! 覆盖登录（明文/哈希）`LoginRequest`/`LoginResponse`、注册 `RegisterRequest`、
-//! 两步验证 `Generate2FaResponse`/`Verify2FaRequest`，以及 `/api/me` 的 `UserResponse`
-//! （含 [`MeResponse`] 别名）。
+//! 两步验证 `Generate2FaResponse`/`Verify2FaRequest`、`/api/me` 的 `UserResponse`
+//! （含 [`MeResponse`] 别名），以及会话管理 [`SessionResp`]（含 [`SessionResponse`] 别名）。
 //!
 //! ## 字段形状来源
 //!
@@ -11,6 +11,7 @@
 //!   `gin.H{"token", "device_key"}`、`RegisterReq`、
 //!   `UserResp`、`Verify2FAReq` 与
 //!   `Generate2FA` 响应；
+//! - AList 服务端 session 处理模块中的 `SessionResp`；
 //! - AList 服务端 model.User 数据模型的 JSON 字段；
 //! - AList 服务端 model.Role 数据模型的 `PermissionEntry`。
 //!
@@ -21,7 +22,8 @@
 //!   `null`（服务端 nil 切片序列化结果）；统一展开为 `Vec<i32>`；
 //! - `role_names`/`permissions` 为服务端新增字段：老服务器不返回，
 //!   新服务器在无角色时返回服务端 nil 切片序列化的 `null`，需同时容忍缺失与显式 `null`；
-//! - `device_key` 为新版本登录响应新增字段，老服务器仅返回 `token`。
+//! - `device_key` 为新版本登录响应新增字段，老服务器仅返回 `token`；
+//! - `SessionResp` 为 AList `v3.52.0` 起新增的会话信息模型；`user_id` 在当前用户会话列表中省略，统一建模为 `Option<u64>`。
 
 #[cfg(feature = "auth-schema")]
 use serde::de::DeserializeOwned;
@@ -167,6 +169,34 @@ pub struct UserResponse {
 /// [`UserResponse`] 的别名，与 `/api/me` 端点名称对应。
 #[cfg(feature = "auth-schema")]
 pub type MeResponse = UserResponse;
+
+/// 登录会话信息。
+///
+/// 对应 AList 服务端 session 处理模块中的 `SessionResp`。
+/// 从 AList `v3.52.0` 起新增。
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg(feature = "auth-schema")]
+pub struct SessionResp {
+    /// 会话设备标识键（对应服务端 `DeviceKey`）。
+    pub session_id: String,
+    /// 用户 ID（当前用户会话列表中可省略）。
+    ///
+    /// 老版本或当前用户接口未提供时为 [`None`]。
+    #[serde(default)]
+    pub user_id: Option<u64>,
+    /// 上次活跃时间（时间戳）。
+    pub last_active: i64,
+    /// 会话状态码。
+    pub status: i32,
+    /// 用户代理字符串（User Agent）。
+    pub ua: String,
+    /// 访问 IP 地址。
+    pub ip: String,
+}
+
+/// [`SessionResp`] 的语义化别名。
+#[cfg(feature = "auth-schema")]
+pub type SessionResponse = SessionResp;
 
 /// 将 `role` 字段的三种历史形状（数组 / 单值 int / `null`）统一展开为 `Vec<i32>`。
 #[cfg(feature = "auth-schema")]
@@ -416,5 +446,92 @@ mod tests {
         assert!(me.role.is_empty());
         assert_eq!(me.role_names, Vec::<String>::new());
         assert!(me.permissions.is_empty());
+    }
+
+    /// 正向钉扎：当前用户会话列表返回示例（不含 `user_id` 字段）。
+    #[cfg(feature = "auth-schema")]
+    #[test]
+    fn session_resp_decodes_shape_without_user_id() {
+        // 形状来源：AList 服务端 session 处理模块 ListMySessions
+        let session: SessionResp = serde_json::from_value(serde_json::json!({
+            "session_id": "sess-abc-123",
+            "last_active": 1710000000,
+            "status": 1,
+            "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+            "ip": "192.168.1.100"
+        }))
+        .unwrap();
+        assert_eq!(session.session_id, "sess-abc-123");
+        assert_eq!(session.user_id, None);
+        assert_eq!(session.last_active, 1710000000);
+        assert_eq!(session.status, 1);
+        assert_eq!(
+            session.ua,
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
+        );
+        assert_eq!(session.ip, "192.168.1.100");
+    }
+
+    /// 正向钉扎：管理员会话列表或带 `user_id` 的会话对象返回示例。
+    #[cfg(feature = "auth-schema")]
+    #[test]
+    fn session_resp_decodes_shape_with_user_id() {
+        // 形状来源：AList 服务端 session 处理模块 ListSessions
+        let session: SessionResp = serde_json::from_value(serde_json::json!({
+            "session_id": "sess-admin-456",
+            "user_id": 42,
+            "last_active": 1710000000,
+            "status": 1,
+            "ua": "AList Client",
+            "ip": "127.0.0.1"
+        }))
+        .unwrap();
+        assert_eq!(session.session_id, "sess-admin-456");
+        assert_eq!(session.user_id, Some(42));
+        assert_eq!(session.last_active, 1710000000);
+        assert_eq!(session.status, 1);
+        assert_eq!(session.ua, "AList Client");
+        assert_eq!(session.ip, "127.0.0.1");
+    }
+
+    /// 兼容钉扎：显式 null 的 `user_id` 容忍解析为 None。
+    #[cfg(feature = "auth-schema")]
+    #[test]
+    fn session_resp_tolerates_null_user_id() {
+        let session: SessionResp = serde_json::from_value(serde_json::json!({
+            "session_id": "sess-null-user",
+            "user_id": null,
+            "last_active": 1710000000,
+            "status": 1,
+            "ua": "curl/7.88.1",
+            "ip": "10.0.0.1"
+        }))
+        .unwrap();
+        assert_eq!(session.user_id, None);
+    }
+
+    /// 序列化钉扎：序列化时键名与 AList API 对齐。
+    #[cfg(feature = "auth-schema")]
+    #[test]
+    fn session_resp_serializes_with_api_field_names() {
+        let session = SessionResp {
+            session_id: "sess-test".to_owned(),
+            user_id: Some(10),
+            last_active: 1710000000,
+            status: 1,
+            ua: "test-ua".to_owned(),
+            ip: "127.0.0.1".to_owned(),
+        };
+        assert_eq!(
+            serde_json::to_value(&session).unwrap(),
+            serde_json::json!({
+                "session_id": "sess-test",
+                "user_id": 10,
+                "last_active": 1710000000,
+                "status": 1,
+                "ua": "test-ua",
+                "ip": "127.0.0.1"
+            })
+        );
     }
 }
