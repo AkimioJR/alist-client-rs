@@ -37,6 +37,7 @@ pub struct Client {
     token: RwLock<Option<String>>,
     authentication: RwLock<Option<Authentication>>,
     api_request_rate_limit: Option<RequestRateLimit>,
+    auth_refresh_lock: tokio::sync::Mutex<()>,
 }
 
 /// 实例构造与建造者（Builder）链式配置。
@@ -63,6 +64,7 @@ impl Client {
             token: RwLock::new(None),
             authentication: RwLock::new(None),
             api_request_rate_limit: None,
+            auth_refresh_lock: tokio::sync::Mutex::new(()),
         })
     }
 
@@ -193,6 +195,7 @@ impl Client {
             let Some(current) = pending.take() else {
                 unreachable!("每轮循环都会补充待发请求");
             };
+            let current_token = self.token();
             match self.send_response(current, &context, true).await {
                 Ok(decoded) => break decoded,
                 Err(err) => {
@@ -201,7 +204,7 @@ impl Client {
                     if !can_retry {
                         return Err(err);
                     }
-                    self.refresh_token().await?;
+                    self.refresh_token(current_token.as_deref()).await?;
                     retried = true;
                     pending = retry_builder.take();
                 }
@@ -274,9 +277,21 @@ impl Client {
 
     /// 使用保存的凭据重新登录并更新 token。
     ///
+    /// 借助 [`Client::auth_refresh_lock`] 互斥排队并发刷新，并通过双重检查避免重复登录。
+    /// 若 `failed_token` 与当前持有的 token 不一致（说明排队期间已有并发请求刷新完成），
+    /// 则直接跳过网络请求复用新 token。
+    ///
     /// 复用 [`crate::endpoint::auth::login::Request`] 构建登录请求，
     /// 且不注入认证头、不触发再次刷新（维持 `authenticated = false`，防止 401/403 产生递归重试死循环）。
-    async fn refresh_token(&self) -> Result<()> {
+    async fn refresh_token(&self, failed_token: Option<&str>) -> Result<()> {
+        let _guard = self.auth_refresh_lock.lock().await;
+
+        if let Some(current_token) = self.token()
+            && failed_token != Some(current_token.as_str())
+        {
+            return Ok(());
+        }
+
         let Some(Authentication::UsernamePassword {
             username,
             password,
@@ -698,6 +713,94 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(text, "pong");
+    }
+
+    #[tokio::test]
+    async fn concurrent_requests_on_401_refresh_token_only_once() {
+        use std::sync::atomic::{AtomicUsize, Ordering};
+
+        use tokio::{
+            io::{AsyncReadExt, AsyncWriteExt},
+            net::TcpListener,
+        };
+
+        let login_count = Arc::new(AtomicUsize::new(0));
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let login_count_clone = Arc::clone(&login_count);
+
+        tokio::spawn(async move {
+            loop {
+                let Ok((mut stream, _)) = listener.accept().await else {
+                    break;
+                };
+                let login_count = Arc::clone(&login_count_clone);
+                tokio::spawn(async move {
+                    let mut buffer = vec![0u8; 4096];
+                    let n = stream.read(&mut buffer).await.unwrap();
+                    let request_str = String::from_utf8_lossy(&buffer[..n]);
+
+                    let (status_line, body) = if request_str.contains("POST /api/auth/login") {
+                        login_count.fetch_add(1, Ordering::SeqCst);
+                        tokio::time::sleep(Duration::from_millis(50)).await;
+                        (
+                            "HTTP/1.1 200 OK",
+                            r#"{"code":200,"message":"success","data":{"token":"fresh-token"}}"#
+                                .to_string(),
+                        )
+                    } else if request_str
+                        .to_ascii_lowercase()
+                        .contains("authorization: fresh-token")
+                    {
+                        (
+                            "HTTP/1.1 200 OK",
+                            r#"{"code":200,"message":"success","data":{"username":"admin"}}"#
+                                .to_string(),
+                        )
+                    } else {
+                        (
+                            "HTTP/1.1 200 OK",
+                            r#"{"code":401,"message":"token expired","data":null}"#.to_string(),
+                        )
+                    };
+
+                    let head = format!(
+                        "{status_line}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                        body.len()
+                    );
+                    let _ = stream.write_all(head.as_bytes()).await;
+                    let _ = stream.write_all(body.as_bytes()).await;
+                });
+            }
+        });
+
+        let client = Arc::new(
+            Client::new(format!("http://{addr}"))
+                .unwrap()
+                .with_authentication(Authentication::username_password("admin", "password")),
+        );
+
+        let mut handles = Vec::new();
+        for _ in 0..5 {
+            let client = Arc::clone(&client);
+            handles.push(tokio::spawn(async move {
+                client
+                    .execute::<MeData>(client.request(Method::GET, "/api/me"))
+                    .await
+            }));
+        }
+
+        for handle in handles {
+            let me = handle.await.unwrap().unwrap();
+            assert_eq!(me.username, "admin");
+        }
+
+        assert_eq!(
+            login_count.load(Ordering::SeqCst),
+            1,
+            "并发 401 时登录刷新应只执行一次"
+        );
+        assert_eq!(client.token().as_deref(), Some("fresh-token"));
     }
 
     #[cfg(feature = "task")]
