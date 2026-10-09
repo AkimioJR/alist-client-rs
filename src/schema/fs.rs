@@ -19,10 +19,15 @@
 //! offline_download 模块（离线下载）、archive 模块
 //! 与 model.Archive 数据模型（归档）、fsup 模块（上传）。
 //!
-//! 跨版本兼容说明：新版服务端在 fs 列表/详情对象上新增 `id`/`path`/`virtual_path`/
-//! `hashinfo`/`hash_info`/`storage_class`/`label_list` 与 `filtered_total`/`page`/
-//! `per_page`/`has_more`/`pages_total` 等字段，老版本缺失或返回显式 `null`，
-//! 相关字段均以 `#[serde(default)]`（集合字段配合 `null_to_default`）接住。
+//! ## 跨版本兼容性说明
+//!
+//! 新版服务端在 fs 列表/详情对象上陆续新增了 `id`/`path`/`virtual_path`/
+//! `hashinfo`/`storage_class` 与 `filtered_total`/`page`/`per_page`/`has_more`/
+//! `pages_total` 等标量字段：
+//! - **标量演进字段**：统一采用 [`Option<T>`] 建模并在字段文档中注明引入的 Git Tag，
+//!   老版本缺失时反序列化为 [`None`]，严格区分「字段不存在」与「有效零值」；
+//! - **集合映射字段**：`hash_info` 与 `label_list` 在老版本缺失或返回显式 `null` 时，
+//!   配合 `null_to_default` 归约为空集合，保持遍历人体工程学。
 
 use std::collections::HashMap;
 

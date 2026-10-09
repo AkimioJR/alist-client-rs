@@ -191,16 +191,23 @@ impl<'a> super::Fs<'a> {
 ## 5. Schema 约定（`src/schema/<域>.rs`）
 
 1. 所有模型 derive 至少 `Debug, Clone, PartialEq, Serialize, Deserialize`（响应模型可省 Serialize）。
-2. **可选字段用 `Option<T>`** 并加 `#[serde(default)]`；集合字段额外容忍 `null` 时可用
-   `#[serde(default, deserialize_with = "…null_to_default…")]`（模式见 git 历史 `src/models/auth.rs`）。
-3. 服务端新增字段（如 `role_names`、`permissions`、`device_key`）必须以 `#[serde(default)]` 的 Option/Vec 接住，保证向后兼容。
-4. 与 Go 源码冲突时以 Go 为准，例如：`/api/me` 的 `role` 是数组（`model.Roles []int`，老服务器可能返回单值，
-   需 untagged 兼容）；`TaskInfo.progress` 是 `f64`；`time.Time` 映射 `chrono::DateTime<Utc>`（`*time.Time` → `Option<_>`）。
-5. **示例 JSON 钉扎测试**：每个 schema 文件在 `#[cfg(test)] mod tests` 中用 `docs/api/alistv3.openapi.yaml`
-   与 Go 源码里的真实示例 JSON 反序列化断言（参考 `src/schema/common.rs` 与 git 历史 `src/models/*` 的写法），
-   键名序列化用 `serde_json::to_value` 断言钉住。
-6. 复用共享模型：分页响应用 `crate::schema::common::PageResponse<T>`，任务体用 `TaskInfo`，上传响应 `UploadResponse`。
-7. 文件头部：中文模块文档 + 数据来源说明；不写 pub use 之外的实现逻辑。
+2. **跨版本标量字段必须使用 `Option<T>`**：
+   - 随 AList 版本演进新增或废弃的标量元数据、标识符或计数统计（如 `has_more`、`page`、`per_page`、`filtered_total`、`pages_total`、`virtual_path`、`disable_index`、`header`、`index` 等），**必须严格区分「字段未提供 / 老版本不支持（`None`）」与「字段存在且值为有效零值（`Some(0)` / `Some(false)` / `Some("")`）」**；
+   - **严禁**使用 `#[serde(default)]` 直接回退为基本类型零值（如 `false` 或 `0`），避免产生业务误判（例如老版本缺失 `has_more` 被误归为 `false` 导致提前终止翻页）；
+   - 所有演进字段必须搭配 `#[serde(default)]` 以保证老版本未返回时安全反序列化为 `None`。
+3. **rustdoc 精确标明 Git Tag 版本溯源**：
+   - 每一个跨版本演进字段必须在 rustdoc 中注明其首次引入或变更的 AList Git Tag（例如 `从 AList \`v3.61.0\` 起新增规范虚拟展示路径；老版本不返回该字段时为 [\`None\`]。`）；
+   - 注释严格遵守首行独立简述 + 空行 + 详情段落的规范，禁止泄露本地相对路径和上游具体代码行号。
+4. **集合与映射类容器字段的人体工程学维持**：
+   - 集合类字段（如 `Vec<T>`、`HashMap<K, V>`）统一采用 `#[serde(default, deserialize_with = "null_to_default")]` 映射为空集合，避免调用方在日常遍历时产生不必要的多层解包开销；
+   - 容器字段的 rustdoc 中依然需要标明对应的版本演进 Tag 说明。
+5. **字段形状以 AList Go 源码为准**：
+   - 当文档与 Go 源码冲突时以 Go 为准。例如：`/api/me` 的 `role` 为数组（Go `model.Roles []int`，老服务器可能返回单值，需 untagged 兼容）；`TaskInfo.progress` 为 `f64`；`time.Time` 映射为 `chrono::DateTime<Utc>`（`*time.Time` 映射为 `Option<_>`）。
+6. **示例 JSON 钉扎测试**：
+   - 每个 schema 文件在 `#[cfg(test)] mod tests` 中必须对新版本完整字段以及老版本缺失字段分别建立钉扎测试断言（老版本缺失断言为 `None`，新版本断言为 `Some(...)`），键名序列化用 `serde_json::to_value` 钉住。
+7. **复用共享模型**：
+   - 分页响应用 `crate::schema::common::PageResponse<T>`，任务体用 `TaskInfo`，上传响应复用 `UploadResponse`。
+8. **文件头部**：中文模块文档 + 数据来源说明；不写 pub use 之外的实现逻辑。
 
 ## 6. 错误与响应包装（envelope）语义（已实现，端点代理需理解）
 
