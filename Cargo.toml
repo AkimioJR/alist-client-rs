@@ -13,7 +13,12 @@ async-stream = { version = "0.3", optional = true }
 bytes = "1"
 chrono = { version = "0.4", features = ["serde"] }
 futures = { version = "0.3", optional = true }
-reqwest = { version = "0.13", features = ["json", "query", "stream", "multipart"] }
+reqwest = { version = "0.13", features = [
+    "json",
+    "query",
+    "stream",
+    "multipart",
+] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
@@ -30,35 +35,46 @@ urlencoding = "2"
 
 [features]
 default = ["all"]
-all = ["stream", "into-stream", "auth", "fs", "public", "admin"]
+all = ["stream", "into-stream", "auth", "fs", "public", "task", "admin"]
+
 # 特殊功能
 stream = ["dep:tokio-util"]
 into-stream = ["dep:async-stream", "dep:futures"]
-# admin 聚合
-admin = ["admin-meta", "admin-user", "admin-storage", "admin-driver", "admin-setting", "admin-task", "admin-role", "admin-label", "admin-label-file-binding"]
+
 # 端点 feature 拉取镜像 schema feature
 auth = ["auth-schema"]
 fs = ["fs-schema"]
 public = ["public-schema"]
+task = ["task-schema"]
+admin = [ # admin 聚合
+    "admin-meta",
+    "admin-user",
+    "admin-storage",
+    "admin-driver",
+    "admin-setting",
+    "admin-role",
+    "admin-label",
+    "admin-label-file-binding",
+]
 admin-meta = ["admin-meta-schema"]
 admin-user = ["admin-user-schema"]
 admin-storage = ["admin-storage-schema"]
 admin-driver = ["admin-driver-schema"]
 admin-setting = ["admin-setting-schema"]
-admin-task = ["admin-task-schema"]
 admin-role = ["admin-role-schema"]
 admin-label = ["admin-label-schema"]
 admin-label-file-binding = ["admin-label-file-binding-schema"]
+
 # schema feature（由对应端点 feature 拉取）
 auth-schema = []
 fs-schema = []
 public-schema = []
+task-schema = []
 admin-meta-schema = []
 admin-user-schema = []
 admin-storage-schema = []
 admin-driver-schema = []
 admin-setting-schema = []
-admin-task-schema = []
 admin-role-schema = []
 admin-label-schema = []
 admin-label-file-binding-schema = []

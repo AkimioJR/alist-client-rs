@@ -19,9 +19,6 @@ pub mod driver;
 #[cfg(feature = "admin-setting-schema")]
 pub mod setting;
 
-#[cfg(feature = "admin-task-schema")]
-pub mod task;
-
 #[cfg(feature = "admin-role-schema")]
 pub mod role;
 

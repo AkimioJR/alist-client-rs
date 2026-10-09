@@ -33,8 +33,8 @@ docs/design.md              # 本文档
 
 `[features]` 矩阵（根 Cargo.toml）：
 
-- 端点 feature：`auth`、`fs`、`public`、`admin-meta`、`admin-user`、`admin-storage`、`admin-driver`、
-  `admin-setting`、`admin-task`、`admin-role`、`admin-label`、`admin-label-file-binding`；
+- 端点 feature：`auth`、`fs`、`public`、`task`、`admin-meta`、`admin-user`、`admin-storage`、`admin-driver`、
+  `admin-setting`、`admin-role`、`admin-label`、`admin-label-file-binding`；
   聚合：`admin`（拉全部 admin-*）；特殊：`stream`（tokio-util，响应流式读取）、`into-stream`（async-stream + futures，自动翻页流）。
 - 每个 `X` 自动拉取镜像 `X-schema`。schema 模块只按 `X-schema` 门控；端点模块只按 `X` 门控。
 - 因此：**端点代码引用 `crate::schema::<域>` 类型时无需再加 cfg**——feature 已保证 schema 模块存在。

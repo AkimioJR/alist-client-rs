@@ -1,7 +1,7 @@
 //! admin 管理端点句柄。
 //!
 //! 按子域划分为元信息（[`meta`]）、用户（[`user`]）、存储（[`storage`]）、
-//! 驱动（[`driver`]）、设置（[`setting`]）、上传任务（[`task`]）、角色（[`role`]）、
+//! 驱动（[`driver`]）、设置（[`setting`]）、角色（[`role`]）、
 //! 标签（[`label`]）与标签绑定（[`label_file_binding`]），
 //! API 路径见 AList OpenAPI 规范的 `admin` 分组与
 //! AList 服务端路由定义的 `admin` 路由。
@@ -34,9 +34,6 @@ pub mod driver;
 
 #[cfg(feature = "admin-setting")]
 pub mod setting;
-
-#[cfg(feature = "admin-task")]
-pub mod task;
 
 #[cfg(feature = "admin-role")]
 pub mod role;

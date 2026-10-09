@@ -40,6 +40,9 @@ pub mod fs;
 #[cfg(feature = "public")]
 pub mod public;
 
+#[cfg(feature = "task")]
+pub mod task;
+
 #[cfg(any(
     feature = "admin",
     feature = "admin-meta",
@@ -47,7 +50,6 @@ pub mod public;
     feature = "admin-storage",
     feature = "admin-driver",
     feature = "admin-setting",
-    feature = "admin-task",
     feature = "admin-role",
     feature = "admin-label",
     feature = "admin-label-file-binding"

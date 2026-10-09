@@ -17,13 +17,15 @@ pub mod fs;
 #[cfg(feature = "public-schema")]
 pub mod public;
 
+#[cfg(feature = "task-schema")]
+pub mod task;
+
 #[cfg(any(
     feature = "admin-meta-schema",
     feature = "admin-user-schema",
     feature = "admin-storage-schema",
     feature = "admin-driver-schema",
     feature = "admin-setting-schema",
-    feature = "admin-task-schema",
     feature = "admin-role-schema",
     feature = "admin-label-schema",
     feature = "admin-label-file-binding-schema"

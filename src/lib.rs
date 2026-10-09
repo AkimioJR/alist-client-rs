@@ -50,6 +50,11 @@
 //! let pong = client.public().ping().send_text().await?;
 //! assert_eq!(pong, "pong");
 //! # }
+//!
+//! # #[cfg(feature = "task")]
+//! # {
+//! // 7. 任务管理：通过任务类别子句柄访问 7 种后台任务（例如 client.task().upload().done().await?）
+//! # }
 //! # Ok(())
 //! # }
 //! ```
@@ -66,14 +71,18 @@
 //!         │     ├── .archive() → Archive  压缩包浏览与解压
 //!         │     └── .upload()  → Upload   流式/表单上传
 //!         ├── client.public()  → Public   ping、公共设置
-//!         └── client.admin()   → Admin    管理端（元信息/用户/存储/驱动/设置/任务/角色/标签）
+//!         ├── client.task()    → Task     任务管理（覆盖 7 种任务类别）
+//!         │     ├── .upload()              上传任务（如 client.task().upload().done().await?）
+//!         │     ├── .copy()                跨存储复制任务
+//!         │     └── ...                    离线下载/转存/S3转换/解压等类别
+//!         └── client.admin()   → Admin    管理端（元信息/用户/存储/驱动/设置/角色/标签）
 //! ```
 //!
 //! - **请求构建器**：每个操作一个 `Request` 结构体（`src/endpoint/<组>/<端点>.rs`），
 //!   由 `alist-client-derive` 的 `EndpointRequest` 派生宏生成 `build_request`、
 //!   [`send`](crate::endpoint::fs::mkdir::Request::send)、`IntoFuture` 与可选参数
-//!   setter；可直接 `.await` 执行强类型解码。列表端点在 `into-stream` feature 下
-//!   还可调用 `.into_stream()` 得到自动翻页的条目流。
+//!   setter；可直接 `.await` 执行强类型解码（例如 `client.task().upload().done().await?`）。
+//!   列表端点在 `into-stream` feature 下还可调用 `.into_stream()` 得到自动翻页的条目流。
 //! - **数据模型**：[`schema`] 按 API 域分组（`src/schema/<域>.rs`），serde 驱动，
 //!   对老版本服务器的缺失/`null` 字段保持兼容；响应封装（[`Response`](crate::schema::common::Response)）、
 //!   分页（[`PageResponse`](crate::schema::common::PageResponse)）、任务（`TaskInfo`）、上传（[`UploadResponse`](crate::schema::common::UploadResponse)）等共享形状在 [`schema::common`]。
@@ -91,13 +100,13 @@
 //! | `auth` | 认证端点：登录/注册、2FA 生成与校验、当前用户信息 |
 //! | `fs` | 文件系统端点：列表、新建/重命名/复制/移动/删除、搜索、离线下载、归档、上传 |
 //! | `public` | 公开端点：`/ping`、公共设置 |
+//! | `task` | 任务管理端点：7 类后台任务列表、详情、取消/删除/重试及批量操作 |
 //! | `admin` | 聚合下列全部 `admin-*` 管理端子域 |
 //! | `admin-meta` | 管理端·元信息（目录密码/说明等） |
 //! | `admin-user` | 管理端·用户 |
 //! | `admin-storage` | 管理端·存储驱动实例 |
 //! | `admin-driver` | 管理端·驱动列表与配置模板 |
 //! | `admin-setting` | 管理端·站点设置 |
-//! | `admin-task` | 管理端·后台任务（上传/离线下载/复制等） |
 //! | `admin-role` | 管理端·角色 |
 //! | `admin-label` | 管理端·标签 |
 //! | `admin-label-file-binding` | 管理端·标签-文件绑定 |

@@ -139,6 +139,16 @@ impl Client {
             .ok()
             .and_then(|authentication| authentication.clone())
     }
+
+    /// 获取任务管理句柄。
+    ///
+    /// 对应 AList `/api/task` 路由。
+    #[cfg(feature = "task")]
+    #[inline]
+    #[must_use]
+    pub fn task(&self) -> crate::endpoint::task::Task<'_> {
+        crate::endpoint::task::Task::new(self)
+    }
 }
 
 /// 请求构建、发送与底层协议支撑（Crate 内部基础设施）。
@@ -654,5 +664,12 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(text, "pong");
+    }
+
+    #[cfg(feature = "task")]
+    #[test]
+    fn task_accessor_returns_task_handle() {
+        let client = Client::new("https://alist.example").unwrap();
+        let _task = client.task();
     }
 }
