@@ -195,8 +195,11 @@ impl Client {
             let Some(current) = pending.take() else {
                 unreachable!("每轮循环都会补充待发请求");
             };
-            let current_token = self.token();
-            match self.send_response(current, &context, true).await {
+            let sent_token = self.token();
+            match self
+                .send_response(current, &context, sent_token.as_deref())
+                .await
+            {
                 Ok(decoded) => break decoded,
                 Err(err) => {
                     let can_retry =
@@ -204,7 +207,7 @@ impl Client {
                     if !can_retry {
                         return Err(err);
                     }
-                    self.refresh_token(current_token.as_deref()).await?;
+                    self.refresh_token(sent_token.as_deref()).await?;
                     retried = true;
                     pending = retry_builder.take();
                 }
@@ -224,7 +227,8 @@ impl Client {
     /// 但不做响应解码。
     #[cfg(any(feature = "public", test))]
     pub(crate) async fn execute_text(&self, builder: RequestBuilder) -> Result<String> {
-        let builder = self.apply_auth(builder);
+        let token = self.token();
+        let builder = Self::apply_token(builder, token.as_deref());
         self.wait_for_rate_limit().await;
         let response = builder.send().await?;
         let status = response.status();
@@ -237,18 +241,14 @@ impl Client {
 
     /// 单次发送并解码响应；返回 `(data, 原始响应体)`。
     ///
-    /// `authenticated` 为 `false` 时不注入认证头（用于登录本身）。
+    /// 传入 `token` 时注入 `Authorization` 认证头（`None` 用于登录本身或未认证请求）。
     async fn send_response(
         &self,
         builder: RequestBuilder,
         context: &RequestContext,
-        authenticated: bool,
+        token: Option<&str>,
     ) -> Result<(Value, String)> {
-        let builder = if authenticated {
-            self.apply_auth(builder)
-        } else {
-            builder
-        };
+        let builder = Self::apply_token(builder, token);
         self.wait_for_rate_limit().await;
         let response = builder.send().await?;
         let status = response.status();
@@ -311,7 +311,7 @@ impl Client {
             req.build_request()
         };
         let context = RequestContext::from_builder(&builder);
-        let (data, response_body) = self.send_response(builder, &context, false).await?;
+        let (data, response_body) = self.send_response(builder, &context, None).await?;
         let login: crate::schema::auth::LoginResponse =
             serde_json::from_value(data).map_err(|source| Error::Json {
                 source,
@@ -347,9 +347,9 @@ impl Client {
         }
     }
 
-    /// 注入当前 token 作为 `Authorization` 头（无 token 时不注入）。
-    fn apply_auth(&self, builder: RequestBuilder) -> RequestBuilder {
-        match self.token() {
+    /// 注入指定 token 作为 `Authorization` 头（无 token 时不注入）。
+    fn apply_token(builder: RequestBuilder, token: Option<&str>) -> RequestBuilder {
+        match token {
             Some(token) => builder.header(AUTHORIZATION, token),
             None => builder,
         }
