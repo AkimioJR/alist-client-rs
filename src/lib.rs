@@ -19,7 +19,7 @@
 //! // 2. 配置认证：用户名密码凭据在 token 缺失或 401/403 时自动重新登录并重试一次；
 //! //    也可直接使用已有 token：Authentication::token("...")
 //! let client =
-//!     client.with_authentication(Authentication::username_password("admin", "password", None));
+//!     client.with_authentication(Authentication::username_password("admin", "password"));
 //!
 //! // 3. 可选：客户端侧限速，保持相邻请求的间隔
 //! let client = client.with_api_request_interval(std::time::Duration::from_millis(250));

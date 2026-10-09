@@ -281,6 +281,7 @@ impl Client {
             username,
             password,
             otp_code,
+            hash,
         }) = self.authentication()
         else {
             return Ok(());
@@ -289,7 +290,11 @@ impl Client {
         if let Some(otp_code) = otp_code {
             req = req.otp_code(otp_code);
         }
-        let builder = req.build_request();
+        let builder = if hash {
+            req.hash().build_request()
+        } else {
+            req.build_request()
+        };
         let context = RequestContext::from_builder(&builder);
         let (data, response_body) = self.send_response(builder, &context, false).await?;
         let login: crate::schema::auth::LoginResponse =
@@ -397,7 +402,7 @@ mod tests {
 
         let client = Client::new("https://alist.example")
             .unwrap()
-            .with_authentication(Authentication::username_password("admin", "password", None));
+            .with_authentication(Authentication::username_password("admin", "password"));
         assert_eq!(client.token(), None);
         assert_eq!(
             client.authentication(),
@@ -405,6 +410,7 @@ mod tests {
                 username: "admin".to_string(),
                 password: "password".to_string(),
                 otp_code: None,
+                hash: false,
             })
         );
 
@@ -534,7 +540,7 @@ mod tests {
         let base_url = spawn_mock_server(responses, Some(Arc::clone(&requests))).await;
         let client = Client::new(base_url)
             .unwrap()
-            .with_authentication(Authentication::username_password("admin", "password", None));
+            .with_authentication(Authentication::username_password("admin", "password"));
 
         let me: MeData = client
             .execute(client.request(Method::GET, "/api/me"))
@@ -566,14 +572,9 @@ mod tests {
             r#"{"code":401,"message":"token expired","data":null}"#,
         )];
         let base_url = spawn_mock_server(responses, Some(Arc::clone(&requests))).await;
-        let client =
-            Client::new(base_url)
-                .unwrap()
-                .with_authentication(Authentication::username_password(
-                    "admin",
-                    "password",
-                    Some("123456".to_string()),
-                ));
+        let client = Client::new(base_url).unwrap().with_authentication(
+            Authentication::username_password("admin", "password").otp_code("123456".to_string()),
+        );
 
         let result: Result<MeData> = client.execute(client.request(Method::GET, "/api/me")).await;
         assert!(
@@ -600,7 +601,7 @@ mod tests {
         let base_url = spawn_mock_server(responses, Some(Arc::clone(&requests))).await;
         let client = Client::new(base_url)
             .unwrap()
-            .with_authentication(Authentication::username_password("admin", "password", None));
+            .with_authentication(Authentication::username_password("admin", "password"));
 
         let me: MeData = client
             .execute(client.request(Method::GET, "/api/me"))
@@ -615,6 +616,39 @@ mod tests {
                 .to_ascii_lowercase()
                 .contains("authorization: fresh-token")
         );
+    }
+
+    #[tokio::test]
+    async fn username_password_authentication_with_hash_refreshes_via_login_hash() {
+        let requests = Arc::new(Mutex::new(Vec::new()));
+        let responses = vec![
+            ok_json(r#"{"code":401,"message":"token expired","data":null}"#),
+            ok_json(r#"{"code":200,"message":"success","data":{"token":"fresh-token"}}"#),
+            ok_json(r#"{"code":200,"message":"success","data":{"username":"admin"}}"#),
+        ];
+        let base_url = spawn_mock_server(responses, Some(Arc::clone(&requests))).await;
+        let client = Client::new(base_url)
+            .unwrap()
+            .with_authentication(Authentication::username_password("admin", "hashed-pwd").hash());
+
+        let me: MeData = client
+            .execute(client.request(Method::GET, "/api/me"))
+            .await
+            .unwrap();
+        assert_eq!(me.username, "admin");
+        assert_eq!(client.token().as_deref(), Some("fresh-token"));
+
+        let requests = requests.lock().unwrap();
+        assert_eq!(requests.len(), 3);
+        assert!(requests[0].contains("GET /api/me "));
+        assert!(
+            requests[1].contains("POST /api/auth/login/hash "),
+            "启用 hash 的凭据在刷新时应请求 /api/auth/login/hash: {}",
+            requests[1]
+        );
+        assert!(requests[1].contains(r#""username":"admin""#));
+        assert!(requests[1].contains(r#""password":"hashed-pwd""#));
+        assert!(requests[2].contains("GET /api/me "));
     }
 
     #[tokio::test]

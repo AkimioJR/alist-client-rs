@@ -63,9 +63,10 @@ impl<'a> Request<'a> {
     /// # Examples
     ///
     /// ```no_run
+    /// # #[cfg(feature = "auth")]
+    /// # async fn example() -> alist_client::Result<()> {
     /// use alist_client::Client;
     ///
-    /// # async fn example() -> alist_client::Result<()> {
     /// let client = Client::new("https://alist.example.com")?;
     /// let login = client
     ///     .auth()

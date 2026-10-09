@@ -23,6 +23,8 @@ pub mod login;
 
 #[cfg(feature = "auth")]
 pub mod login_hash;
+#[cfg(not(feature = "auth"))]
+pub(crate) mod login_hash;
 
 #[cfg(feature = "auth")]
 pub mod evict_session;
