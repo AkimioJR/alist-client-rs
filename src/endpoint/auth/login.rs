@@ -6,6 +6,7 @@
 
 use alist_client_derive::EndpointRequest;
 
+use super::login_hash;
 use crate::schema::auth::LoginResponse;
 
 /// 登录请求构建器。
@@ -45,6 +46,43 @@ impl<'a> Request<'a> {
             username: username.into(),
             password: password.into(),
             otp_code: None,
+        }
+    }
+
+    /// 转换为预哈希密码登录请求构建器。
+    ///
+    /// 将目标端点切换为 `POST /api/auth/login/hash`（[`login_hash::Request`]），
+    /// 并继承当前请求中已配置的用户名、密码（作为预哈希值发送）及可选的两步验证码。
+    ///
+    /// 适用于密码已在客户端预先完成哈希（`sha256(密码-https://github.com/alist-org/alist)`）的场景。
+    ///
+    /// # Returns
+    ///
+    /// 返回切换后的预哈希登录请求构建器 [`login_hash::Request`]。
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use alist_client::Client;
+    ///
+    /// # async fn example() -> alist_client::Result<()> {
+    /// let client = Client::new("https://alist.example.com")?;
+    /// let login = client
+    ///     .auth()
+    ///     .login("admin", "precomputed_hash")
+    ///     .hash()
+    ///     .await?;
+    /// println!("token: {}", login.token);
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
+    pub fn hash(self) -> login_hash::Request<'a> {
+        if let Some(opt_code) = self.otp_code {
+            login_hash::Request::new(self.client, self.username, self.password).otp_code(opt_code)
+        } else {
+            login_hash::Request::new(self.client, self.username, self.password)
         }
     }
 }
