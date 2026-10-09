@@ -1,4 +1,4 @@
-name: Rust Linting and Testing
+name: lint
 
 on:
   push:
@@ -41,7 +41,7 @@ jobs:
             . -> target
 
       - name: Testing
-        run: cargo test --locked
+        run: cargo test
 
   fmt-check:
     name: Rust Code Linting
