@@ -3,3 +3,6 @@
 
 .zcode/
 examples/
+
+__pycache__/
+*.pyc
