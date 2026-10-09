@@ -1,7 +1,8 @@
 //! admin-user 用户端点句柄。
 //!
 //! 覆盖 `/api/admin/user` 下的用户管理端点：
-//! 列表、详情、创建、更新、取消两步验证、删除与缓存清理。
+//! 列表、详情、创建、更新、取消两步验证、删除与缓存清理，
+//! 以及 `/api/admin/user/sshkey` 下的 SSH 公钥管理。
 //! 通过 [`Admin::user`](super::Admin::user) 获取句柄，推荐即建即用。
 
 pub mod cancel_2fa;
@@ -10,6 +11,7 @@ pub mod del_cache;
 pub mod delete;
 pub mod get;
 pub mod list;
+pub mod ssh_key;
 pub mod update;
 
 /// admin-user 用户句柄。
@@ -25,6 +27,13 @@ impl<'a> User<'a> {
     #[inline]
     pub(crate) fn new(client: &'a crate::Client) -> Self {
         Self { client }
+    }
+
+    /// 获取 SSH 公钥管理子句柄。
+    #[inline]
+    #[must_use]
+    pub fn ssh_key(&self) -> ssh_key::SshKey<'a> {
+        ssh_key::SshKey::new(self.client)
     }
 }
 

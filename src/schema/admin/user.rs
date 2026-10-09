@@ -1,9 +1,12 @@
 //! admin-user 用户域数据模型。
 //!
-//! 本文件建模 `/api/admin/user` 组端点的用户条目 [`AdminUser`]，对应
-//! AList 服务端 model.User 数据模型（JSON 导出字段），
-//! 由 `GET /api/admin/user/list`（分页形态 `{"content": [...], "total": N}` 的元素）与
-//! `GET /api/admin/user/get`（单个对象）返回。
+//! 本文件建模 `/api/admin/user` 组端点的用户条目 [`AdminUser`] 与 SSH 公钥条目 [`SshPublicKey`]：
+//!
+//! - [`AdminUser`]：对应 AList 服务端 model.User 数据模型（JSON 导出字段），
+//!   由 `GET /api/admin/user/list`（分页形态 `{"content": [...], "total": N}` 的元素）与
+//!   `GET /api/admin/user/get`（单个对象）返回。
+//! - [`SshPublicKey`]：对应 AList 服务端 model.SSHPublicKey 数据模型（JSON 导出字段），
+//!   由 `GET /api/admin/user/sshkey/list`（分页形态 `{"content": [...], "total": N}` 的元素）返回。
 //!
 //! 创建/更新请求体（`POST /api/admin/user/create`、`/api/admin/user/update`）不在此定义：
 //! 请求形状由端点构建器 `src/endpoint/admin/user/create.rs` 与 `update.rs` 的
@@ -11,7 +14,8 @@
 //!
 //! ## 字段形状来源
 //!
-//! 字段示例取自 AList OpenAPI 规范的 admin/user 分组。
+//! - 用户模型：取自 AList OpenAPI 规范的 admin/user 分组与 AList 服务端 model.User 数据模型。
+//! - SSH 公钥模型：取自 AList 服务端 model.SSHPublicKey 数据模型（从 AList `v3.42.0` 起新增）。
 //!
 //! ## 兼容性说明
 //!
@@ -20,6 +24,7 @@
 //!   单值自动展开为单元素数组，缺失与显式 `null` 归约为空数组。
 //! - `sso_id`：服务端较新字段；缺失或显式 `null` 时归约为空字符串。
 
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 /// 将显式 JSON `null` 归约为类型默认值的反序列化辅助。
@@ -92,6 +97,24 @@ pub struct AdminUser {
     /// 从 AList `v3.13.1` 起单点登录重构引入；老版本缺失时为 [`None`]。
     #[serde(default)]
     pub sso_id: Option<String>,
+}
+
+/// 用户 SSH 公钥信息。
+///
+/// 对应 AList 服务端 `model.SSHPublicKey` 数据模型。
+/// 从 AList `v3.42.0` 起新增。
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SshPublicKey {
+    /// 密钥 ID。
+    pub id: u64,
+    /// 密钥标题 / 备注名。
+    pub title: String,
+    /// 密钥公钥指纹（SHA256）。
+    pub fingerprint: String,
+    /// 密钥添加时间。
+    pub added_time: DateTime<Utc>,
+    /// 密钥最后一次使用时间。
+    pub last_used_time: DateTime<Utc>,
 }
 
 #[cfg(test)]
@@ -203,6 +226,84 @@ mod tests {
             serde_json::json!({
                 "id": 1, "username": "admin", "password": "", "base_path": "/",
                 "role": [2], "disabled": false, "permission": 0, "sso_id": ""
+            })
+        );
+    }
+
+    /// 正向钉扎：AList 服务端 model.SSHPublicKey 示例 JSON，
+    /// 验证 `SshPublicKey` 正确反序列化各字段与时间类型。
+    #[test]
+    fn ssh_public_key_decodes_model_example() {
+        let key: SshPublicKey = serde_json::from_value(serde_json::json!({
+            "id": 1,
+            "title": "work-laptop",
+            "fingerprint": "SHA256:abc123def456",
+            "added_time": "2024-06-01T08:00:00Z",
+            "last_used_time": "2024-06-02T12:00:00Z"
+        }))
+        .unwrap();
+        assert_eq!(key.id, 1);
+        assert_eq!(key.title, "work-laptop");
+        assert_eq!(key.fingerprint, "SHA256:abc123def456");
+        assert_eq!(
+            key.added_time,
+            DateTime::parse_from_rfc3339("2024-06-01T08:00:00Z")
+                .unwrap()
+                .with_timezone(&Utc)
+        );
+        assert_eq!(
+            key.last_used_time,
+            DateTime::parse_from_rfc3339("2024-06-02T12:00:00Z")
+                .unwrap()
+                .with_timezone(&Utc)
+        );
+    }
+
+    /// 正向钉扎：AList 服务端 ListPublicKeys 响应示例，
+    /// 验证 `PageResponse<SshPublicKey>` 分页包裹形态正确反序列化。
+    #[test]
+    fn ssh_public_key_page_response_wraps_handler_shape() {
+        let page: PageResponse<SshPublicKey> = serde_json::from_value(serde_json::json!({
+            "content": [
+                {
+                    "id": 1,
+                    "title": "work-laptop",
+                    "fingerprint": "SHA256:abc123def456",
+                    "added_time": "2024-06-01T08:00:00Z",
+                    "last_used_time": "2024-06-02T12:00:00Z"
+                }
+            ],
+            "total": 1
+        }))
+        .unwrap();
+        assert_eq!(page.total, 1);
+        assert_eq!(page.content.len(), 1);
+        assert_eq!(page.content[0].id, 1);
+        assert_eq!(page.content[0].title, "work-laptop");
+    }
+
+    /// 序列化键名钉扎：[`SshPublicKey`] 的 JSON 键与 API 字段名一致。
+    #[test]
+    fn ssh_public_key_serializes_with_api_field_names() {
+        let key = SshPublicKey {
+            id: 1,
+            title: "work-laptop".to_owned(),
+            fingerprint: "SHA256:abc123def456".to_owned(),
+            added_time: DateTime::parse_from_rfc3339("2024-06-01T08:00:00Z")
+                .unwrap()
+                .with_timezone(&Utc),
+            last_used_time: DateTime::parse_from_rfc3339("2024-06-02T12:00:00Z")
+                .unwrap()
+                .with_timezone(&Utc),
+        };
+        assert_eq!(
+            serde_json::to_value(&key).unwrap(),
+            serde_json::json!({
+                "id": 1,
+                "title": "work-laptop",
+                "fingerprint": "SHA256:abc123def456",
+                "added_time": "2024-06-01T08:00:00Z",
+                "last_used_time": "2024-06-02T12:00:00Z"
             })
         );
     }
