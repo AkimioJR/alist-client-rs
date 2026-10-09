@@ -149,7 +149,7 @@ mod tests {
         assert_eq!(resp.raw_url, "http://127.0.0.1:5244/p/local/Alist%20V3.md");
         assert_eq!(resp.provider, "Local");
         assert!(resp.related.is_empty());
-        assert!(!resp.web_proxy);
+        assert_eq!(resp.web_proxy, None);
 
         let recorded = requests.lock().unwrap();
         assert!(recorded[0].contains("POST /api/fs/get "), "{}", recorded[0]);

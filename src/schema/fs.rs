@@ -66,18 +66,24 @@ where
 /// 对应 AList 服务端 fsread 模块的 `ObjResponse`，
 /// 同时作为归档内部列表条目（archive 模块嵌入字段）。
 /// `id`/`path`/`virtual_path`/`hashinfo`/`hash_info`/`storage_class` 为新版服务端
-/// 新增字段，老版本缺失时归约为空值。
+/// 新增字段，老版本服务端不返回对应字段时为 [`None`] 或空集合。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ObjResponse {
-    /// 对象 ID（对应 Go `ObjResponse.Id`；老版本不返回，归约为空串）。
+    /// 对象 ID（对应 Go `ObjResponse.Id`）。
+    ///
+    /// 从 AList `v3.54.0` 起新增；老版本服务端不返回该字段时为 [`None`]。
     #[serde(default)]
-    pub id: String,
-    /// 对象在存储内的实际路径（对应 Go `ObjResponse.Path`；老版本不返回）。
+    pub id: Option<String>,
+    /// 对象在存储内的实际路径（对应 Go `ObjResponse.Path`）。
+    ///
+    /// 从 AList `v3.54.0` 起新增底层实际存储路径；老版本不返回该字段时为 [`None`]。
     #[serde(default)]
-    pub path: String,
-    /// 对象在站点内的展示路径（对应 Go `ObjResponse.VirtualPath`；老版本不返回）。
+    pub path: Option<String>,
+    /// 对象在站点内的展示路径（对应 Go `ObjResponse.VirtualPath`）。
+    ///
+    /// 从 AList `v3.61.0` 起新增规范虚拟展示路径；老版本不返回该字段时为 [`None`]。
     #[serde(default)]
-    pub virtual_path: String,
+    pub virtual_path: Option<String>,
     /// 文件/目录名。
     pub name: String,
     /// 大小（字节）。
@@ -97,15 +103,20 @@ pub struct ObjResponse {
     pub thumb: String,
     /// 文件类型枚举值（对应 Go `utils.GetObjType`，JSON 键为保留字 `type`）。
     pub r#type: i32,
-    /// 哈希信息字符串（对应 Go `ObjResponse.HashInfoStr`；老版本可能缺失，归约为空串）。
+    /// 哈希信息字符串（对应 Go `ObjResponse.HashInfoStr`）。
+    ///
+    /// 从 AList `v3.46.0` 起新增哈希信息字符串；老版本不返回该字段时为 [`None`]。
     #[serde(default)]
-    pub hashinfo: String,
+    pub hashinfo: Option<String>,
     /// 结构化哈希信息；键为哈希算法名（如 `md5`/`sha1`/`sha256`），
     /// 对应 Go `ObjResponse.HashInfo`（`map[*utils.HashType]string`）。
-    /// 老版本不返回或返回 `null`，归约为空映射。
+    ///
+    /// 从 AList `v3.28.0` 起新增；老版本不返回或返回 `null`，归约为空映射。
     #[serde(default, deserialize_with = "null_to_default")]
     pub hash_info: HashMap<String, String>,
-    /// 存储类型标识（对应 Go `ObjResponse.StorageClass`，`omitempty`；缺失归约为 `None`）。
+    /// 存储类型标识（对应 Go `ObjResponse.StorageClass`，`omitempty`）。
+    ///
+    /// 从 AList `v3.54.0` 起新增；缺失归约为 [`None`]。
     #[serde(default)]
     pub storage_class: Option<String>,
 }
@@ -138,18 +149,24 @@ pub struct ObjLabel {
 ///
 /// 对应 AList 服务端 fsread 模块的 `ObjLabelResponse`，
 /// 即 `/api/fs/list` 响应 `content` 的元素类型；`label_list` 与新增的
-/// `id`/`path`/`virtual_path`/`storage_class` 在老版本服务端缺失时归约为空值。
+/// `id`/`path`/`virtual_path`/`storage_class` 在老版本服务端缺失时对应新字段为 [`None`] 或空集合。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ObjLabelResponse {
-    /// 对象 ID（对应 Go `ObjLabelResponse.Id`；老版本不返回，归约为空串）。
+    /// 对象 ID（对应 Go `ObjLabelResponse.Id`）。
+    ///
+    /// 从 AList `v3.54.0` 起新增；老版本服务端不返回该字段时为 [`None`]。
     #[serde(default)]
-    pub id: String,
-    /// 对象在存储内的实际路径（老版本不返回）。
+    pub id: Option<String>,
+    /// 对象在存储内的实际路径。
+    ///
+    /// 从 AList `v3.54.0` 起新增底层实际存储路径；老版本不返回该字段时为 [`None`]。
     #[serde(default)]
-    pub path: String,
-    /// 对象在站点内的展示路径（老版本不返回）。
+    pub path: Option<String>,
+    /// 对象在站点内的展示路径。
+    ///
+    /// 从 AList `v3.61.0` 起新增规范虚拟展示路径；老版本不返回该字段时为 [`None`]。
     #[serde(default)]
-    pub virtual_path: String,
+    pub virtual_path: Option<String>,
     /// 文件/目录名。
     pub name: String,
     /// 大小（字节）。
@@ -167,17 +184,25 @@ pub struct ObjLabelResponse {
     pub thumb: String,
     /// 文件类型枚举值（JSON 键为保留字 `type`）。
     pub r#type: i32,
-    /// 哈希信息字符串；老版本可能缺失，归约为空串。
+    /// 哈希信息字符串。
+    ///
+    /// 从 AList `v3.46.0` 起新增哈希信息字符串；老版本不返回该字段时为 [`None`]。
     #[serde(default)]
-    pub hashinfo: String,
+    pub hashinfo: Option<String>,
     /// 结构化哈希信息；键为哈希算法名（如 `md5`/`sha1`）；缺失或 `null` 归约为空映射。
+    ///
+    /// 从 AList `v3.28.0` 起新增；老版本不返回或返回 `null`，归约为空映射。
     #[serde(default, deserialize_with = "null_to_default")]
     pub hash_info: HashMap<String, String>,
     /// 文件绑定的标签列表（对应 Go `ObjLabelResponse.LabelList`）；目录恒为空，
     /// 老版本不返回或返回 `null`，归约为空数组。
+    ///
+    /// 从 AList `v3.46.0` 起新增。
     #[serde(default, deserialize_with = "null_to_default")]
     pub label_list: Vec<ObjLabel>,
     /// 存储类型标识（`omitempty`；缺失归约为 `None`）。
+    ///
+    /// 从 AList `v3.54.0` 起新增。
     #[serde(default)]
     pub storage_class: Option<String>,
 }
@@ -186,7 +211,7 @@ pub struct ObjLabelResponse {
 ///
 /// 对应 AList 服务端 fsread 模块的 `FsListResponse`。
 /// 新版服务端额外返回 `filtered_total`/`page`/`per_page`/`has_more`/`pages_total`
-/// 分页元信息（`has_more`/`pages_total` 可用于翻页终止判断），老版本缺失时归约为零值；
+/// 分页元信息（`has_more`/`pages_total` 可用于翻页终止判断），老版本缺失时为 [`None`]；
 /// `content` 在目录为空时可能为 `null`，归约为空数组。
 ///
 /// 注意 `per_page = -1`（请求全部条目）时服务端对任意页码都返回完整列表，
@@ -198,21 +223,31 @@ pub struct FsListResponse {
     pub content: Vec<ObjLabelResponse>,
     /// 过滤后的条目总数（角色过滤前）。
     pub total: i64,
-    /// 角色过滤后的条目总数（新版服务端字段；老版本归约为 `0`）。
+    /// 角色过滤后的条目总数。
+    ///
+    /// 从 AList `v3.58.0` 起新增角色过滤后条目数；老版本不返回该字段时为 [`None`，严格区分未提供与实际匹配 0 条（`Some(0)`）]。
     #[serde(default)]
-    pub filtered_total: i64,
-    /// 服务端实际生效的页码（新版服务端字段；老版本归约为 `0`）。
+    pub filtered_total: Option<i64>,
+    /// 服务端实际生效的页码。
+    ///
+    /// 从 AList `v3.58.0` 起新增服务端生效页码；老版本不返回该字段时为 [`None`]。
     #[serde(default)]
-    pub page: i32,
-    /// 服务端实际生效的每页条数（新版服务端字段；老版本归约为 `0`）。
+    pub page: Option<i32>,
+    /// 服务端实际生效的每页条数。
+    ///
+    /// 从 AList `v3.58.0` 起新增服务端生效每页条数；老版本不返回该字段时为 [`None`]。
     #[serde(default)]
-    pub per_page: i32,
-    /// 是否还有下一页（新版服务端字段；老版本归约为 `false`）。
+    pub per_page: Option<i32>,
+    /// 是否还有下一页。
+    ///
+    /// 从 AList `v3.58.0` 起新增是否还有下一页；老版本不返回该字段时为 [`None`，避免误判为 `false` 导致翻页中断]。
     #[serde(default)]
-    pub has_more: bool,
-    /// 总页数（新版服务端字段；老版本归约为 `0`）。
+    pub has_more: Option<bool>,
+    /// 总页数。
+    ///
+    /// 从 AList `v3.58.0` 起新增总页数；老版本不返回该字段时为 [`None`]。
     #[serde(default)]
-    pub pages_total: i32,
+    pub pages_total: Option<i32>,
     /// 目录说明（元信息 `readme`）。
     pub readme: String,
     /// 目录页头（元信息 `header`）。
@@ -240,7 +275,7 @@ pub struct DirResponse {
 /// 对应 AList 服务端 fsread 模块的 `FsGetResponse`，
 /// 即 `/api/fs/get` 响应 `data`；Go 侧嵌入 `ObjResponse`（JSON 平铺），
 /// 此处以 `serde(flatten)` 复用 [`ObjResponse`]。
-/// `web_proxy` 为新版服务端字段（老版本缺失归约为 `false`）；
+/// `web_proxy` 缺失时为 [`None`]；
 /// `related` 为同目录下同前缀的相关文件，无相关文件时服务端返回 `null`。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct FsGetResponse {
@@ -257,10 +292,14 @@ pub struct FsGetResponse {
     pub header: String,
     /// 存储驱动名。
     pub provider: String,
-    /// 存储是否开启 Web 代理（新版服务端字段；老版本归约为 `false`）。
+    /// 存储是否开启 Web 代理。
+    ///
+    /// 从 AList `v3.0.0-beta.0` 起引入，部分老版本或驱动未返回该字段时为 [`None`]。
     #[serde(default)]
-    pub web_proxy: bool,
+    pub web_proxy: Option<bool>,
     /// 同目录下同前缀的相关文件列表；无相关文件时服务端返回 `null`，归约为空数组。
+    ///
+    /// 从 AList `v3.46.0` 起新增。
     #[serde(default, deserialize_with = "null_to_default")]
     pub related: Vec<ObjLabelResponse>,
 }
@@ -270,7 +309,7 @@ pub struct FsGetResponse {
 /// 对应 AList 服务端 search 模块的 `SearchResponse`
 /// （由 model.Search 数据模型的 `SearchNode` 附加 `type` 字段构成），
 /// 即 `/api/fs/search` 响应 `content` 的元素类型。
-/// `type` 为新版服务端附加字段，老版本缺失时归约为 `0`。
+/// `type` 为新版服务端附加字段，老版本缺失时为 [`None`]。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SearchResponse {
     /// 结果所在父目录。
@@ -281,9 +320,11 @@ pub struct SearchResponse {
     pub is_dir: bool,
     /// 大小（字节）。
     pub size: i64,
-    /// 文件类型枚举值（对应 Go `utils.GetObjType`；老版本缺失归约为 `0`）。
+    /// 文件类型枚举值（对应 Go `utils.GetObjType`）。
+    ///
+    /// 从 AList `v3.10.1` 起新增文件类型枚举值；老版本不返回该字段时为 [`None`]。
     #[serde(default)]
-    pub r#type: i32,
+    pub r#type: Option<i32>,
 }
 
 /// 搜索范围类型。
@@ -606,12 +647,14 @@ mod tests {
         assert_eq!(obj.size, 1592);
         assert!(!obj.is_dir);
         assert_eq!(obj.r#type, 4);
-        assert_eq!(obj.hashinfo, "null");
+        assert_eq!(obj.hashinfo, Some("null".to_owned()));
         assert!(
             obj.hash_info.is_empty(),
             "显式 null 的 hash_info 归约为空映射"
         );
-        assert_eq!(obj.id, "", "老版本缺失的 id 归约为空串");
+        assert_eq!(obj.id, None, "老版本缺失的 id 为 None");
+        assert_eq!(obj.path, None, "老版本缺失的 path 为 None");
+        assert_eq!(obj.virtual_path, None, "老版本缺失的 virtual_path 为 None");
         assert!(
             obj.label_list.is_empty(),
             "老版本缺失的 label_list 归约为空数组"
@@ -620,11 +663,15 @@ mod tests {
         assert_eq!(resp.total, 1);
         assert!(resp.write);
         assert_eq!(resp.provider, "Local");
-        // 新版分页字段缺失 → 零值
-        assert_eq!(resp.filtered_total, 0);
-        assert_eq!(resp.page, 0);
-        assert!(!resp.has_more);
-        assert_eq!(resp.pages_total, 0);
+        // 新版分页字段缺失 → None
+        assert_eq!(
+            resp.filtered_total, None,
+            "老版本缺失的 filtered_total 为 None"
+        );
+        assert_eq!(resp.page, None, "老版本缺失的 page 为 None");
+        assert_eq!(resp.per_page, None, "老版本缺失的 per_page 为 None");
+        assert_eq!(resp.has_more, None, "老版本缺失的 has_more 为 None");
+        assert_eq!(resp.pages_total, None, "老版本缺失的 pages_total 为 None");
     }
 
     /// 兼容钉扎：按 AList 服务端 fsread 模块的 `FsListResponse` 形状反序列化真实响应。
@@ -673,8 +720,10 @@ mod tests {
         }))
         .unwrap();
         let obj = &resp.content[0];
-        assert_eq!(obj.id, "local-1");
-        assert_eq!(obj.virtual_path, "/local/Alist V3.md");
+        assert_eq!(obj.id, Some("local-1".to_owned()));
+        assert_eq!(obj.path, Some("/data/Alist V3.md".to_owned()));
+        assert_eq!(obj.virtual_path, Some("/local/Alist V3.md".to_owned()));
+        assert_eq!(obj.hashinfo, Some("sha1:abc123".to_owned()));
         assert_eq!(
             obj.hash_info.get("sha1").map(String::as_str),
             Some("abc123")
@@ -682,11 +731,11 @@ mod tests {
         assert_eq!(obj.label_list.len(), 1);
         assert_eq!(obj.label_list[0].name, "文档");
         assert_eq!(obj.storage_class.as_deref(), Some("STANDARD"));
-        assert_eq!(resp.filtered_total, 1);
-        assert_eq!(resp.page, 1);
-        assert_eq!(resp.per_page, 200);
-        assert!(!resp.has_more);
-        assert_eq!(resp.pages_total, 1);
+        assert_eq!(resp.filtered_total, Some(1));
+        assert_eq!(resp.page, Some(1));
+        assert_eq!(resp.per_page, Some(200));
+        assert_eq!(resp.has_more, Some(false));
+        assert_eq!(resp.pages_total, Some(1));
     }
 
     /// 兼容钉扎：目录为空时服务端 `content` 为 `null`（Go `toObjsResp` 对空切片
@@ -734,7 +783,14 @@ mod tests {
         assert_eq!(resp.raw_url, "http://127.0.0.1:5244/p/local/Alist%20V3.md");
         assert_eq!(resp.provider, "Local");
         assert!(resp.related.is_empty(), "显式 null 的 related 归约为空数组");
-        assert!(!resp.web_proxy, "老版本缺失的 web_proxy 归约为 false");
+        assert_eq!(resp.web_proxy, None, "老版本缺失的 web_proxy 为 None");
+        assert_eq!(resp.obj.id, None, "老版本缺失的 id 为 None");
+        assert_eq!(resp.obj.path, None, "老版本缺失的 path 为 None");
+        assert_eq!(
+            resp.obj.virtual_path, None,
+            "老版本缺失的 virtual_path 为 None"
+        );
+        assert_eq!(resp.obj.hashinfo, Some("null".to_owned()));
     }
 
     /// 正向钉扎：AList OpenAPI 规范的 `/api/fs/dirs` 返回示例。
@@ -763,14 +819,14 @@ mod tests {
         .unwrap();
         assert_eq!(page.total, 1);
         assert_eq!(page.content[0].parent, "/m");
-        assert_eq!(page.content[0].r#type, 0);
+        assert_eq!(page.content[0].r#type, Some(0));
 
         // 老版本服务端不返回 type 字段
         let old: SearchResponse = serde_json::from_value(serde_json::json!({
             "parent": "/m", "name": "a.txt", "is_dir": false, "size": 1
         }))
         .unwrap();
-        assert_eq!(old.r#type, 0);
+        assert_eq!(old.r#type, None);
     }
 
     /// 序列化键名钉扎：批量重命名单项按服务端 fsbatch 模块的 JSON 标签序列化。

@@ -81,7 +81,7 @@ impl<'a> super::Fs<'a> {
     /// 元信息（readme/header）、写权限与存储驱动名
     /// （[`FsListResponse`]）。新版服务端额外返回
     /// `page`/`per_page`/`has_more`/`pages_total`/`filtered_total` 分页元信息，
-    /// 老版本缺失时对应字段归约为零值。
+    /// 老版本缺失时对应字段为 [`None`]。
     /// 数据来源：AList OpenAPI 规范的 `/api/fs/list` 与
     /// AList 服务端 `handles.FsList`（请求结构 `ListReq`，响应结构 `FsListResponse`）。
     ///
@@ -240,12 +240,12 @@ mod tests {
         let client = crate::Client::new(base_url).unwrap();
 
         let resp = client.fs().list("/local").send().await.unwrap();
-        assert_eq!(resp.filtered_total, 1);
-        assert_eq!(resp.page, 1);
-        assert_eq!(resp.per_page, 200);
-        assert!(!resp.has_more);
-        assert_eq!(resp.pages_total, 1);
-        assert_eq!(resp.content[0].id, "local-1");
+        assert_eq!(resp.filtered_total, Some(1));
+        assert_eq!(resp.page, Some(1));
+        assert_eq!(resp.per_page, Some(200));
+        assert_eq!(resp.has_more, Some(false));
+        assert_eq!(resp.pages_total, Some(1));
+        assert_eq!(resp.content[0].id.as_deref(), Some("local-1"));
         assert_eq!(resp.content[0].storage_class.as_deref(), Some("STANDARD"));
     }
 
