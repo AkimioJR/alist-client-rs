@@ -62,6 +62,10 @@ pub struct Request<'a> { ... }
 //!
 //! 对应 `POST /api/fs/mkdir`；响应 `data: null`，以 `()` 作为端点模型。
 //! （模块文档：一句话说明 + 对应 API 路径 + 数据来源；文件头不要写 pub use 之外的逻辑）
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -124,7 +128,7 @@ impl<'a> super::Fs<'a> {
 
 ## 中文 rustdoc 模板
 
-每个句柄访问器方法的文档必须中文且含以下小节（`# Examples` 用 ```no_run 并保证 `cargo test --all-features` 的 doctest 通过；隐藏包装写法照抄）：
+每个句柄访问器方法的文档必须中文且含以下小节（`# Examples` 用 ```no_run 并保证 `cargo test --all-features` 的 doctest 通过；隐藏包装写法照抄；`# Version` 规范见下方「端点版本小节」）：
 
 ```rust
 /// 新建文件夹。
@@ -146,6 +150,10 @@ impl<'a> super::Fs<'a> {
 ///
 /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或信封 `code` 非 200）时，返回 [`crate::Error`]。
 ///
+/// # Version
+///
+/// - 自 AList `v3.0.0` 起提供本接口。
+///
 /// # Examples
 ///
 /// ```no_run
@@ -161,6 +169,19 @@ impl<'a> super::Fs<'a> {
 /// # }
 /// ```
 ```
+
+## 端点版本小节（`# Version`）
+
+每个端点文件必须在**两处**写内容**逐字一致**的 `# Version` 小节（纯文本 + 反引号，不用 intra-doc 链接）：
+
+1. 模块文档（`//!`）末尾；
+2. 句柄访问器 doc 中 `# Errors` 与 `# Examples` 之间。
+
+完整规范（引入版本句式、tag 归一化、差异条目句式、git 考古方法、与 schema 的分工、既有散落版本句的整合）见 `docs/design.md` §4 规则 9，此处列硬性要点：
+
+- 首个条目固定为 `- 自 AList \`vX.Y.Z\` 起提供本接口。`；v3 初期即有的端点写 `v3.0.0`；beta/rc 预发布 tag 归一化到下一个正式版。
+- 差异条目必须经 `examples/alist` git 历史证实（`log -S` + `describe --tags --contains`，目录级 pathspec，剔除 v2 谱系）；无证实差异不写条目，宁缺毋滥。
+- 只允许修改 `///` 与 `//!` 注释行；禁本地相对路径与上游代码行号。
 
 ## 特例一：`/ping`（纯文本端点）
 

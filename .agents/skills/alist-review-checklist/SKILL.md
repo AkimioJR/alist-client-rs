@@ -61,7 +61,8 @@ description: "评审 alist-client crate 的端点与 schema 实现（src/endpoin
 ## 3. rustdoc 质量标准
 
 - [ ] 文件头 `//!`：中文模块文档，说明对应 API 路径与响应形状；schema 文件头注明数据来源（openapi 分组 + Go 文件）。
-- [ ] 全部公开项中文文档；句柄访问器含 `# Arguments` / `# Returns` / `# Errors` / `# Examples` 四节。
+- [ ] 全部公开项中文文档；句柄访问器含 `# Arguments` / `# Returns` / `# Errors` / `# Version` / `# Examples` 五节。
+- [ ] **`# Version` 小节（`docs/design.md` §4 规则 9）**：模块文档（`//!`）末尾与访问器 doc（`# Errors` 与 `# Examples` 之间）**双处落点且内容逐字一致**；首个条目为引入版本句（AList v3 初期即有的端点写 `v3.0.0`，beta/rc 预发布 tag 归一化到下一个正式版）；差异条目必须经 `examples/alist` git 历史证实——评审者须**自行重跑** `git -C examples/alist log -S '<Handler 或 "/<路由>">' --format='%h %ad %s' --date=short -- server/` 与 `git -C examples/alist describe --tags --contains <sha>` 复核（目录级 pathspec 防 controllers→handles 改名漏史；`merge-base --is-ancestor <sha> <v3 重构提交>` 剔除 v2 谱系），不采信被审者结论；tag 与 schema 字段标注及文件内既有版本句一致；无本地路径/行号泄露；**diff 中不得出现任何非注释行改动**（版本标注只允许 `///` 与 `//!` 行）。
 - [ ] `# Examples` 用 ```no_run + `# async fn example() -> alist_client::Result<()>` 隐藏包装；示例里的链式调用与实际签名一致（setter 参数类型、await 方式）。
 - [ ] setter 文档由字段 `///` 携带——确认字段文档质量（不是复述字段名，而是说明业务含义与取值）。
 - [ ] 特例端点（`/ping`、上传）的 rustdoc 明确说明了与默认 `send`/`IntoFuture` 的差异：`/ping` 用 `send_text`；上传的发送方法用别名并警告**不要直接 `.await`**（派生 IntoFuture 不带 body），且说明流式 body 无法 401 重试（`docs/design.md` §8）。

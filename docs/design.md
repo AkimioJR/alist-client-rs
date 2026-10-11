@@ -103,6 +103,10 @@ pub struct Request<'a> { ... }
 //! fs 端点：新建文件夹。
 //!
 //! 对应 `POST /api/fs/mkdir`；响应 `data: null`，以 `()` 作为端点模型。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -155,6 +159,10 @@ impl<'a> super::Fs<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码时，返回 [`crate::Error`]。
     ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -182,11 +190,35 @@ impl<'a> super::Fs<'a> {
 4. `build_request` 由宏生成（`pub(crate)`），**不要手写**；确需附加原始 body（上传）时在端点文件里对
    `build_request()` 的返回值继续加工。
 5. 访问器定义在 `impl<'a> super::<父句柄><'a>` 块内，**直接读 `self.client`（父句柄私有字段，子模块可见）**。
-6. 全部 rustdoc 中文；`# Arguments` / `# Returns` / `# Errors` / `# Examples` 小节齐全；
+6. 全部 rustdoc 中文；访问器 doc 的 `# Arguments` / `# Returns` / `# Errors` / `# Version` / `# Examples` 小节齐全，
+   模块文档（`//!`）末尾同样带 `# Version`（**两处逐字一致**，规范见规则 9）；
    `# Examples` 用 ```no_run 并保证 `cargo test --all-features` 的 doctest 通过。
 7. **无 dead_code 豁免约定**：端点与客户端核心已全部落地，dead_code 豁免已彻底清除。所有句柄字段、内部方法与端点均处于全链路调用状态，代码库严禁保留或引入 `allow(dead_code)`、`expect(dead_code)` 等临时标记。
 8. HTTP 方法/路径必须与 `docs/api/alistv3.openapi.yaml` 或 `examples/alist/server/router.go` 一致；
    router 中 `g.Any(...)` 的读端点按 GET 处理，写端点按 POST 处理。
+9. **端点版本小节（`# Version`）规范**：
+   - **双处落点**：模块文档（`//!`）末尾与句柄访问器 doc（`# Errors` 与 `# Examples` 之间）各写一个
+     `# Version` 小节，**两处内容逐字一致**（纯文本 + 反引号，不用 intra-doc 链接），
+     保证阅读模块文档与调用方法两种场景都能看到版本信息；
+   - **固定首个条目**：`- 自 AList \`vX.Y.Z\` 起提供本接口。`。AList v3 初期即存在的端点写 `v3.0.0`
+     （v2 及更早版本不在本 crate 支持范围）；beta/rc 等预发布 tag 一律归一化到包含该提交的下一个正式版本 tag；
+   - **差异条目**：其后按版本升序逐条列出**经 `examples/alist` Go 源码 git 历史证实**的接口级变更
+     （路由路径变更、请求/响应字段集变更、权限或错误行为变更），句式
+     `从 AList \`vX.Y.Z\` 起，<变更内容>；老版本<缺失/旧行为语义>。`。
+     无证实差异则不写变更条目，**宁缺毋滥，严禁凭空推断**；
+   - **考古方法**：路由引入版本用
+     `git -C examples/alist log -S '<Handler 函数名 或 "/<路由>">' --format='%h %ad %s' --date=short -- server/`
+     （**必须用目录级 pathspec**，避免 controllers→handles 改名导致漏史），取最早命中提交后用
+     `git -C examples/alist describe --tags --contains <sha>` 映射 tag；最早命中早于 v3 重构提交
+     （`refactor: init v3`）时按 `v3.0.0` 处理（可用
+     `git -C examples/alist merge-base --is-ancestor <sha> <v3 重构提交>` 判定谱系）；
+     响应字段演进对 `internal/model/` 与 `server/` 做 `log -S` 考古；
+   - **与 schema 分工**：响应字段的存在性/缺失语义（`Option<T>` 建模与字段级 tag 溯源）归 schema rustdoc（§5），
+     端点 `# Version` 只写接口级事实；tag 引用须与 schema 标注及文件内既有版本句保持一致；
+   - **整合既有散落版本句**：文件内已有的「新版/老版本」散文描述与 Git Tag 版本句
+     一并整合进 `# Version` 小节并补齐 tag，除必要的移动/去重外不重写无关文字；
+   - **注释纪律**：端点版本标注只允许修改 `///` 与 `//!` 注释行，严禁触碰任何代码、属性与测试；
+     禁止在注释中出现本地相对路径与上游代码行号。
 
 ## 5. Schema 约定（`src/schema/<域>.rs`）
 
