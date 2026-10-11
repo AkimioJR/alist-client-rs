@@ -3,7 +3,7 @@
 //! 对应 `POST /api/fs/link`（AList OpenAPI 规范未收录该端点；路由位于
 //! 管理员中间件之后，仅管理员可用——直链可能携带 Cookie 等敏感请求头，
 //! 供代理程序使用）。响应 `data` 为
-//! [`LinkResponse`](crate::schema::fs::LinkResponse)，形状由 AList 服务端
+//! [`LinkResponse`]，形状由 AList 服务端
 //! fsmanage 模块 `Link` 处理器与 `model.Link` 决定；目标路径直接以传入的
 //! 完整路径定位存储（不做用户主目录拼接）。
 //!

@@ -17,7 +17,7 @@
 /// 通过 [`Fs::lark_export_download`](super::Fs::lark_export_download) 创建。
 /// 本端点响应为二进制流，请使用
 /// [`.send_bytes().await`](Request::send_bytes)；构建器未实现
-/// [`IntoFuture`](core::future::IntoFuture)，无法直接 `.await`。
+/// [`IntoFuture`]，无法直接 `.await`。
 #[must_use = "请求构建器不会自动发送请求，请调用 `.send_bytes().await`"]
 pub struct Request<'a> {
     client: &'a crate::Client,
