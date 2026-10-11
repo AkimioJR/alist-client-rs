@@ -3,11 +3,17 @@
 //! 建模 `/api/admin/setting` 端点族的数据形状：
 //!
 //! - [`Setting`]：设置条目，同时用作 `list`/`get`/`get_by_keys` 的响应模型与
-//!   `save` 的请求体元素，
+//!   `save`/`set_frp` 的请求体元素，
 //!   对应 AList 服务端 model.Setting 数据模型中的 `SettingItem`；
-//! - [`SetAria2Request`] / [`SetQbitRequest`]：`set_aria2`/`set_qbit` 的扁平请求体形状，
-//!   对应 AList 服务端离线下载处理模块的请求结构；
-//!   端点构建器（`set_aria2::Request`、`set_qbit::Request`）以同名字段直接生成同形 JSON。
+//! - [`SetAria2Request`] / [`SetQbitRequest`] / [`SetTransmissionRequest`] /
+//!   [`SetTempDirRequest`] / [`SetTokenRequest`]：`set_aria2`/`set_qbit`/
+//!   `set_transmission`/`set_115` 等离线下载与令牌快捷配置端点的扁平请求体形状，
+//!   对应 AList 服务端离线下载与设置处理模块的请求结构；其中 [`SetTempDirRequest`]
+//!   为 `set_115`/`set_pikpak`/`set_thunder`/`set_guangyapan`/`set_123_open`
+//!   五个端点共享的同一请求形状（服务端请求结构体逐个核对后确认一致）；
+//!   端点构建器（`set_aria2::Request` 等）以同名字段直接生成同形 JSON；
+//! - [`FrpRuntimeInfo`]：`frp_runtime` 的响应模型（FRP 运行时状态与日志），
+//!   对应 AList 服务端 FRP 管理模块的 `RuntimeInfo`。
 //!
 //! ## 字段形状来源
 //!
@@ -19,7 +25,7 @@ use serde::{Deserialize, Serialize};
 
 /// 设置项可见性与权限标志。
 ///
-/// 对应 AList 服务端常量（`internal/model/setting.go:21-26`）：
+/// 对应 AList 服务端 model.Setting 数据模型的可见性常量：
 /// - `0`: 公开（公开 API 可见）；
 /// - `1`: 私有（仅管理员可见）；
 /// - `2`: 只读（不可在前端修改）；
@@ -89,7 +95,8 @@ impl<'de> Deserialize<'de> for SettingFlag {
 
 /// 设置项前端分组编号。
 ///
-/// 对应 AList 服务端常量（`internal/model/setting.go:3-19`）。
+/// 对应 AList 服务端 model.Setting 数据模型的分组常量
+/// （从 `single` 起依次递增，未知分组向前兼容为 [`SettingGroup::Unknown`]）。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SettingGroup {
     /// 独立单项（如访问令牌等，对应整数 `0`）。
@@ -481,6 +488,71 @@ pub struct SetQbitRequest {
     pub seedtime: String,
 }
 
+/// `POST /api/admin/setting/set_token` 的请求体形状。
+///
+/// 对应 AList 服务端 handles.Setting 模块的 `SetTokenReq`；
+/// 仅含 `token` 一个字段（服务端将其保存为 `token` 设置项并刷新签名实例）。
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SetTokenRequest {
+    /// 新的站点访问令牌。
+    pub token: String,
+}
+
+/// `POST /api/admin/setting/set_transmission` 的请求体形状。
+///
+/// 对应 AList 服务端离线下载处理模块的 `SetTransmissionReq`；
+/// 仅含 `uri`/`seedtime` 两个字段（保存后服务端立即初始化 Transmission 连接）。
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SetTransmissionRequest {
+    /// Transmission RPC 地址，例如 `http://localhost:9091/transmission/rpc`。
+    pub uri: String,
+    /// 做种时间（字符串形式的数值）。
+    pub seedtime: String,
+}
+
+/// `POST /api/admin/setting/set_115`、`set_pikpak`、`set_thunder`、
+/// `set_guangyapan`、`set_123_open` 共享的请求体形状。
+///
+/// 对应 AList 服务端离线下载处理模块的 `Set115Req`/`SetPikPakReq`/`SetThunderReq`/
+/// `SetGuangYaPanReq`/`SetOpen123Req` 五个请求结构体（逐个核对后确认字段完全一致）；
+/// 仅含 `temp_dir` 一个字段（保存为对应网盘的离线下载临时目录设置项，
+/// 非空时服务端会校验该路径所在存储已初始化且驱动类型匹配）。
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SetTempDirRequest {
+    /// 离线下载临时目录（对应网盘存储内的路径）。
+    ///
+    /// 传空字符串表示未指定（服务端跳过存储校验）。
+    pub temp_dir: String,
+}
+
+/// FRP 运行时状态与近期日志（`GET /api/admin/setting/frp_runtime` 的响应模型）。
+///
+/// 对应 AList 服务端 FRP 管理模块的 `RuntimeInfo`；
+/// `set_frp`/`stop_frp` 的响应 `data` 为状态字符串（不含日志），与本模型分离。
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FrpRuntimeInfo {
+    /// FRP 客户端当前状态：`running`（运行中）、`stopped`（已停止）或
+    /// `error: <错误信息>`（启动失败/异常退出）。
+    pub status: String,
+    /// 最近的运行日志行（每行为一条带时间前缀的日志）。
+    ///
+    /// 服务端从日志文件尾部读取（条数受 `limit` 查询参数控制）；
+    /// 日志文件不可读时回退为内存中的近期日志。
+    /// 服务端对空日志可能返回 `null`，反序列化时归约为空数组。
+    #[serde(default, deserialize_with = "null_to_default")]
+    pub logs: Vec<String>,
+}
+
+/// 将 JSON `null` 归约为类型默认值的反序列化辅助函数（本文件私有）。
+fn null_to_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: Default + serde::Deserialize<'de>,
+{
+    let opt = Option::<T>::deserialize(deserializer)?;
+    Ok(opt.unwrap_or_default())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -647,6 +719,83 @@ mod tests {
                 "seedtime": "30"
             })
         );
+    }
+
+    /// 序列化键名钉扎：`set_token` 请求体（`token`，无其它字段）；
+    /// 来源：AList 服务端 handles.Setting 模块的 `SetTokenReq`。
+    #[test]
+    fn set_token_request_serializes_with_api_field_names() {
+        let req = SetTokenRequest {
+            token: "alist-9d".to_owned(),
+        };
+        assert_eq!(
+            serde_json::to_value(&req).unwrap(),
+            serde_json::json!({ "token": "alist-9d" })
+        );
+    }
+
+    /// 序列化键名钉扎：`set_transmission` 请求体（`uri`/`seedtime`，无其它字段）；
+    /// 来源：AList 服务端离线下载处理模块的 `SetTransmissionReq`。
+    #[test]
+    fn set_transmission_request_serializes_with_api_field_names() {
+        let req = SetTransmissionRequest {
+            uri: "http://localhost:9091/transmission/rpc".to_owned(),
+            seedtime: "30".to_owned(),
+        };
+        assert_eq!(
+            serde_json::to_value(&req).unwrap(),
+            serde_json::json!({
+                "uri": "http://localhost:9091/transmission/rpc",
+                "seedtime": "30"
+            })
+        );
+    }
+
+    /// 序列化键名钉扎：`set_115` 等 5 个端点共享的请求体（`temp_dir`，无其它字段）；
+    /// 来源：AList 服务端离线下载处理模块的 `Set115Req`（其余 4 个结构体形状一致）。
+    #[test]
+    fn set_temp_dir_request_serializes_with_api_field_names() {
+        let req = SetTempDirRequest {
+            temp_dir: "/115/download".to_owned(),
+        };
+        assert_eq!(
+            serde_json::to_value(&req).unwrap(),
+            serde_json::json!({ "temp_dir": "/115/download" })
+        );
+    }
+
+    /// 正向钉扎：`frp_runtime` 响应（`status` + `logs`）；
+    /// 来源：AList 服务端 FRP 管理模块的 `RuntimeInfo` 实际返回形状。
+    #[test]
+    fn frp_runtime_info_decodes_full_payload() {
+        let info: FrpRuntimeInfo = serde_json::from_value(serde_json::json!({
+            "status": "running",
+            "logs": [
+                "[2026-01-01T00:00:00+08:00] initialized",
+                "[2026-01-01T00:00:01+08:00] service started"
+            ]
+        }))
+        .unwrap();
+        assert_eq!(info.status, "running");
+        assert_eq!(info.logs.len(), 2);
+        assert!(info.logs[0].ends_with("initialized"));
+    }
+
+    /// 兼容钉扎：`logs` 缺失或显式 `null` 时归约为空数组；`status` 恒存在。
+    #[test]
+    fn frp_runtime_info_tolerates_missing_or_null_logs() {
+        let without_logs: FrpRuntimeInfo =
+            serde_json::from_value(serde_json::json!({ "status": "stopped" })).unwrap();
+        assert_eq!(without_logs.status, "stopped");
+        assert!(without_logs.logs.is_empty());
+
+        let null_logs: FrpRuntimeInfo = serde_json::from_value(serde_json::json!({
+            "status": "error: frp server address is required",
+            "logs": null
+        }))
+        .unwrap();
+        assert_eq!(null_logs.status, "error: frp server address is required");
+        assert!(null_logs.logs.is_empty());
     }
 
     /// 钉扎：`SettingFlag` 与 `SettingGroup` 的序列化、反序列化及未知值向前兼容。
