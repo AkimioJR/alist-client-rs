@@ -55,7 +55,10 @@ pub mod share;
     feature = "admin-setting",
     feature = "admin-role",
     feature = "admin-label",
-    feature = "admin-label-file-binding"
+    feature = "admin-label-file-binding",
+    feature = "admin-index",
+    feature = "admin-message",
+    feature = "admin-session"
 ))]
 pub mod admin;
 

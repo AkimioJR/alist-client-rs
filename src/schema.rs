@@ -42,6 +42,9 @@ pub mod share;
     feature = "admin-setting-schema",
     feature = "admin-role-schema",
     feature = "admin-label-schema",
-    feature = "admin-label-file-binding-schema"
+    feature = "admin-label-file-binding-schema",
+    feature = "admin-index-schema",
+    feature = "admin-message-schema",
+    feature = "admin-session-schema"
 ))]
 pub mod admin;

@@ -27,3 +27,12 @@ pub mod label;
 
 #[cfg(feature = "admin-label-file-binding-schema")]
 pub mod label_file_binding;
+
+#[cfg(feature = "admin-index-schema")]
+pub mod index;
+
+#[cfg(feature = "admin-message-schema")]
+pub mod message;
+
+#[cfg(feature = "admin-session-schema")]
+pub mod session;

@@ -59,6 +59,9 @@ admin = [ # admin 聚合
     "admin-role",
     "admin-label",
     "admin-label-file-binding",
+    "admin-index",
+    "admin-message",
+    "admin-session",
 ]
 admin-meta = ["admin-meta-schema"]
 admin-user = ["admin-user-schema"]
@@ -68,6 +71,10 @@ admin-setting = ["admin-setting-schema"]
 admin-role = ["admin-role-schema"]
 admin-label = ["admin-label-schema"]
 admin-label-file-binding = ["admin-label-file-binding-schema"]
+admin-index = ["admin-index-schema"]
+admin-message = ["admin-message-schema"]
+# 会话模型复用 auth 域 SessionResp（服务端同一结构体），故 schema feature 拉取 auth-schema
+admin-session = ["admin-session-schema"]
 
 # schema feature（由对应端点 feature 拉取）
 auth-schema = []
@@ -83,3 +90,6 @@ admin-setting-schema = []
 admin-role-schema = []
 admin-label-schema = []
 admin-label-file-binding-schema = []
+admin-index-schema = []
+admin-message-schema = []
+admin-session-schema = ["auth-schema"]

@@ -2,7 +2,8 @@
 //!
 //! 按子域划分为元信息（[`meta`]）、用户（[`user`]）、存储（[`storage`]）、
 //! 驱动（[`driver`]）、设置（[`setting`]）、角色（[`role`]）、
-//! 标签（[`label`]）与标签绑定（[`label_file_binding`]），
+//! 标签（[`label`]）、标签绑定（[`label_file_binding`]）、
+//! 搜索索引（[`index`]）、消息队列（[`message`]）与会话管理（[`session`]），
 //! API 路径见 AList OpenAPI 规范的 `admin` 分组与
 //! AList 服务端路由定义的 `admin` 路由。
 //!
@@ -43,6 +44,15 @@ pub mod label;
 
 #[cfg(feature = "admin-label-file-binding")]
 pub mod label_file_binding;
+
+#[cfg(feature = "admin-index")]
+pub mod index;
+
+#[cfg(feature = "admin-message")]
+pub mod message;
+
+#[cfg(feature = "admin-session")]
+pub mod session;
 
 /// admin 管理句柄。
 ///
