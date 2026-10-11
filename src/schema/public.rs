@@ -1,12 +1,15 @@
 //! public 公共域数据模型。
 //!
-//! 建模 `GET /api/public/settings` 返回的站点设置：
-//! 服务端以字符串键值映射返回全部公共设置项（服务端
-//! `op.GetPublicSettingsMap()` 的 `map[string]string`；
-//! 公共项按 `PUBLIC`/`READONLY` 标记过滤），因此主模型为开放的
-//! [`PublicSettings`]（`HashMap<String, String>`）。
+//! 建模无需认证的 public 端点响应：
+//! `GET /api/public/settings` 返回的站点设置——服务端以字符串键值映射
+//! 返回全部公共设置项（服务端 `op.GetPublicSettingsMap()` 的
+//! `map[string]string`；公共项按 `PUBLIC`/`READONLY` 标记过滤），因此主模型
+//! 为开放的 [`PublicSettings`]（`HashMap<String, String>`）；
 //! [`KnownPublicSettings`] 为 AList OpenAPI 规范的
 //! `/api/public/settings` 响应已记录键的具名辅助结构。
+//! `GET /api/public/offline_download_tools` 与
+//! `GET /api/public/archive_extensions` 返回的字符串数组分别建模为
+//! [`OfflineDownloadToolsResponse`] 与 [`ArchiveExtensionsResponse`]。
 //! 字段形状以 AList OpenAPI 规范与服务端源码为准。
 
 use std::collections::HashMap;
@@ -118,6 +121,23 @@ pub struct KnownPublicSettings {
     #[serde(default)]
     pub video_autoplay: Option<String>,
 }
+
+/// [`/api/public/offline_download_tools`](crate::endpoint::public::Public::offline_download_tools)
+/// 返回的离线下载工具名列表（响应 `data`）。
+///
+/// 对应服务端 offline download 工具管理器就绪工具名的 `[]string`：
+/// 仅包含服务端判定就绪（已完成初始化）的工具，且已按字典序排序，
+/// 如 `115 Cloud`、`aria2`、`qBittorrent`、`Transmission`、`PikPak` 等；
+/// 工具集合随服务端编译内置与配置状态变化，全部未就绪时为空数组。
+pub type OfflineDownloadToolsResponse = Vec<String>;
+
+/// [`/api/public/archive_extensions`](crate::endpoint::public::Public::archive_extensions)
+/// 返回的压缩包扩展名列表（响应 `data`）。
+///
+/// 对应服务端 archive 工具注册表的键集合 `[]string`：即已注册解压驱动
+/// 支持的扩展名，自带前导点号（如 `.7z`、`.iso`、`.rar`、`.tar`）；
+/// 集合由服务端编译内置的解压驱动决定，且无序（Go map 遍历顺序不固定）。
+pub type ArchiveExtensionsResponse = Vec<String>;
 
 #[cfg(test)]
 mod tests {
@@ -237,5 +257,90 @@ mod tests {
         assert_eq!(map.len(), 28, "应包含已记录的全部 28 个键: {map:?}");
         assert_eq!(value["site_title"], "AList");
         assert_eq!(value["default_page_size"], "30");
+    }
+
+    /// 正向钉扎：`/api/public/offline_download_tools` 信封响应解码为就绪工具名列表。
+    ///
+    /// 示例形状取自 AList 服务端 offline download 工具管理器的实际返回
+    /// （按字典序排序的就绪工具名；`115 Cloud` 等含空格的原生工具名按原样返回）。
+    #[test]
+    fn offline_download_tools_response_decodes_envelope() {
+        let resp: Response<OfflineDownloadToolsResponse> =
+            serde_json::from_value(serde_json::json!({
+                "code": 200,
+                "message": "success",
+                "data": ["115 Cloud", "aria2", "qBittorrent"]
+            }))
+            .unwrap();
+
+        assert_eq!(resp.code, 200);
+        assert_eq!(
+            resp.data,
+            vec![
+                "115 Cloud".to_owned(),
+                "aria2".to_owned(),
+                "qBittorrent".to_owned()
+            ]
+        );
+    }
+
+    /// 空列表钉扎：全部工具未就绪（如 aria2 未配置）时服务端返回空数组——
+    /// Go `make([]string, 0, ...)` 序列化为 `[]` 而非 `null`。
+    /// （本端点 `data` 为裸数组、无可选字段；引入前的老版本服务端无此路由，
+    /// 请求将得到 404 错误而非缺字段响应。）
+    #[test]
+    fn offline_download_tools_response_decodes_empty_list() {
+        let resp: Response<OfflineDownloadToolsResponse> =
+            serde_json::from_value(serde_json::json!({
+                "code": 200,
+                "message": "success",
+                "data": []
+            }))
+            .unwrap();
+
+        assert!(resp.data.is_empty());
+    }
+
+    /// 正向钉扎：`/api/public/archive_extensions` 信封响应解码为扩展名列表。
+    ///
+    /// 示例集合取自 AList 服务端内置解压驱动注册的扩展名（sevenzip 的 `.7z`、
+    /// iso9660 的 `.iso`、archives 驱动的 `.tar` 等），元素自带前导点号。
+    #[test]
+    fn archive_extensions_response_decodes_envelope() {
+        let resp: Response<ArchiveExtensionsResponse> = serde_json::from_value(serde_json::json!({
+            "code": 200,
+            "message": "success",
+            "data": [".7z", ".iso", ".rar", ".tar"]
+        }))
+        .unwrap();
+
+        assert_eq!(resp.code, 200);
+        assert_eq!(
+            resp.data,
+            vec![
+                ".7z".to_owned(),
+                ".iso".to_owned(),
+                ".rar".to_owned(),
+                ".tar".to_owned()
+            ]
+        );
+    }
+
+    /// 空列表钉扎：`data` 为空数组时归约为空列表。
+    ///
+    /// 注意：注册表为空时服务端（Go `var ext []string` 的 nil 切片）实际返回
+    /// `"data": null`，本模型无法将其解码为 `Vec<String>`；该状态实践中不可达——
+    /// 服务端内置解压驱动均在启动时经 init() 注册，注册表恒非空。
+    /// 本测试仅钉住空数组形状的解码行为。
+    #[test]
+    fn archive_extensions_response_decodes_empty_list() {
+        let resp: Response<ArchiveExtensionsResponse> = serde_json::from_value(serde_json::json!({
+            "code": 200,
+            "message": "success",
+            "data": []
+        }))
+        .unwrap();
+
+        assert!(resp.data.is_empty());
     }
 }

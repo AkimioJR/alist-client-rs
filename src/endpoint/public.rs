@@ -1,10 +1,12 @@
 //! public 公共端点句柄。
 //!
-//! 覆盖无需认证的站点设置与连通性检测端点，
-//! API 路径见 AList OpenAPI 规范的 `public` 分组。
+//! 覆盖无需认证的站点设置、连通性检测、离线下载工具与压缩包扩展名端点，
+//! API 路径见 AList OpenAPI 规范的 `public` 分组与服务端路由定义。
 //!
 //! 通过 [`Client::public`](crate::Client::public) 获取句柄，推荐即建即用。
 
+pub mod archive_extensions;
+pub mod offline_download_tools;
 pub mod ping;
 pub mod settings;
 
