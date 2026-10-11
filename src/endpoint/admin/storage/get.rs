@@ -2,6 +2,14 @@
 //!
 //! 对应 `GET /api/admin/storage/get`；按 `id` 查询参数获取存储详情，
 //! 响应 `data` 为单个 [`Storage`]。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
+//! - 从 AList `v3.15.0` 起，响应 `Storage` 新增 `enable_sign` 字段（是否启用细粒度签名）；老版本响应缺失该字段。
+//! - 从 AList `v3.35.0` 起，响应 `Storage` 新增 `proxy_range` 字段（是否代理 Range 请求）；老版本响应缺失该字段。
+//! - 从 AList `v3.42.0` 起，响应 `Storage` 新增 `disable_index` 字段（是否禁止建立索引）；老版本响应缺失该字段。
+//! - 从 AList `v3.56.0` 起，响应 `Storage` 新增 `down_proxy_sign` 字段（下载代理 URL 是否附加签名）；老版本响应缺失该字段。
 
 use alist_client_derive::EndpointRequest;
 
@@ -55,6 +63,14 @@ impl<'a> super::Storage<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如存储不存在）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
+    /// - 从 AList `v3.15.0` 起，响应 `Storage` 新增 `enable_sign` 字段（是否启用细粒度签名）；老版本响应缺失该字段。
+    /// - 从 AList `v3.35.0` 起，响应 `Storage` 新增 `proxy_range` 字段（是否代理 Range 请求）；老版本响应缺失该字段。
+    /// - 从 AList `v3.42.0` 起，响应 `Storage` 新增 `disable_index` 字段（是否禁止建立索引）；老版本响应缺失该字段。
+    /// - 从 AList `v3.56.0` 起，响应 `Storage` 新增 `down_proxy_sign` 字段（下载代理 URL 是否附加签名）；老版本响应缺失该字段。
     ///
     /// # Examples
     ///

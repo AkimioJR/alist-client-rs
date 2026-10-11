@@ -2,6 +2,19 @@
 //!
 //! 对应 `POST /api/task/{category}/info?tid={tid}`，
 //! 响应数据反序列化为 [`TaskInfo`]。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.30.0` 起提供本接口。
+//! - 从 AList `v3.39.1` 起，任务路由由 `/api/admin/task`（仅管理员可用）
+//!   迁往 `/api/task`（登录非访客用户可用，且仅能查询本人创建的任务），
+//!   并保留 `/api/admin/task` 作为兼容别名；老版本仅提供 `/api/admin/task`。
+//! - 从 AList `v3.39.1` 起，响应新增 `creator` 与 `creator_role` 字段；
+//!   老版本响应缺失这两个字段。
+//! - 从 AList `v3.42.0` 起，响应新增 `start_time`、`end_time` 与 `total_bytes` 字段；
+//!   老版本响应缺失这三个字段。
+//! - 从 AList `v3.46.0` 起，响应 `creator_role` 由单个角色整数改为角色 ID 数组；
+//!   老版本为单个整数。
 
 use crate::schema::task::{TaskCategory, TaskInfo};
 
@@ -59,6 +72,19 @@ impl<'a> Request<'a> {
     ///
     /// 当网络请求失败、AList 返回非成功状态码，或响应 `data` 无法反序列化为 [`TaskInfo`] 时，
     /// 返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.30.0` 起提供本接口。
+    /// - 从 AList `v3.39.1` 起，任务路由由 `/api/admin/task`（仅管理员可用）
+    ///   迁往 `/api/task`（登录非访客用户可用，且仅能查询本人创建的任务），
+    ///   并保留 `/api/admin/task` 作为兼容别名；老版本仅提供 `/api/admin/task`。
+    /// - 从 AList `v3.39.1` 起，响应新增 `creator` 与 `creator_role` 字段；
+    ///   老版本响应缺失这两个字段。
+    /// - 从 AList `v3.42.0` 起，响应新增 `start_time`、`end_time` 与 `total_bytes` 字段；
+    ///   老版本响应缺失这三个字段。
+    /// - 从 AList `v3.46.0` 起，响应 `creator_role` 由单个角色整数改为角色 ID 数组；
+    ///   老版本为单个整数。
     #[inline]
     pub async fn send(&self) -> crate::Result<TaskInfo> {
         self.client.execute(self.build_request()).await

@@ -6,6 +6,11 @@
 //! （挂载在用户认证路由组下，非 `/api/admin` 前缀），
 //! 处理逻辑见 AList 服务端 label_file_binding 模块
 //! （实现为 `handles.GetLabelByFileName`）。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.46.0` 起提供本接口。
+//! - 从 AList `v3.50.0` 起，路由由管理后台路由组的 `/api/admin/label_file_binding/get` 迁移至用户认证路由组的 `/api/label_file_binding/get`，不再要求管理员权限（仅需用户认证）；老版本仅提供 `/api/admin/label_file_binding/get` 路径且仅管理员可访问。
 
 use alist_client_derive::EndpointRequest;
 
@@ -68,6 +73,11 @@ impl<'a> super::LabelFileBinding<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]；`file_name` 为空时服务端返回 400。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.46.0` 起提供本接口。
+    /// - 从 AList `v3.50.0` 起，路由由管理后台路由组的 `/api/admin/label_file_binding/get` 迁移至用户认证路由组的 `/api/label_file_binding/get`，不再要求管理员权限（仅需用户认证）；老版本仅提供 `/api/admin/label_file_binding/get` 路径且仅管理员可访问。
     ///
     /// # Examples
     ///

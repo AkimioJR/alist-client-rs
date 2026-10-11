@@ -6,6 +6,10 @@
 //! 服务端标签模型）；成功时响应 `data` 为 `{ "id": N }`。
 //! 服务端在入库时自动生成 `id` 并以当前时间覆盖 `create_time`
 //! （见 AList 服务端数据库实现中的 `CreateLabel`），故本构建器不暴露这两个字段。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.46.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -83,6 +87,10 @@ impl<'a> super::Label<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如标签名已存在时服务端返回 `401` 错误响应）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.46.0` 起提供本接口。
     ///
     /// # Examples
     ///

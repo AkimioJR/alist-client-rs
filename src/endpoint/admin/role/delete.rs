@@ -5,6 +5,10 @@
 //! 从查询串读取 `id`（缺失或非数字时返回 400），内置 `admin`/`guest`
 //! 角色被服务端以 403 拒绝，成功时响应 `data: null`
 //! （见 AList 服务端 role 模块）。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.46.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -52,6 +56,10 @@ impl<'a> super::Role<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如角色不存在或删除内置角色被拒绝）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.46.0` 起提供本接口。
     ///
     /// # Examples
     ///

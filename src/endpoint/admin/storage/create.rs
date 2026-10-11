@@ -3,6 +3,15 @@
 //! 对应 `POST /api/admin/storage/create`；请求体为 `model.Storage` 形状
 //! （AList 服务端 handles.Storage 模块的 `CreateStorage` 直接绑定），
 //! 其中 `addition` 为驱动特定的 JSON 字符串；响应 `data` 为 `{ "id": N }`。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
+//! - 从 AList `v3.5.1` 起，响应 `data` 携带新建存储的 ID（`{ "id": N }`）；老版本 `data` 为空。
+//! - 从 AList `v3.15.0` 起，请求体新增 `enable_sign` 启用签名开关；老版本服务端忽略该字段。
+//! - 从 AList `v3.35.0` 起，请求体新增 `proxy_range` 代理 Range 请求开关；老版本服务端忽略该字段。
+//! - 从 AList `v3.42.0` 起，请求体新增 `disable_index` 禁止建立索引开关；老版本服务端忽略该字段。
+//! - 从 AList `v3.56.0` 起，请求体新增 `down_proxy_sign` 下载代理附加签名开关；老版本服务端忽略该字段。
 
 use alist_client_derive::EndpointRequest;
 
@@ -147,6 +156,15 @@ impl<'a> super::Storage<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如驱动名不存在或挂载路径重复）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
+    /// - 从 AList `v3.5.1` 起，响应 `data` 携带新建存储的 ID（`{ "id": N }`）；老版本 `data` 为空。
+    /// - 从 AList `v3.15.0` 起，请求体新增 `enable_sign` 启用签名开关；老版本服务端忽略该字段。
+    /// - 从 AList `v3.35.0` 起，请求体新增 `proxy_range` 代理 Range 请求开关；老版本服务端忽略该字段。
+    /// - 从 AList `v3.42.0` 起，请求体新增 `disable_index` 禁止建立索引开关；老版本服务端忽略该字段。
+    /// - 从 AList `v3.56.0` 起，请求体新增 `down_proxy_sign` 下载代理附加签名开关；老版本服务端忽略该字段。
     ///
     /// # Examples
     ///

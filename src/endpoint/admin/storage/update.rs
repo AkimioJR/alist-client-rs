@@ -4,6 +4,14 @@
 //! （AList 服务端 handles.Storage 模块的 `UpdateStorage` 直接绑定），
 //! `id` 用于定位目标存储且驱动名不可变更；成功时服务端返回 `data: null`，
 //! AList OpenAPI 规范示例则记载 `{"id": N}`，故以 `Option<StorageCreateResponse>` 建模。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
+//! - 从 AList `v3.15.0` 起，请求体新增 `enable_sign` 启用签名开关；老版本服务端忽略该字段。
+//! - 从 AList `v3.35.0` 起，请求体新增 `proxy_range` 代理 Range 请求开关；老版本服务端忽略该字段。
+//! - 从 AList `v3.42.0` 起，请求体新增 `disable_index` 禁止建立索引开关；老版本服务端忽略该字段。
+//! - 从 AList `v3.56.0` 起，请求体新增 `down_proxy_sign` 下载代理附加签名开关；老版本服务端忽略该字段。
 
 use alist_client_derive::EndpointRequest;
 
@@ -55,12 +63,8 @@ pub struct Request<'a> {
     /// 置 `true` 时服务端更新数据库后不会重新挂载驱动。
     disabled: Option<bool>,
     /// 是否禁止建立索引（可选参数）。
-    ///
-    /// 新版本服务端字段。
     disable_index: Option<bool>,
     /// 是否启用签名（可选参数）。
-    ///
-    /// 新版本服务端字段。
     enable_sign: Option<bool>,
     /// 对象排序字段（可选参数）。
     ///
@@ -81,14 +85,10 @@ pub struct Request<'a> {
     /// 可选值包括 `302_redirect`、`use_proxy_url` 或 `native_proxy`（见 [`WebdavPolicy`]）。
     webdav_policy: Option<WebdavPolicy>,
     /// 是否代理 Range 请求（可选参数）。
-    ///
-    /// 新版本服务端字段。
     proxy_range: Option<bool>,
     /// 下载代理 URL（可选参数）。
     down_proxy_url: Option<String>,
     /// 下载代理 URL 是否附加签名（可选参数）。
-    ///
-    /// 新版本服务端字段。
     down_proxy_sign: Option<bool>,
 }
 
@@ -156,6 +156,14 @@ impl<'a> super::Storage<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如存储不存在或驱动名被变更）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
+    /// - 从 AList `v3.15.0` 起，请求体新增 `enable_sign` 启用签名开关；老版本服务端忽略该字段。
+    /// - 从 AList `v3.35.0` 起，请求体新增 `proxy_range` 代理 Range 请求开关；老版本服务端忽略该字段。
+    /// - 从 AList `v3.42.0` 起，请求体新增 `disable_index` 禁止建立索引开关；老版本服务端忽略该字段。
+    /// - 从 AList `v3.56.0` 起，请求体新增 `down_proxy_sign` 下载代理附加签名开关；老版本服务端忽略该字段。
     ///
     /// # Examples
     ///

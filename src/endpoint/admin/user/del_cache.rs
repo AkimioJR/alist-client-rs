@@ -5,6 +5,10 @@
 //!
 //! 注意：AList OpenAPI 规范与 AList 服务端 user 模块（`DelUserCache`，读取
 //! `username` 查询参数）均以用户名定位，与同组其余端点的 `id` 参数不同。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.25.1` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -60,6 +64,10 @@ impl<'a> super::User<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.25.1` 起提供本接口。
     ///
     /// # Examples
     ///

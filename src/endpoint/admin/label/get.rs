@@ -3,6 +3,11 @@
 //! 对应 `GET /api/label/get`（AList OpenAPI 规范未收录该分组，路由以
 //! AList 服务端路由定义的 `_label` 为准；实现为 `handles.GetLabel`）。
 //! 标签 ID 通过 URL 查询参数 `id` 传递（服务端读取查询参数 `id`），响应 `data` 为标签条目。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.46.0` 起提供本接口。
+//! - 从 AList `v3.50.0` 起，本接口由管理后台分组（仅管理员）迁移至登录用户分组，路由路径从 `/api/admin/label/get` 变更为 `/api/label/get`，访问权限由仅管理员放宽为任意已登录用户；老版本仅提供 `/api/admin/label/get` 且要求管理员权限。
 
 use alist_client_derive::EndpointRequest;
 
@@ -59,6 +64,11 @@ impl<'a> super::Label<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如标签不存在时服务端返回 `500` 错误响应）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.46.0` 起提供本接口。
+    /// - 从 AList `v3.50.0` 起，本接口由管理后台分组（仅管理员）迁移至登录用户分组，路由路径从 `/api/admin/label/get` 变更为 `/api/label/get`，访问权限由仅管理员放宽为任意已登录用户；老版本仅提供 `/api/admin/label/get` 且要求管理员权限。
     ///
     /// # Examples
     ///

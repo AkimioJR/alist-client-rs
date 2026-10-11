@@ -4,6 +4,13 @@
 //! 是否加密、递归文件树 [`ArchiveContentResponse`](crate::schema::fs::ArchiveContentResponse)、
 //! 原始下载地址与签名）。该端点未收录于 AList OpenAPI 规范，
 //! 请求/响应形状以 AList 服务端 `ArchiveMetaReq`/`ArchiveMetaResponse` 为准。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.42.0` 起提供本接口。
+//! - 从 AList `v3.43.0` 起，响应 `sign` 改用归档专用签名；老版本返回通用下载签名。
+//! - 从 AList `v3.46.0` 起，服务端新增基于角色的路径范围校验，并要求用户角色具备归档读取权限（`PermReadArchives`），不满足时返回 403 权限拒绝；老版本按用户权限位（`CanReadArchives`）校验归档读取权限，不满足时同样返回 403，但无基于角色的路径范围校验。
+//! - 从 AList `v3.54.0` 起，响应 `content[]` 条目新增 `storage_class` 字段；老版本不返回该字段。
 
 use alist_client_derive::EndpointRequest;
 
@@ -82,6 +89,13 @@ impl<'a> super::Archive<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 如目录密码错误、压缩包密码错误）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.42.0` 起提供本接口。
+    /// - 从 AList `v3.43.0` 起，响应 `sign` 改用归档专用签名；老版本返回通用下载签名。
+    /// - 从 AList `v3.46.0` 起，服务端新增基于角色的路径范围校验，并要求用户角色具备归档读取权限（`PermReadArchives`），不满足时返回 403 权限拒绝；老版本按用户权限位（`CanReadArchives`）校验归档读取权限，不满足时同样返回 403，但无基于角色的路径范围校验。
+    /// - 从 AList `v3.54.0` 起，响应 `content[]` 条目新增 `storage_class` 字段；老版本不返回该字段。
     ///
     /// # Examples
     ///

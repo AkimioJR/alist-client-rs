@@ -2,6 +2,22 @@
 //!
 //! 对应 `POST /api/task/{category}/{action}?tid={tid}`（取消 `cancel`、删除 `delete`、重试 `retry`），
 //! 成功时响应 `data: null`，返回 `()`。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
+//! - 从 AList `v3.11.0` 起，任务类别 `down`/`transfer` 更名为 `aria2_down`/`aria2_transfer`，
+//!   并新增 `qbit_down`/`qbit_transfer`（`upload`/`copy` 不变）；老版本沿用旧类别名。
+//! - 从 AList `v3.14.0` 起，新增 `retry` 动作；老版本无该动作。
+//! - 从 AList `v3.29.0` 起，任务类别调整：新增 `offline_download` 与 `offline_download_transfer`，
+//!   移除 `aria2_down`、`aria2_transfer`、`qbit_down`、`qbit_transfer`；同时任务 ID 统一为字符串形式
+//!   （老版本 `upload`/`copy` 等类别的 `tid` 为数字 ID），且 `cancel`/`delete`/`retry` 对无效 `tid`
+//!   由返回 400/500 错误改为一律返回成功响应。
+//! - 从 AList `v3.39.1` 起，本接口同时挂载于用户级 `/api/task`（非游客认证即可访问，且仅能操作本人
+//!   创建的任务：任务不存在或非本人任务一律返回 404），原管理员级 `/api/admin/task` 路径保留以兼容
+//!   旧自动化脚本；老版本仅提供管理员级 `/api/admin/task` 且仅管理员可访问。
+//! - 从 AList `v3.42.0` 起，新增 `decompress` 与 `decompress_upload` 任务类别；老版本不支持这两类任务。
+//! - 从 AList `v3.54.0` 起，新增 `s3_transition` 任务类别；老版本不支持该类任务。
 
 use crate::schema::task::TaskCategory;
 
@@ -66,6 +82,22 @@ impl<'a> Request<'a> {
     /// # Errors
     ///
     /// 当网络请求失败或 AList 返回非成功状态码时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
+    /// - 从 AList `v3.11.0` 起，任务类别 `down`/`transfer` 更名为 `aria2_down`/`aria2_transfer`，
+    ///   并新增 `qbit_down`/`qbit_transfer`（`upload`/`copy` 不变）；老版本沿用旧类别名。
+    /// - 从 AList `v3.14.0` 起，新增 `retry` 动作；老版本无该动作。
+    /// - 从 AList `v3.29.0` 起，任务类别调整：新增 `offline_download` 与 `offline_download_transfer`，
+    ///   移除 `aria2_down`、`aria2_transfer`、`qbit_down`、`qbit_transfer`；同时任务 ID 统一为字符串形式
+    ///   （老版本 `upload`/`copy` 等类别的 `tid` 为数字 ID），且 `cancel`/`delete`/`retry` 对无效 `tid`
+    ///   由返回 400/500 错误改为一律返回成功响应。
+    /// - 从 AList `v3.39.1` 起，本接口同时挂载于用户级 `/api/task`（非游客认证即可访问，且仅能操作本人
+    ///   创建的任务：任务不存在或非本人任务一律返回 404），原管理员级 `/api/admin/task` 路径保留以兼容
+    ///   旧自动化脚本；老版本仅提供管理员级 `/api/admin/task` 且仅管理员可访问。
+    /// - 从 AList `v3.42.0` 起，新增 `decompress` 与 `decompress_upload` 任务类别；老版本不支持这两类任务。
+    /// - 从 AList `v3.54.0` 起，新增 `s3_transition` 任务类别；老版本不支持该类任务。
     #[inline]
     pub async fn send(&self) -> crate::Result<()> {
         self.client.execute(self.build_request()).await

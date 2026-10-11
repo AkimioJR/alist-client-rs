@@ -4,7 +4,10 @@
 //! `{"content": [公钥数组], "total": 总数}` 分页形态，复用
 //! [`crate::schema::common::PageResponse`]，元素类型为
 //! [`crate::schema::admin::user::SshPublicKey`]。
-//! 该端点从 AList `v3.42.0` 起新增。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.42.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -67,7 +70,6 @@ impl<'a> super::SshKey<'a> {
     /// `{"content": [公钥数组], "total": 总数}` 分页形态。
     /// 数据来源：AList 服务端路由定义与 AList 服务端 sshkey 模块
     /// （实现为 `handles.ListPublicKeys`）。
-    /// 从 AList `v3.42.0` 起新增。
     ///
     /// # Arguments
     ///
@@ -83,6 +85,10 @@ impl<'a> super::SshKey<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.42.0` 起提供本接口。
     ///
     /// # Examples
     ///

@@ -3,6 +3,10 @@
 //! 对应 `POST /api/admin/setting/delete`；`key` 为查询参数，响应 `data` 为 `null`，
 //! 以 `()` 作为端点模型。AList OpenAPI 规范示例未含标准响应（仅 `{}`），此处以 AList 服务端
 //! `common.SuccessResp`（common.resp 模块）为准。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -56,6 +60,10 @@ impl<'a> super::Setting<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
     ///
     /// # Examples
     ///

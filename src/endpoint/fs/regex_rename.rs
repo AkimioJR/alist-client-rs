@@ -4,6 +4,10 @@
 //! `new_name_regex`（对应 AList 服务端 `RegexRenameReq`），服务端对源目录下
 //! 名称匹配正则的文件逐条以正则替换结果改名，响应 `data: null`。
 //! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.14.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -75,6 +79,10 @@ impl<'a> super::Fs<'a> {
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）
     /// 时，返回 [`crate::Error`]；正则非法时服务端返回 500，
     /// 替换结果名称非法时返回 400。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.14.0` 起提供本接口。
     ///
     /// # Examples
     ///

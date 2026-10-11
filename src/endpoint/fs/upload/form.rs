@@ -20,6 +20,15 @@
 //! （不走 [`EndpointRequest`](alist_client_derive::EndpointRequest) 派生宏，
 //! 采用消费式请求体），支持直接 `.await` 或调用
 //! [`send_upload`](Request::send_upload)。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.1` 起提供本接口。
+//! - 从 AList `v3.5.1` 起，服务端通过 `FsUp` 中间件校验 `Password` 请求头的目录密码，校验失败时拒绝上传；老版本不校验目录密码。
+//! - 从 AList `v3.27.0` 起，支持 `Last-Modified` 请求头（epoch 毫秒）指定文件修改时间；老版本忽略该头，以服务端收到请求的时间作为修改时间。
+//! - 从 AList `v3.30.0` 起，`As-Task` 上传的响应 `data` 携带后台任务信息（`{"task": ...}`）；老版本该场景下 `data` 为 `null`。
+//! - 从 AList `v3.42.0` 起，支持 `Overwrite` 请求头；仅显式传 `"false"` 时目标文件已存在的上传以 `403 file exists` 拒绝；老版本无该头，上传总是覆盖已有文件。
+//! - 从 AList `v3.42.0` 起，支持 `X-File-Md5` / `X-File-Sha1` / `X-File-Sha256` 请求头用于哈希校验；老版本忽略这些头。
 
 use bytes::Bytes;
 use reqwest::Method;
@@ -300,6 +309,15 @@ impl<'a> super::Upload<'a> {
     ///
     /// 构建请求本身不失败；发送时的错误语义见
     /// [`send_upload`](Request::send_upload)。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.1` 起提供本接口。
+    /// - 从 AList `v3.5.1` 起，服务端通过 `FsUp` 中间件校验 `Password` 请求头的目录密码，校验失败时拒绝上传；老版本不校验目录密码。
+    /// - 从 AList `v3.27.0` 起，支持 `Last-Modified` 请求头（epoch 毫秒）指定文件修改时间；老版本忽略该头，以服务端收到请求的时间作为修改时间。
+    /// - 从 AList `v3.30.0` 起，`As-Task` 上传的响应 `data` 携带后台任务信息（`{"task": ...}`）；老版本该场景下 `data` 为 `null`。
+    /// - 从 AList `v3.42.0` 起，支持 `Overwrite` 请求头；仅显式传 `"false"` 时目标文件已存在的上传以 `403 file exists` 拒绝；老版本无该头，上传总是覆盖已有文件。
+    /// - 从 AList `v3.42.0` 起，支持 `X-File-Md5` / `X-File-Sha1` / `X-File-Sha256` 请求头用于哈希校验；老版本忽略这些头。
     ///
     /// # Examples
     ///

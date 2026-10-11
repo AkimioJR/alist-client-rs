@@ -2,6 +2,14 @@
 //!
 //! 对应 `GET /api/admin/user/get`；以必选查询参数 `id` 指定用户，
 //! 响应 `data` 为单个用户对象（[`AdminUser`]）。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
+//! - 从 AList `v3.7.1` 起，响应新增 `github_id` 字段（支持 GitHub 登录）；老版本不返回该字段。
+//! - 从 AList `v3.10.1` 起，响应新增 `disabled` 字段（支持禁用账号）；老版本不返回该字段。
+//! - 从 AList `v3.13.1` 起，单点登录系统重构，响应以 `sso_id` 字段取代 `github_id`；老版本返回 `github_id` 或不含 SSO 标识字段。
+//! - 从 AList `v3.46.0` 起，响应的 `role` 字段支持多角色，形状由单值整数变为整数数组；老版本为单值整数。
 
 use alist_client_derive::EndpointRequest;
 
@@ -55,6 +63,14 @@ impl<'a> super::User<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如用户不存在）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
+    /// - 从 AList `v3.7.1` 起，响应新增 `github_id` 字段（支持 GitHub 登录）；老版本不返回该字段。
+    /// - 从 AList `v3.10.1` 起，响应新增 `disabled` 字段（支持禁用账号）；老版本不返回该字段。
+    /// - 从 AList `v3.13.1` 起，单点登录系统重构，响应以 `sso_id` 字段取代 `github_id`；老版本返回 `github_id` 或不含 SSO 标识字段。
+    /// - 从 AList `v3.46.0` 起，响应的 `role` 字段支持多角色，形状由单值整数变为整数数组；老版本为单值整数。
     ///
     /// # Examples
     ///

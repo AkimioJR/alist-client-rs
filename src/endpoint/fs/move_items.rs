@@ -1,10 +1,17 @@
 //! fs 端点：移动文件。
 //!
 //! 对应 `POST /api/fs/move`；方法名取 `move_items` 以避开 Rust 关键字 `move`。
-//! 请求体为 `src_dir`/`dst_dir`/`names`/`overwrite`（对应 AList 服务端 `MoveCopyReq`；
-//! `overwrite` 为新版服务端新增的覆盖开关），响应 `data: null`。跨存储移动会被服务端拒绝
-//! （`MoveBetweenTwoStorages`）。
+//! 请求体为 `src_dir`/`dst_dir`/`names`/`overwrite`（对应 AList 服务端 `MoveCopyReq`），
+//! 响应 `data: null`。跨存储移动会被服务端拒绝（`MoveBetweenTwoStorages`）。
 //! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
+//! - 从 AList `v3.42.0` 起，请求体新增 `overwrite` 字段，目标存在同名文件且未开启覆盖时
+//!   服务端返回 403；老版本请求体无该字段，服务端不进行同名文件存在性检查。
+//! - 从 AList `v3.46.0` 起，移动权限校验改为基于角色的路径限制与权限合并（拒绝时仍返回
+//!   403）；老版本仅校验用户自身的移动权限位。
 
 use alist_client_derive::EndpointRequest;
 
@@ -81,6 +88,14 @@ impl<'a> super::Fs<'a> {
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）
     /// 时，返回 [`crate::Error`]；跨存储移动、目标已存在且未设置 `overwrite`
     /// 时服务端返回 403。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
+    /// - 从 AList `v3.42.0` 起，请求体新增 `overwrite` 字段，目标存在同名文件且未开启覆盖时
+    ///   服务端返回 403；老版本请求体无该字段，服务端不进行同名文件存在性检查。
+    /// - 从 AList `v3.46.0` 起，移动权限校验改为基于角色的路径限制与权限合并（拒绝时仍返回
+    ///   403）；老版本仅校验用户自身的移动权限位。
     ///
     /// # Examples
     ///

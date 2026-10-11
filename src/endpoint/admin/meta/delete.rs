@@ -4,6 +4,10 @@
 //! 响应 `data: null`，以 `()` 作为端点模型。
 //! 数据来源：AList OpenAPI 规范的 `/api/admin/meta/delete` 与
 //! AList 服务端 handles.Meta 模块（`DeleteMeta` 经 `c.Query("id")` 取参）。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -54,6 +58,10 @@ impl<'a> super::Meta<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如 ID 不存在）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
     ///
     /// # Examples
     ///

@@ -4,6 +4,10 @@
 //! （服务端以字符串键值映射返回全部公共设置项，所有值均为字符串形式），
 //! 端点模型为 [`PublicSettings`]。
 //! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -53,6 +57,10 @@ impl<'a> super::Public<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
     ///
     /// # Examples
     ///

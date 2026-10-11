@@ -8,6 +8,10 @@
 //! AList 服务端路由定义，处理逻辑见
 //! AList 服务端 label_file_binding 模块
 //! （实现为 `handles.RestoreLabelFileBinding`）。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.50.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -86,6 +90,10 @@ impl<'a> super::LabelFileBinding<'a> {
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]；`bindings` 为空时服务端返回 400「empty bindings」，
     /// 记录缺少有效 `label_id`/`file_name` 时返回 400。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.50.0` 起提供本接口。
     ///
     /// # Examples
     ///

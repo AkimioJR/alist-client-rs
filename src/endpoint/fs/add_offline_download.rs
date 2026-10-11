@@ -5,6 +5,14 @@
 //! 响应是 `{"tasks": [...]}` 任务数组（每个 URL 至多一个后台任务，
 //! 与 OpenAPI 规范示例一致），以 [`OfflineDownloadResponse`] 建模。
 //! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.29.0` 起提供本接口。
+//! - 从 AList `v3.30.0` 起，成功响应的 `data` 改为 `{"tasks": [...]}` 任务数组；老版本成功时 `data` 为空，不返回任务信息。
+//! - 从 AList `v3.39.1` 起，任务数组元素新增 `creator`（创建者用户名）与 `creator_role`（创建者角色）字段；老版本任务元素不含这两个字段。
+//! - 从 AList `v3.42.0` 起，任务数组元素新增 `start_time`、`end_time` 与 `total_bytes` 字段；老版本任务元素不含这些字段。
+//! - 从 AList `v3.46.0` 起，权限校验改为基于角色权限与路径限制的离线下载权限检查；老版本仅按用户自身的离线下载权限位判断。
 
 use alist_client_derive::EndpointRequest;
 
@@ -96,6 +104,14 @@ impl<'a> super::Fs<'a> {
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）
     /// 时，返回 [`crate::Error`]；无离线下载权限时服务端返回 403，
     /// 工具未配置或初始化失败时返回 500。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.29.0` 起提供本接口。
+    /// - 从 AList `v3.30.0` 起，成功响应的 `data` 改为 `{"tasks": [...]}` 任务数组；老版本成功时 `data` 为空，不返回任务信息。
+    /// - 从 AList `v3.39.1` 起，任务数组元素新增 `creator`（创建者用户名）与 `creator_role`（创建者角色）字段；老版本任务元素不含这两个字段。
+    /// - 从 AList `v3.42.0` 起，任务数组元素新增 `start_time`、`end_time` 与 `total_bytes` 字段；老版本任务元素不含这些字段。
+    /// - 从 AList `v3.46.0` 起，权限校验改为基于角色权限与路径限制的离线下载权限检查；老版本仅按用户自身的离线下载权限位判断。
     ///
     /// # Examples
     ///

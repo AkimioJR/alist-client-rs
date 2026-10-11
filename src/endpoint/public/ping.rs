@@ -5,6 +5,10 @@
 //! [`EndpointRequest`](alist_client_derive::EndpointRequest) 派生宏：
 //! 仅提供 [`Request::send_text`] 返回原始响应文本，不生成语义错误的
 //! `send`/`IntoFuture`。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.13.2` 起提供本接口。
 
 /// ping 连通性检测请求构建器。
 ///
@@ -76,6 +80,10 @@ impl<'a> super::Public<'a> {
     /// # Errors
     ///
     /// 当网络请求失败或 AList 返回非 2xx 状态码时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.13.2` 起提供本接口。
     ///
     /// # Examples
     ///

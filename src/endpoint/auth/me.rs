@@ -2,8 +2,16 @@
 //!
 //! 对应 `GET /api/me`；无需请求体，返回 [`MeResponse`]
 //! （AList 服务端 auth 模块的 `CurrentUser`）。
-//! 注意服务端 `role` 为数组，而部分旧版文档示例
-//! 与老服务器返回单值 int，schema 层已做兼容；token 缺失时服务端返回游客信息。
+//! token 缺失时服务端返回游客信息。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
+//! - 从 AList `v3.10.1` 起，响应新增 `disabled` 字段；老版本不返回该字段。
+//! - 从 AList `v3.13.1` 起，响应新增 `sso_id` 字段；老版本不返回该字段。
+//! - 从 AList `v3.46.0` 起，`role` 由单值 int 变为角色 ID 数组，
+//!   并新增 `role_names` 与 `permissions` 字段；老版本 `role` 为单值 int
+//!   且不返回这两个字段，schema 层已对历史形状做兼容。
 
 use alist_client_derive::EndpointRequest;
 
@@ -36,9 +44,8 @@ impl<'a> super::Auth<'a> {
     ///
     /// 对应 AList `GET /api/me`（数据来源：AList OpenAPI 规范的
     /// `/api/me` 与 AList 服务端 auth 模块的 `CurrentUser`）。成功时返回 [`MeResponse`]：用户 ID、用户名、
-    /// 根目录、角色 ID 列表（`role` 兼容数组/单值/`null` 三种历史形状）、
-    /// 聚合权限位掩码、是否启用 2FA，以及新服务器的 `role_names`/`permissions`
-    /// 字段（老服务器缺失或为 `null` 时归约为空值）。
+    /// 根目录、角色 ID 列表、聚合权限位掩码、是否启用 2FA，以及
+    /// `role_names`/`permissions` 字段。
     /// 响应中的 `password` 字段恒为空字符串（服务端 handler 置空）。
     ///
     /// # Arguments
@@ -54,6 +61,15 @@ impl<'a> super::Auth<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）
     /// 时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
+    /// - 从 AList `v3.10.1` 起，响应新增 `disabled` 字段；老版本不返回该字段。
+    /// - 从 AList `v3.13.1` 起，响应新增 `sso_id` 字段；老版本不返回该字段。
+    /// - 从 AList `v3.46.0` 起，`role` 由单值 int 变为角色 ID 数组，
+    ///   并新增 `role_names` 与 `permissions` 字段；老版本 `role` 为单值 int
+    ///   且不返回这两个字段，schema 层已对历史形状做兼容。
     ///
     /// # Examples
     ///

@@ -3,6 +3,12 @@
 //! 对应 `POST /api/fs/mkdir`；请求体仅 `path` 一个字段（对应 AList 服务端 `MkdirOrLinkReq`
 //! 与 OpenAPI 请求示例），响应 `data: null`，以 `()` 作为端点模型。
 //! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
+//! - 从 AList `v3.6.0` 起，请求 `path` 含 `..` 等相对路径片段时直接返回 403 错误；老版本直接将 `path` 与用户根目录（BasePath）拼接，不做校验。
+//! - 从 AList `v3.46.0` 起，新增基于角色的路径限制与权限合并判定，不满足时返回 403 错误；老版本仅按用户自身写权限与目录元信息写权限判定。
 
 use alist_client_derive::EndpointRequest;
 
@@ -54,6 +60,12 @@ impl<'a> super::Fs<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）
     /// 时，返回 [`crate::Error`]；无写权限或目录已存在时返回对应错误。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
+    /// - 从 AList `v3.6.0` 起，请求 `path` 含 `..` 等相对路径片段时直接返回 403 错误；老版本直接将 `path` 与用户根目录（BasePath）拼接，不做校验。
+    /// - 从 AList `v3.46.0` 起，新增基于角色的路径限制与权限合并判定，不满足时返回 403 错误；老版本仅按用户自身写权限与目录元信息写权限判定。
     ///
     /// # Examples
     ///

@@ -3,6 +3,13 @@
 //! 对应 `POST /api/auth/login`；请求体为用户名、明文密码（服务端会做静态盐
 //! SHA-256 哈希）与可选两步验证码，成功返回 token 等登录信息。
 //! 哈希登录变体见 [`super::login_hash`]。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
+//! - 从 AList `v3.52.0` 起，响应新增 `device_key` 会话设备键；登录会话按设备
+//!   记录与限制，设备数超限时返回 403，客户端可经 `Client-Id` 请求头或
+//!   `client_id` 查询参数标识自身；老版本响应仅含 `token`。
 
 use alist_client_derive::EndpointRequest;
 
@@ -95,7 +102,7 @@ impl<'a> super::Auth<'a> {
     /// 对应 AList `POST /api/auth/login`；密码以明文发送，由服务端做静态盐
     /// SHA-256 哈希（数据来源：AList OpenAPI 规范的 `auth/login`
     /// 与 AList 服务端 auth 模块的 `Login`）。
-    /// 成功时返回 [`LoginResponse`]（含 token；新版本服务端还返回 `device_key`）。
+    /// 成功时返回 [`LoginResponse`]（含 token）。
     /// 该端点是 [`Client`](crate::Client) 内部自动刷新 token 所用登录的公开入口。
     /// 预哈希密码的变体见 [`login_hash`](super::Auth::login_hash)。
     ///
@@ -114,6 +121,13 @@ impl<'a> super::Auth<'a> {
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 如用户名或密码错误返回 400、两步验证码缺失或错误返回 402）时，
     /// 返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
+    /// - 从 AList `v3.52.0` 起，响应新增 `device_key` 会话设备键；登录会话按设备
+    ///   记录与限制，设备数超限时返回 403，客户端可经 `Client-Id` 请求头或
+    ///   `client_id` 查询参数标识自身；老版本响应仅含 `token`。
     ///
     /// # Examples
     ///

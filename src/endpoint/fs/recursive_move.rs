@@ -5,6 +5,19 @@
 //! 源目录下全部文件并逐条移动；成功时以 `SuccessWithMsgResp` 返回
 //! 「Successfully moved N file(s)」消息，`data` 为 `null`，以 `()` 作为端点模型。
 //! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.14.0` 起提供本接口。
+//! - 从 AList `v3.42.0` 起，请求体新增布尔型 `overwrite` 字段：缺省时服务端预先检查
+//!   目标目录，存在同名文件即以 403 拒绝，置 `true` 时直接覆盖；老版本请求体仅含
+//!   `src_dir`/`dst_dir`，同名冲突由底层移动直接报错。
+//! - 从 AList `v3.43.0` 起，`overwrite` 布尔字段改为 `conflict_policy` 字符串字段
+//!   （支持 `overwrite`/`cancel`/`skip`，缺省时仍先检查目标），成功响应的 `message`
+//!   由固定 `success` 改为移动计数摘要（如 `Successfully moved 2 files`）；老版本
+//!   （`v3.42.0`）使用布尔型 `overwrite` 字段且 `message` 固定为 `success`。
+//! - 从 AList `v3.46.0` 起，权限校验改为对源/目标目录逐路径检查路径限制与角色合并的
+//!   移动权限；老版本仅检查用户的全局移动权限。
 
 use alist_client_derive::EndpointRequest;
 
@@ -83,6 +96,19 @@ impl<'a> super::Fs<'a> {
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）
     /// 时，返回 [`crate::Error`]；`conflict_policy = ConflictPolicy::Cancel` 且目标已存在时
     /// 服务端以 403 返回。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.14.0` 起提供本接口。
+    /// - 从 AList `v3.42.0` 起，请求体新增布尔型 `overwrite` 字段：缺省时服务端预先检查
+    ///   目标目录，存在同名文件即以 403 拒绝，置 `true` 时直接覆盖；老版本请求体仅含
+    ///   `src_dir`/`dst_dir`，同名冲突由底层移动直接报错。
+    /// - 从 AList `v3.43.0` 起，`overwrite` 布尔字段改为 `conflict_policy` 字符串字段
+    ///   （支持 `overwrite`/`cancel`/`skip`，缺省时仍先检查目标），成功响应的 `message`
+    ///   由固定 `success` 改为移动计数摘要（如 `Successfully moved 2 files`）；老版本
+    ///   （`v3.42.0`）使用布尔型 `overwrite` 字段且 `message` 固定为 `success`。
+    /// - 从 AList `v3.46.0` 起，权限校验改为对源/目标目录逐路径检查路径限制与角色合并的
+    ///   移动权限；老版本仅检查用户的全局移动权限。
     ///
     /// # Examples
     ///

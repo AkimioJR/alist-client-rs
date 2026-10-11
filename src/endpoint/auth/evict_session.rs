@@ -1,7 +1,11 @@
 //! auth 端点：踢出指定登录会话。
 //!
 //! 对应 `POST /api/me/sessions/evict`；请求体为会话标识 `session_id`，成功时响应 `data: null`，
-//! 以 `()` 作为端点模型。从 AList `v3.52.0` 起新增会话管理功能。
+//! 以 `()` 作为端点模型。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.52.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -39,7 +43,6 @@ impl<'a> super::Auth<'a> {
     ///
     /// 对应 AList `POST /api/me/sessions/evict`（数据来源：AList 服务端路由定义与
     /// session 处理模块）。成功时响应 `data` 为 `null`。
-    /// 从 AList `v3.52.0` 起新增。
     ///
     /// # Arguments
     ///
@@ -53,6 +56,10 @@ impl<'a> super::Auth<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）
     /// 时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.52.0` 起提供本接口。
     ///
     /// # Examples
     ///

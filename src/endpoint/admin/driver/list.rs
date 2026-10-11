@@ -5,6 +5,10 @@
 //! [`DriverListResponse`]
 //! （`HashMap<String, serde_json::Value>`），条目的实际字段形状见
 //! [`crate::schema::admin::driver::DriverInfo`]。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -64,6 +68,10 @@ impl<'a> super::Driver<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如未携带管理员凭据时的 `403`）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
     ///
     /// # Examples
     ///

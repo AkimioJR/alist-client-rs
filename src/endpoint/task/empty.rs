@@ -3,6 +3,21 @@
 //! 对应 `POST /api/task/{category}/{action}`（清空已完成 `clear_done`、
 //! 清空已成功 `clear_succeeded`、重试所有失败 `retry_failed`），
 //! 成功时响应 `data: null`，返回 `()`。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
+//! - 从 AList `v3.14.0` 起，新增 `clear_succeeded` 动作；老版本不支持该动作。
+//! - 从 AList `v3.29.0` 起，新增 `retry_failed` 动作；老版本不支持该动作。
+//! - 从 AList `v3.29.0` 起，新增 `offline_download` 与 `offline_download_transfer`
+//!   任务类别路由分支；老版本不支持这两个类别的任务控制操作。
+//! - 从 AList `v3.39.1` 起，任务控制路由由 `/api/admin/task`（仅管理员可用）
+//!   迁往 `/api/task`（登录非访客用户可用，且仅能操作本人创建的任务），
+//!   并保留 `/api/admin/task` 作为兼容别名；老版本仅提供 `/api/admin/task`。
+//! - 从 AList `v3.42.0` 起，新增 `decompress` 与 `decompress_upload`
+//!   任务类别路由分支；老版本不支持这两个类别的任务控制操作。
+//! - 从 AList `v3.54.0` 起，新增 `s3_transition` 任务类别路由分支；
+//!   老版本不支持该类别的任务控制操作。
 
 use crate::schema::task::TaskCategory;
 
@@ -58,6 +73,21 @@ impl<'a> Request<'a> {
     /// # Errors
     ///
     /// 当网络请求失败或 AList 返回非成功状态码时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
+    /// - 从 AList `v3.14.0` 起，新增 `clear_succeeded` 动作；老版本不支持该动作。
+    /// - 从 AList `v3.29.0` 起，新增 `retry_failed` 动作；老版本不支持该动作。
+    /// - 从 AList `v3.29.0` 起，新增 `offline_download` 与 `offline_download_transfer`
+    ///   任务类别路由分支；老版本不支持这两个类别的任务控制操作。
+    /// - 从 AList `v3.39.1` 起，任务控制路由由 `/api/admin/task`（仅管理员可用）
+    ///   迁往 `/api/task`（登录非访客用户可用，且仅能操作本人创建的任务），
+    ///   并保留 `/api/admin/task` 作为兼容别名；老版本仅提供 `/api/admin/task`。
+    /// - 从 AList `v3.42.0` 起，新增 `decompress` 与 `decompress_upload`
+    ///   任务类别路由分支；老版本不支持这两个类别的任务控制操作。
+    /// - 从 AList `v3.54.0` 起，新增 `s3_transition` 任务类别路由分支；
+    ///   老版本不支持该类别的任务控制操作。
     #[inline]
     pub async fn send(&self) -> crate::Result<()> {
         self.client.execute(self.build_request()).await

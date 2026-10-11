@@ -2,6 +2,10 @@
 //!
 //! 对应 `POST /api/admin/setting/set_aria2`；请求体为 `uri`/`secret` 两字段对象，
 //! 响应 `data` 为 aria2 版本字符串，以 `String` 作为端点模型。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -67,6 +71,10 @@ impl<'a> super::Setting<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如 aria2 连接初始化失败）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
     ///
     /// # Examples
     ///

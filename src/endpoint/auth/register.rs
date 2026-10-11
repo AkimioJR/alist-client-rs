@@ -4,6 +4,10 @@
 //! 自行加盐哈希），成功时响应 `data: null`，以 `()` 作为端点模型。该端点不在 AList OpenAPI 规范中，
 //! 路径以 AList 服务端路由定义为准；仅当站点开启
 //! `allow_register` 设置时可用，否则返回响应 403。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.51.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -64,6 +68,10 @@ impl<'a> super::Auth<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 如注册被禁用返回 403、用户名已存在返回 500）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.51.0` 起提供本接口。
     ///
     /// # Examples
     ///

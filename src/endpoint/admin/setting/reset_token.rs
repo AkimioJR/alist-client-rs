@@ -2,6 +2,10 @@
 //!
 //! 对应 `POST /api/admin/setting/reset_token`；无请求参数，
 //! 响应 `data` 为新生成的令牌字符串，以 `String` 作为端点模型。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -47,6 +51,10 @@ impl<'a> super::Setting<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
     ///
     /// # Examples
     ///

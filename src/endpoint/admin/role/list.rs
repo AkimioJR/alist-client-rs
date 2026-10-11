@@ -5,6 +5,11 @@
 //! 绑定通用分页请求参数（查询串 `page`/`per_page`），返回
 //! 分页响应数据；`per_page` 缺省（或小于 1）时服务端返回全部角色
 //! （见 AList 服务端 role 模块）。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.46.0` 起提供本接口。
+//! - 从 AList `v3.51.0` 起，列表元素（角色对象）新增 `default` 字段（是否为默认角色）；老版本不返回该字段。
 
 use alist_client_derive::EndpointRequest;
 
@@ -70,6 +75,11 @@ impl<'a> super::Role<'a> {
     /// # Errors
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.46.0` 起提供本接口。
+    /// - 从 AList `v3.51.0` 起，列表元素（角色对象）新增 `default` 字段（是否为默认角色）；老版本不返回该字段。
     ///
     /// # Examples
     ///

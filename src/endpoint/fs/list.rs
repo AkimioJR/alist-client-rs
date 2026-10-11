@@ -3,10 +3,16 @@
 //! 对应 `POST /api/fs/list`；分页参数 `page`/`per_page` 位于 JSON 请求体
 //! （`per_page = -1` 表示返回全部条目，`0` 或缺省由服务端回退为默认页大小
 //! `DefaultPerPage = 200`，超过 `MaxPerPage = 500` 会被收敛为 500，
-//! 见 AList 服务端 `normalizeListPage` 实现），响应含 content/total/readme/header/write/provider，
-//! 新版服务端还返回 page/per_page/has_more/pages_total/filtered_total
-//! （schema 层以 `#[serde(default)]` + `null_to_default` 兼容新旧版本）。
+//! 见 AList 服务端 `normalizeListPage` 实现），响应含 content/total/readme/header/write/provider。
 //! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
+//! - 从 AList `v3.46.0` 起，响应 `content` 条目新增 `label_list` 标签列表字段；老版本条目不含该字段。
+//! - 从 AList `v3.58.0` 起，响应新增 `page`/`per_page`/`has_more`/`pages_total`/`filtered_total` 分页元信息；老版本不返回这些字段（schema 层以 `#[serde(default)]` 兼容，对应字段为 `None`）。
+//! - 从 AList `v3.58.0` 起，服务端分页语义由「`per_page` 非正（含缺省与 `-1`）一律回退为极大值、等效返回全部条目」变更为「缺省或非正一律回退默认页大小 200、超过 500 收敛为 500」。
+//! - 从 AList `v3.61.0` 起，`per_page` 取负值（如 `-1`）表示返回全部条目（对应服务端 `AllPerPage`），`0` 与缺省仍回退默认页大小 200。
 
 use alist_client_derive::EndpointRequest;
 
@@ -79,9 +85,7 @@ impl<'a> super::Fs<'a> {
     ///
     /// 对应 AList `POST /api/fs/list`；返回目录下的文件/目录条目、分页总数、
     /// 元信息（readme/header）、写权限与存储驱动名
-    /// （[`FsListResponse`]）。新版服务端额外返回
-    /// `page`/`per_page`/`has_more`/`pages_total`/`filtered_total` 分页元信息，
-    /// 老版本缺失时对应字段为 [`None`]。
+    /// （[`FsListResponse`]）。
     /// 数据来源：AList OpenAPI 规范的 `/api/fs/list` 与
     /// AList 服务端 `handles.FsList`（请求结构 `ListReq`，响应结构 `FsListResponse`）。
     ///
@@ -104,6 +108,14 @@ impl<'a> super::Fs<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）
     /// 时，返回 [`crate::Error`]；目录密码错误或无权限时服务端以 403 返回。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
+    /// - 从 AList `v3.46.0` 起，响应 `content` 条目新增 `label_list` 标签列表字段；老版本条目不含该字段。
+    /// - 从 AList `v3.58.0` 起，响应新增 `page`/`per_page`/`has_more`/`pages_total`/`filtered_total` 分页元信息；老版本不返回这些字段（schema 层以 `#[serde(default)]` 兼容，对应字段为 `None`）。
+    /// - 从 AList `v3.58.0` 起，服务端分页语义由「`per_page` 非正（含缺省与 `-1`）一律回退为极大值、等效返回全部条目」变更为「缺省或非正一律回退默认页大小 200、超过 500 收敛为 500」。
+    /// - 从 AList `v3.61.0` 起，`per_page` 取负值（如 `-1`）表示返回全部条目（对应服务端 `AllPerPage`），`0` 与缺省仍回退默认页大小 200。
     ///
     /// # Examples
     ///

@@ -2,6 +2,14 @@
 //!
 //! 对应 `GET /api/admin/driver/info`；查询参数 `driver` 指定目标驱动名，
 //! 响应 `data` 为该驱动的配置模板 [`DriverInfo`]。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
+//! - 从 AList `v3.12.0` 起，响应 `config` 新增 `alert` 键（驱动警告提示，取值如
+//!   `info`/`success`/`warning`/`danger`）；老版本 `config` 无 `alert` 键。
+//! - 从 AList `v3.12.0` 起，响应 `config` 不再返回仅服务端内部使用的 `CheckStatus` 键；
+//!   老版本 `config` 包含按 Go 字段名原样序列化的 `CheckStatus` 键。
 
 use alist_client_derive::EndpointRequest;
 
@@ -63,6 +71,14 @@ impl<'a> super::Driver<'a> {
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。驱动不存在时 AList 以 HTTP 200 + 响应 `code: 404`
     /// 返回 `driver [<名称>] not found`（见 AList 服务端 handles.Driver 模块）。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
+    /// - 从 AList `v3.12.0` 起，响应 `config` 新增 `alert` 键（驱动警告提示，取值如
+    ///   `info`/`success`/`warning`/`danger`）；老版本 `config` 无 `alert` 键。
+    /// - 从 AList `v3.12.0` 起，响应 `config` 不再返回仅服务端内部使用的 `CheckStatus` 键；
+    ///   老版本 `config` 包含按 Go 字段名原样序列化的 `CheckStatus` 键。
     ///
     /// # Examples
     ///

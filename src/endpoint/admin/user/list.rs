@@ -9,6 +9,14 @@
 //! 会绑定可选的 `page`/`per_page` 查询参数，但缺省
 //! （不传参数）即返回全部用户，且 AList OpenAPI 规范
 //! 未列出这两个参数；因此本端点按文档语义不暴露分页参数。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
+//! - 从 AList `v3.7.1` 起，响应元素新增 `github_id` 字段（支持 GitHub 登录）；老版本不返回该字段。
+//! - 从 AList `v3.10.1` 起，响应元素新增 `disabled` 字段（支持禁用账号）；老版本不返回该字段。
+//! - 从 AList `v3.13.1` 起，单点登录系统重构，响应元素以 `sso_id` 字段取代 `github_id`；老版本返回 `github_id` 或不含 SSO 标识字段。
+//! - 从 AList `v3.46.0` 起，响应元素的 `role` 字段支持多角色，形状由单值整数变为整数数组；老版本为单值整数。
 
 use alist_client_derive::EndpointRequest;
 
@@ -60,6 +68,14 @@ impl<'a> super::User<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
+    /// - 从 AList `v3.7.1` 起，响应元素新增 `github_id` 字段（支持 GitHub 登录）；老版本不返回该字段。
+    /// - 从 AList `v3.10.1` 起，响应元素新增 `disabled` 字段（支持禁用账号）；老版本不返回该字段。
+    /// - 从 AList `v3.13.1` 起，单点登录系统重构，响应元素以 `sso_id` 字段取代 `github_id`；老版本返回 `github_id` 或不含 SSO 标识字段。
+    /// - 从 AList `v3.46.0` 起，响应元素的 `role` 字段支持多角色，形状由单值整数变为整数数组；老版本为单值整数。
     ///
     /// # Examples
     ///

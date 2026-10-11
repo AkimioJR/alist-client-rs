@@ -3,6 +3,14 @@
 //! 对应 `POST /api/task/{category}/{action}`（批量取消 `cancel_some`、
 //! 批量删除 `delete_some`、批量重试 `retry_some`），
 //! 请求体为 JSON 数组字符串，响应数据反序列化为 [`BatchTaskResult`]。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.41.0` 起提供本接口。
+//! - 从 AList `v3.42.0` 起，新增 `decompress` 与 `decompress_upload` 任务类别路由分支；
+//!   老版本不支持这两个类别的批量任务操作。
+//! - 从 AList `v3.54.0` 起，新增 `s3_transition` 任务类别路由分支；
+//!   老版本不支持该类别的批量任务操作。
 
 use crate::schema::task::{BatchTaskResult, TaskCategory};
 
@@ -70,6 +78,14 @@ impl<'a> Request<'a> {
     ///
     /// 当网络请求失败、AList 返回非成功状态码，或响应 `data` 无法反序列化为 [`BatchTaskResult`] 时，
     /// 返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.41.0` 起提供本接口。
+    /// - 从 AList `v3.42.0` 起，新增 `decompress` 与 `decompress_upload` 任务类别路由分支；
+    ///   老版本不支持这两个类别的批量任务操作。
+    /// - 从 AList `v3.54.0` 起，新增 `s3_transition` 任务类别路由分支；
+    ///   老版本不支持该类别的批量任务操作。
     #[inline]
     pub async fn send(&self) -> crate::Result<BatchTaskResult> {
         self.client.execute(self.build_request()).await

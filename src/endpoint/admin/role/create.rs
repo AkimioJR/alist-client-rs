@@ -4,6 +4,11 @@
 //! AList 服务端路由定义）。处理函数 `handles.CreateRole`
 //! 绑定角色模型（`name` 必填，角色 ID 由数据库自增分配），
 //! 成功时响应 `data: null`（见 AList 服务端 role 模块）。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.46.0` 起提供本接口。
+//! - 从 AList `v3.51.0` 起，请求体新增 `default` 字段（是否设为默认角色，缺省 `false`）；老版本服务端不识别该字段并忽略其取值。
 
 use alist_client_derive::EndpointRequest;
 
@@ -75,6 +80,11 @@ impl<'a> super::Role<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如角色名重复）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.46.0` 起提供本接口。
+    /// - 从 AList `v3.51.0` 起，请求体新增 `default` 字段（是否设为默认角色，缺省 `false`）；老版本服务端不识别该字段并忽略其取值。
     ///
     /// # Examples
     ///

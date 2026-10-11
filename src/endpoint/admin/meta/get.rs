@@ -4,6 +4,11 @@
 //! 响应 `data` 为单个 [`Meta`] 对象。
 //! 数据来源：AList OpenAPI 规范的 `/api/admin/meta/get` 与
 //! AList 服务端 handles.Meta 模块（`GetMeta` 经 `c.Query("id")` 取参）。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
+//! - 从 AList `v3.29.0` 起，响应新增自定义响应头字段 `header` 与 `header_sub`；老版本服务端不返回这两个字段。
 
 use alist_client_derive::EndpointRequest;
 
@@ -56,6 +61,11 @@ impl<'a> super::Meta<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如 ID 不存在）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
+    /// - 从 AList `v3.29.0` 起，响应新增自定义响应头字段 `header` 与 `header_sub`；老版本服务端不返回这两个字段。
     ///
     /// # Examples
     ///

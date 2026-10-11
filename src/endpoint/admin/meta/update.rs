@@ -5,6 +5,14 @@
 //! 响应 `data: null`，以 `()` 作为端点模型。
 //! 数据来源：AList OpenAPI 规范的 `/api/admin/meta/update` 与
 //! AList 服务端 handles.Meta 模块、db.Meta 模块（`db.Save` 全量覆盖）。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
+//! - 从 AList `v3.29.0` 起，请求体新增 `header`（自定义响应头）与 `header_sub`
+//!   （响应头是否应用于子目录）字段；老版本请求体不含这两个字段。
+//! - 从 AList `v3.30.0` 起，`hide` 字段的逐条正则校验由标准库 regexp 切换为
+//!   regexp2 引擎；老版本按标准库 regexp 语法校验。
 
 use alist_client_derive::EndpointRequest;
 
@@ -106,6 +114,14 @@ impl<'a> super::Meta<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如 ID 不存在、`hide` 正则非法）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
+    /// - 从 AList `v3.29.0` 起，请求体新增 `header`（自定义响应头）与 `header_sub`
+    ///   （响应头是否应用于子目录）字段；老版本请求体不含这两个字段。
+    /// - 从 AList `v3.30.0` 起，`hide` 字段的逐条正则校验由标准库 regexp 切换为
+    ///   regexp2 引擎；老版本按标准库 regexp 语法校验。
     ///
     /// # Examples
     ///

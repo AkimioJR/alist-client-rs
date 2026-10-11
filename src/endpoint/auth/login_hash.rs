@@ -4,6 +4,11 @@
 //! `password` 必须是预哈希值：先拼接 `-https://github.com/alist-org/alist` 后缀，
 //! 再取 SHA-256 十六进制字符串（盐常量为 `StaticHashSalt`）。
 //! 服务端对两种登录的处理逻辑一致。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.25.1` 起提供本接口。
+//! - 从 AList `v3.52.0` 起，登录响应数据新增 `device_key` 字段（会话设备键）；老版本仅返回 `token`，缺失时为 `None`。
 
 use alist_client_derive::EndpointRequest;
 
@@ -77,6 +82,11 @@ impl<'a> super::Auth<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 如凭据错误返回 400、两步验证码缺失或错误返回 402）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.25.1` 起提供本接口。
+    /// - 从 AList `v3.52.0` 起，登录响应数据新增 `device_key` 字段（会话设备键）；老版本仅返回 `token`，缺失时为 `None`。
     ///
     /// # Examples
     ///

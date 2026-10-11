@@ -2,9 +2,23 @@
 //!
 //! 对应 `POST /api/fs/copy`；请求体为 `src_dir`/`dst_dir`/`names`/`overwrite`/
 //! `skip_existing`（对应 AList 服务端 `MoveCopyReq`，`skip_existing` 仅对复制
-//! 生效）。新版服务端返回 `{"tasks": [...]}` 后台任务信息，
-//! 老版本成功时 `data` 为 `null`，因此端点模型为 `Option<CopyResponse>`。
+//! 生效）。成功时 `data` 为 `{"tasks": [...]}` 后台任务信息或 `null`
+//! （随服务端版本而异，见下方 `# Version`），因此端点模型为
+//! `Option<CopyResponse>`。
 //! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
+//! - 从 AList `v3.30.0` 起，成功响应的 `data` 统一为 `{"tasks": [...]}`
+//!   任务信息对象（全部同步完成时任务列表为空）；老版本成功时 `data` 为
+//!   `null`（全部同步完成）或 `Added N tasks` 字符串（存在后台复制任务）。
+//! - 从 AList `v3.42.0` 起，请求体新增 `overwrite` 字段，目标存在同名文件且
+//!   未开启覆盖时服务端返回 403；老版本请求体无该字段，服务端不进行
+//!   同名文件存在性检查。
+//! - 从 AList `v3.62.0` 起，请求体新增 `skip_existing` 字段（仅对复制生效），
+//!   启用后跳过目标已存在且大小相同的文件、不再返回 403；老版本请求体
+//!   无该字段。
 
 use alist_client_derive::EndpointRequest;
 
@@ -68,9 +82,9 @@ impl<'a> super::Fs<'a> {
     /// 复制文件。
     ///
     /// 对应 AList `POST /api/fs/copy`；将 `src_dir` 下的 `names` 复制到
-    /// `dst_dir`。新版服务端为每个需要后台处理的条目创建复制任务，响应 `data`
-    /// 为 `{"tasks": [TaskInfo]}`；全部同步完成或老版本
-    /// 服务端成功时 `data` 为 `null`，因此端点模型为 `Option<CopyResponse>`。
+    /// `dst_dir`。服务端为每个需要后台处理的条目创建复制任务，响应 `data`
+    /// 为 `{"tasks": [TaskInfo]}` 或 `null`（随服务端版本而异，见 `# Version`），
+    /// 因此端点模型为 `Option<CopyResponse>`。
     /// 数据来源：AList 服务端路由定义中的 `/api/fs/copy` 与
     /// AList 服务端 `handles.FsCopy`（请求结构 `MoveCopyReq`）。
     ///
@@ -84,14 +98,27 @@ impl<'a> super::Fs<'a> {
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
     /// `Option<`[`CopyResponse`]`>`：
-    /// `Some` 携带后台复制任务列表（新版服务端），`None` 表示 `data` 为 `null`
-    /// （无后台任务或老版本服务端）。
+    /// `Some` 携带后台复制任务列表（同步完成时任务列表为空），`None` 表示
+    /// `data` 为 `null`（仅老版本服务端，见 `# Version`）。
     ///
     /// # Errors
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）
     /// 时，返回 [`crate::Error`]；目标已存在且未设置 `overwrite`/`skip_existing`
     /// 时服务端返回 403。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
+    /// - 从 AList `v3.30.0` 起，成功响应的 `data` 统一为 `{"tasks": [...]}`
+    ///   任务信息对象（全部同步完成时任务列表为空）；老版本成功时 `data` 为
+    ///   `null`（全部同步完成）或 `Added N tasks` 字符串（存在后台复制任务）。
+    /// - 从 AList `v3.42.0` 起，请求体新增 `overwrite` 字段，目标存在同名文件且
+    ///   未开启覆盖时服务端返回 403；老版本请求体无该字段，服务端不进行
+    ///   同名文件存在性检查。
+    /// - 从 AList `v3.62.0` 起，请求体新增 `skip_existing` 字段（仅对复制生效），
+    ///   启用后跳过目标已存在且大小相同的文件、不再返回 403；老版本请求体
+    ///   无该字段。
     ///
     /// # Examples
     ///

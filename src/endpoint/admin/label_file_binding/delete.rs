@@ -5,6 +5,10 @@
 //! AList 服务端路由定义，处理逻辑见
 //! AList 服务端 label_file_binding 模块
 //! （实现为 `handles.DelLabelByFileName`，其中 `label_id` 是字符串形态的标签 ID）。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.46.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -72,6 +76,10 @@ impl<'a> super::LabelFileBinding<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]；`label_id` 不是合法无符号整数时服务端返回 500。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.46.0` 起提供本接口。
     ///
     /// # Examples
     ///

@@ -2,6 +2,12 @@
 //!
 //! 对应 `POST /api/admin/setting/set_qbit`；请求体为 `url`/`seedtime` 两字段对象，
 //! 响应 `data` 为 `"ok"` 字符串，以 `String` 作为端点模型。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.11.0` 起提供本接口。
+//! - 从 AList `v3.12.0` 起，路由路径由 `/api/admin/setting/set_qbittorrent` 更名为 `/api/admin/setting/set_qbit`；老版本（`v3.11.0`）仅提供旧路径。
+//! - 从 AList `v3.14.0` 起，请求体新增 `seedtime` 字段；老版本请求体仅含 `url` 字段。
 
 use alist_client_derive::EndpointRequest;
 
@@ -67,6 +73,12 @@ impl<'a> super::Setting<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如 qBittorrent 连接初始化失败）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.11.0` 起提供本接口。
+    /// - 从 AList `v3.12.0` 起，路由路径由 `/api/admin/setting/set_qbittorrent` 更名为 `/api/admin/setting/set_qbit`；老版本（`v3.11.0`）仅提供旧路径。
+    /// - 从 AList `v3.14.0` 起，请求体新增 `seedtime` 字段；老版本请求体仅含 `url` 字段。
     ///
     /// # Examples
     ///

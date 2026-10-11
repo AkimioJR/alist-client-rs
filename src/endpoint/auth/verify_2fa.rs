@@ -4,6 +4,10 @@
 //! [`generate_2fa`](super::generate_2fa) 返回的密钥（AList 服务端 auth 模块
 //! 的两步验证请求），校验通过后服务端把密钥绑定到当前账号，
 //! 成功时响应 `data: null`，以 `()` 作为端点模型。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -62,6 +66,10 @@ impl<'a> super::Auth<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 如验证码错误返回 400、游客账号调用返回 403）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
     ///
     /// # Examples
     ///

@@ -299,7 +299,7 @@ pub struct FsGetResponse {
     pub provider: String,
     /// 存储是否开启 Web 代理。
     ///
-    /// 从 AList `v3.0.0-beta.0` 起引入，部分老版本或驱动未返回该字段时为 [`None`]。
+    /// 从 AList `v3.61.0` 起引入，部分老版本或驱动未返回该字段时为 [`None`]。
     #[serde(default)]
     pub web_proxy: Option<bool>,
     /// 同目录下同前缀的相关文件列表；无相关文件时服务端返回 `null`，归约为空数组。

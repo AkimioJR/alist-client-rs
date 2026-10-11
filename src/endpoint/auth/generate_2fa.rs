@@ -3,6 +3,10 @@
 //! 对应 `POST /api/auth/2fa/generate`；无需请求体，返回二维码 data URL 与
 //! TOTP 密钥（AList 服务端 auth 模块的 `Generate2FA`）。
 //! 生成的密钥须经 [`super::verify_2fa`] 校验后才正式启用。游客账号调用返回 403。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -52,6 +56,10 @@ impl<'a> super::Auth<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 如游客账号调用返回 403）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
     ///
     /// # Examples
     ///

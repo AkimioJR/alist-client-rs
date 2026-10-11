@@ -7,6 +7,11 @@
 //! 处理逻辑见 AList 服务端 label_file_binding 模块
 //! （实现为 `handles.CreateLabelFileBinDing`，请求体为
 //! 服务端创建标签绑定请求模型）。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.46.0` 起提供本接口。
+//! - 从 AList `v3.50.0` 起，请求体新增数组形态的 `labelIdList` 键（服务端同时兼容字符串形态 `label_ids`，数组形态优先解析）；老版本仅接受逗号分隔的字符串形态 `label_ids`。
 
 use alist_client_derive::EndpointRequest;
 use chrono::{DateTime, Utc};
@@ -120,6 +125,11 @@ impl<'a> super::LabelFileBinding<'a> {
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。例如通过 `is_dir(true)` 为目录创建绑定时，
     /// 服务端返回 400「Unable to bind folder」。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.46.0` 起提供本接口。
+    /// - 从 AList `v3.50.0` 起，请求体新增数组形态的 `labelIdList` 键（服务端同时兼容字符串形态 `label_ids`，数组形态优先解析）；老版本仅接受逗号分隔的字符串形态 `label_ids`。
     ///
     /// # Examples
     ///

@@ -4,6 +4,11 @@
 //! AList 服务端路由定义）。处理函数 `handles.GetRole`
 //! 从查询串读取 `id`（缺失或非数字时返回 400 错误响应），角色不存在时
 //! 返回 500 错误响应（见 AList 服务端 role 模块）。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.46.0` 起提供本接口。
+//! - 从 AList `v3.51.0` 起，响应角色对象新增 `default` 字段（标识是否为默认角色）；老版本响应不含该字段。
 
 use alist_client_derive::EndpointRequest;
 
@@ -53,6 +58,11 @@ impl<'a> super::Role<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如角色不存在）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.46.0` 起提供本接口。
+    /// - 从 AList `v3.51.0` 起，响应角色对象新增 `default` 字段（标识是否为默认角色）；老版本响应不含该字段。
     ///
     /// # Examples
     ///

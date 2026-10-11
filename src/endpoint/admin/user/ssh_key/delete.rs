@@ -2,7 +2,10 @@
 //!
 //! 对应 `POST /api/admin/user/sshkey/delete`；以必选查询参数 `id` 指定密钥 ID，
 //! 响应 `data: null`，以 `()` 作为端点模型。
-//! 该端点从 AList `v3.42.0` 起新增。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.42.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -39,7 +42,6 @@ impl<'a> super::SshKey<'a> {
     /// 对应 AList `POST /api/admin/user/sshkey/delete`；成功时响应 `data` 为 `null`。
     /// 数据来源：AList 服务端路由定义与 AList 服务端 sshkey 模块
     /// （实现为 `handles.DeletePublicKey`）。
-    /// 从 AList `v3.42.0` 起新增。
     ///
     /// # Arguments
     ///
@@ -53,6 +55,10 @@ impl<'a> super::SshKey<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.42.0` 起提供本接口。
     ///
     /// # Examples
     ///

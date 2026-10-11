@@ -3,6 +3,10 @@
 //! 对应 `GET /api/admin/driver/names`；`data` 为已注册驱动的名称数组
 //! [`DriverNamesResponse`]
 //! （`Vec<String>`）。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -55,6 +59,10 @@ impl<'a> super::Driver<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如未携带管理员凭据时的 `403`）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
     ///
     /// # Examples
     ///

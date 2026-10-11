@@ -2,6 +2,14 @@
 //!
 //! 对应 `GET /api/admin/setting/list`；响应 `data` 为设置项数组（非分页结构），
 //! 以 `Vec<Setting>` 作为端点模型。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
+//! - 从 AList `v3.37.1` 起，响应设置项新增 `index` 排序序号字段；老版本不返回该字段。
+//! - 从 AList `v3.51.0` 起，`default_role` 设置项的 `value` 改写为对应角色名、
+//!   `options` 改写为可选角色名列表（服务端存储值仍为角色 ID）；
+//!   该设置项自本版本新增，老版本响应中不含该设置项。
 
 use alist_client_derive::EndpointRequest;
 
@@ -63,6 +71,14 @@ impl<'a> super::Setting<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
+    /// - 从 AList `v3.37.1` 起，响应设置项新增 `index` 排序序号字段；老版本不返回该字段。
+    /// - 从 AList `v3.51.0` 起，`default_role` 设置项的 `value` 改写为对应角色名、
+    ///   `options` 改写为可选角色名列表（服务端存储值仍为角色 ID）；
+    ///   该设置项自本版本新增，老版本响应中不含该设置项。
     ///
     /// # Examples
     ///

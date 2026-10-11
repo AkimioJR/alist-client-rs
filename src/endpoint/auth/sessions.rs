@@ -1,7 +1,10 @@
 //! auth 端点：获取当前用户的登录会话列表。
 //!
 //! 对应 `GET /api/me/sessions`；无需请求体，返回 [`Vec<SessionResp>`]。
-//! 从 AList `v3.52.0` 起新增。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.52.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -34,7 +37,6 @@ impl<'a> super::Auth<'a> {
     ///
     /// 对应 AList `GET /api/me/sessions`（数据来源：AList 服务端路由定义与
     /// session 处理模块）。
-    /// 从 AList `v3.52.0` 起新增。
     ///
     /// # Arguments
     ///
@@ -49,6 +51,10 @@ impl<'a> super::Auth<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）
     /// 时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.52.0` 起提供本接口。
     ///
     /// # Examples
     ///

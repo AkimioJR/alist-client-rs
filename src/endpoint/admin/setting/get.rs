@@ -2,6 +2,13 @@
 //!
 //! 对应 `GET /api/admin/setting/get` 的 `key` 查询参数形态；响应 `data` 为单个设置项。
 //! 按逗号分隔的多个键批量查询（`keys` 查询参数形态）见 [`super::get_by_keys`]。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
+//! - 从 AList `v3.37.1` 起，响应设置项新增 `index` 排序序号字段；老版本响应不含该字段。
+//! - 从 AList `v3.51.0` 起，查询 `default_role` 键时响应被动态改写：`options` 注入当前角色
+//!   候选列表，存储值为角色 ID 时 `value` 改写为角色名称；老版本直接返回存储的原始值。
 
 use alist_client_derive::EndpointRequest;
 
@@ -59,6 +66,13 @@ impl<'a> super::Setting<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如键不存在）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
+    /// - 从 AList `v3.37.1` 起，响应设置项新增 `index` 排序序号字段；老版本响应不含该字段。
+    /// - 从 AList `v3.51.0` 起，查询 `default_role` 键时响应被动态改写：`options` 注入当前角色
+    ///   候选列表，存储值为角色 ID 时 `value` 改写为角色名称；老版本直接返回存储的原始值。
     ///
     /// # Examples
     ///

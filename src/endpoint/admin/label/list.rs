@@ -5,6 +5,11 @@
 //! 注意：列表/详情两个读取端点挂在 `/api/label` 而非 `/api/admin/label` 下。
 //! 响应 `data` 为 `{ "content": [Label], "total": N }` 分页结构，以
 //! `PageResponse<Label>` 解码。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.46.0` 起提供本接口。
+//! - 从 AList `v3.50.0` 起，本端点路由由 `/api/admin/label/list`（要求管理员权限）迁移至 `/api/label/list`（仅需登录）；老版本仅提供 `/api/admin/label/list` 路径。
 
 use alist_client_derive::EndpointRequest;
 
@@ -77,6 +82,11 @@ impl<'a> super::Label<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.46.0` 起提供本接口。
+    /// - 从 AList `v3.50.0` 起，本端点路由由 `/api/admin/label/list`（要求管理员权限）迁移至 `/api/label/list`（仅需登录）；老版本仅提供 `/api/admin/label/list` 路径。
     ///
     /// # Examples
     ///

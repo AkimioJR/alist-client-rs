@@ -2,6 +2,10 @@
 //!
 //! 对应 `POST /api/admin/storage/disable`；按 `id` 查询参数禁用存储，
 //! 响应 `data: null`，以 `()` 作为端点模型。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.1` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -52,6 +56,10 @@ impl<'a> super::Storage<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200，
     /// 例如存储不存在）时，返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.1` 起提供本接口。
     ///
     /// # Examples
     ///

@@ -3,6 +3,10 @@
 //! 对应 `POST /api/fs/remove`；请求体为 `dir` 与 `names` 数组（对应 AList 服务端 `RemoveReq`），
 //! 服务端对每个名称逐条递归删除，响应 `data: null`。
 //! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.0.0` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -65,6 +69,10 @@ impl<'a> super::Fs<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）
     /// 时，返回 [`crate::Error`]；无删除权限时服务端返回 403。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.0.0` 起提供本接口。
     ///
     /// # Examples
     ///

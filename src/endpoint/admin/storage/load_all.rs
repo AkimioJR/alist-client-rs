@@ -2,6 +2,10 @@
 //!
 //! 对应 `POST /api/admin/storage/load_all`；触发服务端从数据库重新加载
 //! （卸载并重挂）全部已启用的存储驱动，响应 `data: null`，以 `()` 作为端点模型。
+//!
+//! # Version
+//!
+//! - 自 AList `v3.7.1` 起提供本接口。
 
 use alist_client_derive::EndpointRequest;
 
@@ -47,6 +51,10 @@ impl<'a> super::Storage<'a> {
     ///
     /// 当网络请求失败或 AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。
+    ///
+    /// # Version
+    ///
+    /// - 自 AList `v3.7.1` 起提供本接口。
     ///
     /// # Examples
     ///
