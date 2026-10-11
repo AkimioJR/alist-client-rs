@@ -508,6 +508,46 @@ pub struct OfflineDownloadResponse {
     pub tasks: Vec<TaskInfo>,
 }
 
+/// 文件原始直链响应（管理员）。
+///
+/// 对应 AList 服务端 fsmanage 模块 `Link` 处理器返回的 `model.Link`：
+/// `url` 与 `header`（Go `http.Header`，键为头名、值为头值列表）、无
+/// JSON tag 的 `Expiration`（序列化键沿用 Go 字段名 `Expiration`，
+/// Go `time.Duration` 以纳秒整数序列化，`nil` 时为 `null`），以及
+/// 多线程分段下载参数 `concurrency`/`part_size`（代理程序下载加速依据，
+/// 非指针整数恒输出）。
+/// 自 AList `v3.26.0` 起，服务端对范围读取器、文件句柄与 IP 缓存标记等
+/// 内部字段显式忽略（不参与 JSON 序列化）；更早版本可能额外输出这些字段，
+/// 反序列化时直接忽略即可。
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct LinkResponse {
+    /// 文件原始直链 URL（存储驱动返回的下载地址，或本站代理地址）。
+    pub url: String,
+    /// 访问直链所需携带的请求头（键为头名，值为头值列表）；
+    /// 服务端未设置（`null`）或字段缺失时归约为空映射。
+    #[serde(default, deserialize_with = "null_to_default")]
+    pub header: HashMap<String, Vec<String>>,
+    /// 直链缓存有效期（纳秒，对应 Go `time.Duration` 的整数序列化）；
+    /// 服务端未提供（`null` 或字段缺失）时为 [`None`]。
+    #[serde(rename = "Expiration", default)]
+    pub expiration: Option<i64>,
+    /// 多线程分段下载的并发数（对应 Go `model.Link.Concurrency`，
+    /// 供代理程序加速请求使用）；老版本服务端未提供时为 [`None`]。
+    ///
+    /// 从 AList `v3.25.1` 起随 `model.Link` 引入，当时序列化键为 Go 字段名
+    /// `Concurrency`；从 AList `v3.26.0` 起改为小写键名 `concurrency`
+    /// （大写键名经别名兼容）。
+    #[serde(rename = "concurrency", alias = "Concurrency", default)]
+    pub concurrency: Option<i64>,
+    /// 多线程分段下载的分段大小（对应 Go `model.Link.PartSize`，
+    /// 供代理程序加速请求使用）；老版本服务端未提供时为 [`None`]。
+    ///
+    /// 版本演进同 [`LinkResponse::concurrency`]：`v3.25.1` 引入大写键名
+    /// `PartSize`，`v3.26.0` 起为小写键名 `part_size`。
+    #[serde(rename = "part_size", alias = "PartSize", default)]
+    pub part_size: Option<i64>,
+}
+
 /// 归档元信息中的排序设置。
 ///
 /// 对应 AList 服务端 model.Storage 数据模型的 `model.Sort`，
@@ -870,6 +910,112 @@ mod tests {
         let copy: CopyResponse =
             serde_json::from_value(serde_json::json!({ "tasks": [] })).unwrap();
         assert!(copy.tasks.is_empty());
+    }
+
+    /// 正向钉扎：AList 服务端 fsmanage 模块 `Link` 处理器的响应形状
+    /// （`model.Link` 的 JSON 序列化：`url`、`header`、无 tag 的 `Expiration`
+    /// 与 `concurrency`/`part_size`，Go `time.Duration` 以纳秒整数序列化；
+    /// 该端点不在 OpenAPI 规范中，形状取自服务端结构体，URL 为示例占位）。
+    #[test]
+    fn link_response_decodes_go_server_shape() {
+        let link: LinkResponse = serde_json::from_value(serde_json::json!({
+            "url": "https://example.com/d/file.mkv",
+            "header": { "User-Agent": ["alist"], "Cookie": ["a=1", "b=2"] },
+            "Expiration": 3600000000000i64,
+            "concurrency": 4,
+            "part_size": 10485760
+        }))
+        .unwrap();
+        assert_eq!(link.url, "https://example.com/d/file.mkv");
+        assert_eq!(
+            link.header.get("Cookie").map(Vec::as_slice),
+            Some(&["a=1".to_owned(), "b=2".to_owned()][..])
+        );
+        assert_eq!(
+            link.header.get("User-Agent").map(Vec::as_slice).unwrap(),
+            ["alist"]
+        );
+        assert_eq!(
+            link.expiration,
+            Some(3_600_000_000_000),
+            "Go time.Duration 纳秒整数"
+        );
+        assert_eq!(link.concurrency, Some(4), "v3.26.0+ 小写键名 concurrency");
+        assert_eq!(
+            link.part_size,
+            Some(10_485_760),
+            "v3.26.0+ 小写键名 part_size"
+        );
+    }
+
+    /// 兼容钉扎：AList `v3.25.1`（引入 `model.Link.Concurrency`/`PartSize`
+    /// 时无 json tag）以 Go 字段名大写键名序列化，反序列化经别名兼容。
+    #[test]
+    fn link_response_accepts_v3_25_1_uppercase_keys() {
+        let link: LinkResponse = serde_json::from_value(serde_json::json!({
+            "url": "https://example.com/d/file.mkv",
+            "header": {},
+            "Expiration": null,
+            "Concurrency": 8,
+            "PartSize": 65536
+        }))
+        .unwrap();
+        assert_eq!(link.concurrency, Some(8), "大写键名 Concurrency 经别名兼容");
+        assert_eq!(link.part_size, Some(65_536), "大写键名 PartSize 经别名兼容");
+    }
+
+    /// 序列化键名钉扎：`Expiration` 键沿用 Go 无 tag 字段名（大写 `E`），
+    /// 其余键为 `url`/`header`/`concurrency`/`part_size`（小写 JSON tag）；
+    /// 内部字段（范围读取器等）不出现在序列化输出中。
+    #[test]
+    fn link_response_serializes_with_go_field_names() {
+        let link = LinkResponse {
+            url: "https://example.com/d/file.mkv".to_owned(),
+            header: HashMap::new(),
+            expiration: None,
+            concurrency: Some(4),
+            part_size: Some(10_485_760),
+        };
+        let value = serde_json::to_value(&link).unwrap();
+        assert_eq!(value["url"], "https://example.com/d/file.mkv");
+        assert!(
+            value.get("Expiration").is_some(),
+            "序列化必须携带 Expiration 键: {value}"
+        );
+        assert_eq!(value["Expiration"], serde_json::Value::Null);
+        assert!(
+            value.get("header").is_some(),
+            "序列化必须携带 header 键: {value}"
+        );
+        assert_eq!(value["concurrency"], 4, "v3.26.0+ 序列化键名为小写");
+        assert_eq!(value["part_size"], 10_485_760, "v3.26.0+ 序列化键名为小写");
+    }
+
+    /// 兼容钉扎：本站仅本地代理的存储返回 `header: null` 与 `Expiration: null`；
+    /// 老版本服务端缺失字段（以及 v3.26.0 之前额外输出的内部字段）同样兼容。
+    #[test]
+    fn link_response_tolerates_null_and_missing_fields() {
+        let proxied: LinkResponse = serde_json::from_value(serde_json::json!({
+            "url": "http://127.0.0.1:5244/p/local/file.mkv?d&sign=x",
+            "header": null,
+            "Expiration": null
+        }))
+        .unwrap();
+        assert!(proxied.header.is_empty(), "null 的 header 归约为空映射");
+        assert_eq!(proxied.expiration, None);
+
+        let legacy: LinkResponse =
+            serde_json::from_value(serde_json::json!({ "url": "http://d/file" })).unwrap();
+        assert!(legacy.header.is_empty(), "缺失的 header 归约为空映射");
+        assert_eq!(legacy.expiration, None, "缺失的 Expiration 为 None");
+        assert_eq!(
+            legacy.concurrency, None,
+            "v3.25.1 之前缺失的 concurrency 为 None"
+        );
+        assert_eq!(
+            legacy.part_size, None,
+            "v3.25.1 之前缺失的 part_size 为 None"
+        );
     }
 
     /// 钉扎：AList 服务端 archive 模块的 `ArchiveMetaResponse`/

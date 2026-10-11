@@ -239,6 +239,25 @@ impl Client {
         Ok(body)
     }
 
+    /// 发送请求并返回原始响应体字节（供飞书云文档导出下载等二进制端点使用）。
+    ///
+    /// 与 [`Client::execute_text`] 一致地执行限速、认证注入与 HTTP 状态检查，
+    /// 但不做响应解码，响应体字节原样返回（不走文本编码转换，二进制内容保真）。
+    #[cfg(any(feature = "fs", test))]
+    pub(crate) async fn execute_bytes(&self, builder: RequestBuilder) -> Result<Vec<u8>> {
+        let token = self.token();
+        let builder = Self::apply_token(builder, token.as_deref());
+        self.wait_for_rate_limit().await;
+        let response = builder.send().await?;
+        let status = response.status();
+        let body = response.bytes().await?;
+        if !status.is_success() {
+            let body = String::from_utf8_lossy(&body).into_owned();
+            return Err(Error::HttpStatus { status, body });
+        }
+        Ok(body.to_vec())
+    }
+
     /// 单次发送并解码响应；返回 `(data, 原始响应体)`。
     ///
     /// 传入 `token` 时注入 `Authorization` 认证头（`None` 用于登录本身或未认证请求）。
@@ -713,6 +732,48 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(text, "pong");
+    }
+
+    #[tokio::test]
+    async fn execute_bytes_returns_body_with_binary_fidelity() {
+        use tokio::{
+            io::{AsyncReadExt, AsyncWriteExt},
+            net::TcpListener,
+        };
+
+        // 伪造含非 UTF-8 字节的二进制响应（如 docx/pdf 导出文件），验证字节不被
+        // 文本编码转换破坏（execute_text 会 lossy 解码，execute_bytes 必须保真）。
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            let (mut stream, _) = listener.accept().await.unwrap();
+            let mut buffer = vec![0u8; 8192];
+            let _ = stream.read(&mut buffer).await;
+            // ZIP 头（docx 等导出文件）+ NUL + 0xFF/0xFE 等非法 UTF-8 字节 + 合法多字节序列
+            let body: &[u8] = &[
+                0x50, 0x4b, 0x03, 0x04, 0x00, 0xff, 0xfe, 0xe4, 0xbd, 0xa0, 0x00, 0x01, 0x02, 0x7f,
+            ];
+            let head = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                body.len()
+            );
+            let _ = stream.write_all(head.as_bytes()).await;
+            let _ = stream.write_all(body).await;
+        });
+
+        let client = Client::new(format!("http://{addr}")).unwrap();
+        let bytes = client
+            .execute_bytes(client.request(Method::GET, "/api/fs/lark/export/download"))
+            .await
+            .unwrap();
+        server.await.unwrap();
+        assert_eq!(
+            bytes,
+            [
+                0x50, 0x4b, 0x03, 0x04, 0x00, 0xff, 0xfe, 0xe4, 0xbd, 0xa0, 0x00, 0x01, 0x02, 0x7f
+            ],
+            "二进制字节必须保真（NUL/0xFF 等不被文本解码破坏）"
+        );
     }
 
     #[tokio::test]
