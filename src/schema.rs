@@ -31,6 +31,9 @@ pub mod public;
 #[cfg(feature = "task-schema")]
 pub mod task;
 
+#[cfg(feature = "share-schema")]
+pub mod share;
+
 #[cfg(any(
     feature = "admin-meta-schema",
     feature = "admin-user-schema",

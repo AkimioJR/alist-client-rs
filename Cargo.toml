@@ -38,7 +38,7 @@ urlencoding = "2"
 
 [features]
 default = ["all"]
-all = ["stream", "into-stream", "auth", "fs", "public", "task", "admin"]
+all = ["stream", "into-stream", "auth", "fs", "public", "task", "share", "admin"]
 
 # 特殊功能
 stream = ["dep:tokio-util"]
@@ -49,6 +49,7 @@ auth = ["auth-schema"]
 fs = ["fs-schema"]
 public = ["public-schema"]
 task = ["task-schema"]
+share = ["share-schema"]
 admin = [ # admin 聚合
     "admin-meta",
     "admin-user",
@@ -73,6 +74,7 @@ auth-schema = []
 fs-schema = []
 public-schema = []
 task-schema = []
+share-schema = []
 admin-meta-schema = []
 admin-user-schema = []
 admin-storage-schema = []
