@@ -1,7 +1,8 @@
 //! 批量任务控制端点请求构建器。
 //!
 //! 对应 `POST /api/task/{category}/{action}`（批量取消 `cancel_some`、
-//! 批量删除 `delete_some`、批量重试 `retry_some`），
+//! 批量删除 `delete_some`、批量重试 `retry_some`；
+//! 经管理员句柄 [`crate::Client::admin_task`] 调用时路径前缀为 `/api/admin/task`），
 //! 请求体为 JSON 数组字符串，响应数据反序列化为 [`BatchTaskResult`]。
 //!
 //! # Version
@@ -12,18 +13,26 @@
 //! - 从 AList `v3.54.0` 起，新增 `s3_transition` 任务类别路由分支；
 //!   老版本不支持该类别的批量任务操作。
 
+use super::TaskScope;
 use crate::schema::task::{BatchTaskResult, TaskCategory};
 
 /// 批量任务控制请求构建器。
 ///
 /// 用于向指定类别批量发送任务取消、删除或重试请求。
-/// 对应 `POST /api/task/{category}/{action}`，服务端响应数据反序列化为 [`BatchTaskResult`]。
+/// 对应 `POST /api/task/{category}/{action}`（管理员作用域下前缀为 `/api/admin/task`，
+/// 见 [`TaskScope`]），服务端响应数据反序列化为 [`BatchTaskResult`]。
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     /// 底层 HTTP 客户端引用。
     ///
     /// 用于发送请求与执行认证注入、限速控制及响应反序列化。
     client: &'a crate::Client,
+
+    /// 路由前缀作用域（必选参数）。
+    ///
+    /// 决定路径前缀：[`TaskScope::User`] 为 `/api/task`，[`TaskScope::Admin`] 为
+    /// `/api/admin/task`；访问前提说明见 [`TaskScope`]。
+    scope: TaskScope,
 
     /// 目标任务类别。
     ///
@@ -47,12 +56,14 @@ impl<'a> Request<'a> {
     #[must_use = "仅构造请求构建器，不会自动发送请求"]
     pub(crate) fn new(
         client: &'a crate::Client,
+        scope: TaskScope,
         category: TaskCategory,
         action: &'static str,
         tids: impl IntoIterator<Item = impl Into<String>>,
     ) -> Self {
         Self {
             client,
+            scope,
             category,
             action,
             tids: tids.into_iter().map(Into::into).collect(),
@@ -61,10 +72,16 @@ impl<'a> Request<'a> {
 
     /// 构建底层 HTTP POST 请求。
     ///
-    /// 路径形如 `/api/task/{category}/{action}`，请求体携带 JSON 数组 `tids`。
+    /// 路径形如 `/api/task/{category}/{action}`（管理员作用域下前缀为 `/api/admin/task`），
+    /// 请求体携带 JSON 数组 `tids`。
     #[inline]
     pub(crate) fn build_request(&self) -> reqwest::RequestBuilder {
-        let path = format!("/api/task/{}/{}", self.category.as_str(), self.action);
+        let path = format!(
+            "/api/{}/{}/{}",
+            self.scope.as_str(),
+            self.category.as_str(),
+            self.action
+        );
         self.client
             .request(reqwest::Method::POST, &path)
             .json(&self.tids)
@@ -121,12 +138,37 @@ mod tests {
     #[test]
     fn test_batch_request_build() {
         let client = crate::Client::new("https://alist.example").unwrap();
-        let req = Request::new(&client, TaskCategory::Decompress, "retry_some", ["a", "b"]);
+        let req = Request::new(
+            &client,
+            TaskScope::User,
+            TaskCategory::Decompress,
+            "retry_some",
+            ["a", "b"],
+        );
         let built = req.build_request().build().unwrap();
         assert_eq!(*built.method(), reqwest::Method::POST);
         assert_eq!(
             built.url().as_str(),
             "https://alist.example/api/task/decompress/retry_some"
+        );
+        assert!(built.body().is_some());
+    }
+
+    #[test]
+    fn test_batch_request_build_admin_scope() {
+        let client = crate::Client::new("https://alist.example").unwrap();
+        let req = Request::new(
+            &client,
+            TaskScope::Admin,
+            TaskCategory::Decompress,
+            "retry_some",
+            ["a", "b"],
+        );
+        let built = req.build_request().build().unwrap();
+        assert_eq!(*built.method(), reqwest::Method::POST);
+        assert_eq!(
+            built.url().as_str(),
+            "https://alist.example/api/admin/task/decompress/retry_some"
         );
         assert!(built.body().is_some());
     }

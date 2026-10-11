@@ -1,6 +1,7 @@
 //! 任务列表查询端点请求构建器。
 //!
-//! 对应 `GET /api/task/{category}/{action}`（查询未完成列表 `undone` 或已完成列表 `done`），
+//! 对应 `GET /api/task/{category}/{action}`（查询未完成列表 `undone` 或已完成列表 `done`；
+//! 经管理员句柄 [`crate::Client::admin_task`] 调用时路径前缀为 `/api/admin/task`），
 //! 响应数据反序列化为 [`TaskInfoList`]。
 //!
 //! # Version
@@ -26,18 +27,26 @@
 //! - 从 AList `v3.54.0` 起，新增 `s3_transition` 任务类别；
 //!   老版本不支持该类别路径段。
 
+use super::TaskScope;
 use crate::schema::task::{TaskCategory, TaskInfoList};
 
 /// 任务列表查询请求构建器。
 ///
 /// 用于查询指定类别下的未完成（`undone`）或已完成（`done`）任务列表。
-/// 对应 `GET /api/task/{category}/{action}`，服务端响应数据反序列化为 [`TaskInfoList`]。
+/// 对应 `GET /api/task/{category}/{action}`（管理员作用域下前缀为 `/api/admin/task`，
+/// 见 [`TaskScope`]），服务端响应数据反序列化为 [`TaskInfoList`]。
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     /// 底层 HTTP 客户端引用。
     ///
     /// 用于发送请求与执行认证注入、限速控制及响应反序列化。
     client: &'a crate::Client,
+
+    /// 路由前缀作用域（必选参数）。
+    ///
+    /// 决定路径前缀：[`TaskScope::User`] 为 `/api/task`，[`TaskScope::Admin`] 为
+    /// `/api/admin/task`；访问前提说明见 [`TaskScope`]。
+    scope: TaskScope,
 
     /// 目标任务类别。
     ///
@@ -56,11 +65,13 @@ impl<'a> Request<'a> {
     #[must_use = "仅构造请求构建器，不会自动发送请求"]
     pub(crate) fn new(
         client: &'a crate::Client,
+        scope: TaskScope,
         category: TaskCategory,
         action: &'static str,
     ) -> Self {
         Self {
             client,
+            scope,
             category,
             action,
         }
@@ -68,10 +79,16 @@ impl<'a> Request<'a> {
 
     /// 构建底层 HTTP GET 请求。
     ///
+    /// 路径前缀随作用域为 `/api/task` 或 `/api/admin/task`；
     /// 不含认证头（认证由 `Client::execute` 发送时注入）。
     #[inline]
     pub(crate) fn build_request(&self) -> reqwest::RequestBuilder {
-        let path = format!("/api/task/{}/{}", self.category.as_str(), self.action);
+        let path = format!(
+            "/api/{}/{}/{}",
+            self.scope.as_str(),
+            self.category.as_str(),
+            self.action
+        );
         self.client.request(reqwest::Method::GET, &path)
     }
 
@@ -139,12 +156,26 @@ mod tests {
     #[test]
     fn test_list_request_build() {
         let client = crate::Client::new("https://alist.example").unwrap();
-        let req = Request::new(&client, TaskCategory::Upload, "undone");
+        let req = Request::new(&client, TaskScope::User, TaskCategory::Upload, "undone");
         let built = req.build_request().build().unwrap();
         assert_eq!(*built.method(), reqwest::Method::GET);
         assert_eq!(
             built.url().as_str(),
             "https://alist.example/api/task/upload/undone"
+        );
+        assert!(built.url().query().is_none());
+        assert!(built.body().is_none());
+    }
+
+    #[test]
+    fn test_list_request_build_admin_scope() {
+        let client = crate::Client::new("https://alist.example").unwrap();
+        let req = Request::new(&client, TaskScope::Admin, TaskCategory::Copy, "done");
+        let built = req.build_request().build().unwrap();
+        assert_eq!(*built.method(), reqwest::Method::GET);
+        assert_eq!(
+            built.url().as_str(),
+            "https://alist.example/api/admin/task/copy/done"
         );
         assert!(built.url().query().is_none());
         assert!(built.body().is_none());

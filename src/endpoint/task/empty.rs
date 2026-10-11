@@ -1,7 +1,8 @@
 //! 无参任务控制端点请求构建器。
 //!
 //! 对应 `POST /api/task/{category}/{action}`（清空已完成 `clear_done`、
-//! 清空已成功 `clear_succeeded`、重试所有失败 `retry_failed`），
+//! 清空已成功 `clear_succeeded`、重试所有失败 `retry_failed`；
+//! 经管理员句柄 [`crate::Client::admin_task`] 调用时路径前缀为 `/api/admin/task`），
 //! 成功时响应 `data: null`，返回 `()`。
 //!
 //! # Version
@@ -19,18 +20,26 @@
 //! - 从 AList `v3.54.0` 起，新增 `s3_transition` 任务类别路由分支；
 //!   老版本不支持该类别的任务控制操作。
 
+use super::TaskScope;
 use crate::schema::task::TaskCategory;
 
 /// 无参任务控制请求构建器。
 ///
 /// 用于全局清空已完成/成功任务或重试全部失败任务。
-/// 对应 `POST /api/task/{category}/{action}`，无请求体与查询参数，成功时响应 `data: null`。
+/// 对应 `POST /api/task/{category}/{action}`（管理员作用域下前缀为 `/api/admin/task`，
+/// 见 [`TaskScope`]），无请求体与查询参数，成功时响应 `data: null`。
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     /// 底层 HTTP 客户端引用。
     ///
     /// 用于发送请求与执行认证注入、限速控制及响应反序列化。
     client: &'a crate::Client,
+
+    /// 路由前缀作用域（必选参数）。
+    ///
+    /// 决定路径前缀：[`TaskScope::User`] 为 `/api/task`，[`TaskScope::Admin`] 为
+    /// `/api/admin/task`；访问前提说明见 [`TaskScope`]。
+    scope: TaskScope,
 
     /// 目标任务类别。
     ///
@@ -49,11 +58,13 @@ impl<'a> Request<'a> {
     #[must_use = "仅构造请求构建器，不会自动发送请求"]
     pub(crate) fn new(
         client: &'a crate::Client,
+        scope: TaskScope,
         category: TaskCategory,
         action: &'static str,
     ) -> Self {
         Self {
             client,
+            scope,
             category,
             action,
         }
@@ -61,10 +72,16 @@ impl<'a> Request<'a> {
 
     /// 构建底层 HTTP POST 请求。
     ///
-    /// 路径形如 `/api/task/{category}/{action}`；无请求参数与请求体。
+    /// 路径形如 `/api/task/{category}/{action}`（管理员作用域下前缀为 `/api/admin/task`）；
+    /// 无请求参数与请求体。
     #[inline]
     pub(crate) fn build_request(&self) -> reqwest::RequestBuilder {
-        let path = format!("/api/task/{}/{}", self.category.as_str(), self.action);
+        let path = format!(
+            "/api/{}/{}/{}",
+            self.scope.as_str(),
+            self.category.as_str(),
+            self.action
+        );
         self.client.request(reqwest::Method::POST, &path)
     }
 
@@ -123,12 +140,36 @@ mod tests {
     #[test]
     fn test_empty_request_build() {
         let client = crate::Client::new("https://alist.example").unwrap();
-        let req = Request::new(&client, TaskCategory::S3Transition, "clear_done");
+        let req = Request::new(
+            &client,
+            TaskScope::User,
+            TaskCategory::S3Transition,
+            "clear_done",
+        );
         let built = req.build_request().build().unwrap();
         assert_eq!(*built.method(), reqwest::Method::POST);
         assert_eq!(
             built.url().as_str(),
             "https://alist.example/api/task/s3_transition/clear_done"
+        );
+        assert!(built.url().query().is_none());
+        assert!(built.body().is_none());
+    }
+
+    #[test]
+    fn test_empty_request_build_admin_scope() {
+        let client = crate::Client::new("https://alist.example").unwrap();
+        let req = Request::new(
+            &client,
+            TaskScope::Admin,
+            TaskCategory::S3Transition,
+            "clear_done",
+        );
+        let built = req.build_request().build().unwrap();
+        assert_eq!(*built.method(), reqwest::Method::POST);
+        assert_eq!(
+            built.url().as_str(),
+            "https://alist.example/api/admin/task/s3_transition/clear_done"
         );
         assert!(built.url().query().is_none());
         assert!(built.body().is_none());
