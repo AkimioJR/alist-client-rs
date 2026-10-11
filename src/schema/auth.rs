@@ -2,7 +2,8 @@
 //!
 //! 覆盖登录（明文/哈希）`LoginRequest`/`LoginResponse`、注册 `RegisterRequest`、
 //! 两步验证 `Generate2FaResponse`/`Verify2FaRequest`、`/api/me` 的 `UserResponse`
-//! （含 [`MeResponse`] 别名），以及会话管理 [`SessionResp`]（含 [`SessionResponse`] 别名）。
+//! （含 [`MeResponse`] 别名）、会话管理 [`SessionResp`]（含 [`SessionResponse`] 别名）
+//! 与当前用户 SSH 公钥 [`SshPublicKey`]。
 //!
 //! ## 字段形状来源
 //!
@@ -12,6 +13,8 @@
 //!   `UserResp`、`Verify2FAReq` 与
 //!   `Generate2FA` 响应；
 //! - AList 服务端 session 处理模块中的 `SessionResp`；
+//! - AList 服务端 sshkey 处理模块与 model.SSHPublicKey 数据模型（当前用户
+//!   `GET /api/me/sshkey/list` 的分页元素）；
 //! - AList 服务端 model.User 数据模型的 JSON 字段；
 //! - AList 服务端 model.Role 数据模型的 `PermissionEntry`。
 //!
@@ -23,8 +26,11 @@
 //! - `role_names`/`permissions` 为服务端新增字段：老服务器不返回，
 //!   新服务器在无角色时返回服务端 nil 切片序列化的 `null`，需同时容忍缺失与显式 `null`；
 //! - `device_key` 为新版本登录响应新增字段，老服务器仅返回 `token`；
-//! - `SessionResp` 为 AList `v3.52.0` 起新增的会话信息模型；`user_id` 在当前用户会话列表中省略，统一建模为 `Option<u64>`。
+//! - `SessionResp` 为 AList `v3.52.0` 起新增的会话信息模型；`user_id` 在当前用户会话列表中省略，统一建模为 `Option<u64>`；
+//! - `SshPublicKey` 为 AList `v3.42.0` 起新增的 SSH 公钥模型。
 
+#[cfg(feature = "auth-schema")]
+use chrono::{DateTime, Utc};
 #[cfg(feature = "auth-schema")]
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
@@ -197,6 +203,28 @@ pub struct SessionResp {
 /// [`SessionResp`] 的语义化别名。
 #[cfg(feature = "auth-schema")]
 pub type SessionResponse = SessionResp;
+
+/// 用户 SSH 公钥信息。
+///
+/// 对应 AList 服务端 `model.SSHPublicKey` 数据模型（JSON 导出字段），
+/// 由当前用户 `GET /api/me/sshkey/list` 以分页形态返回（元素类型）。
+/// 从 AList `v3.42.0` 起新增。
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg(feature = "auth-schema")]
+pub struct SshPublicKey {
+    /// 密钥 ID。
+    pub id: u64,
+    /// 密钥标题 / 备注名。
+    pub title: String,
+    /// 密钥公钥指纹（SHA256）。
+    pub fingerprint: String,
+    /// 密钥添加时间。
+    pub added_time: DateTime<Utc>,
+    /// 密钥最后一次使用时间。
+    ///
+    /// 未使用过时等于 [`SshPublicKey::added_time`]（服务端创建时初始化）。
+    pub last_used_time: DateTime<Utc>,
+}
 
 /// 将 `role` 字段的三种历史形状（数组 / 单值 int / `null`）统一展开为 `Vec<i32>`。
 #[cfg(feature = "auth-schema")]
@@ -531,6 +559,77 @@ mod tests {
                 "status": 1,
                 "ua": "test-ua",
                 "ip": "127.0.0.1"
+            })
+        );
+    }
+
+    /// 正向钉扎：当前用户 SSH 公钥列表 `GET /api/me/sshkey/list` 的分页元素。
+    #[cfg(feature = "auth-schema")]
+    #[test]
+    fn ssh_public_key_decodes_go_shape() {
+        // 形状来源：AList 服务端 sshkey 处理模块 list 与 model.SSHPublicKey 数据模型
+        let key: SshPublicKey = serde_json::from_value(serde_json::json!({
+            "id": 1,
+            "title": "laptop",
+            "fingerprint": "SHA256:abcdefghijklmnopqrstuvwxyz0123456789ABCDEFG",
+            "added_time": "2024-06-01T08:00:00Z",
+            "last_used_time": "2024-06-02T12:00:00Z"
+        }))
+        .unwrap();
+        assert_eq!(key.id, 1);
+        assert_eq!(key.title, "laptop");
+        assert_eq!(
+            key.fingerprint,
+            "SHA256:abcdefghijklmnopqrstuvwxyz0123456789ABCDEFG"
+        );
+        assert_eq!(key.added_time.to_rfc3339(), "2024-06-01T08:00:00+00:00");
+        assert_eq!(key.last_used_time.to_rfc3339(), "2024-06-02T12:00:00+00:00");
+    }
+
+    /// 分页包裹钉扎：`PageResponse<SshPublicKey>` 形态下元素能解出。
+    #[cfg(feature = "auth-schema")]
+    #[test]
+    fn ssh_public_key_page_response_decodes() {
+        use crate::schema::common::PageResponse;
+
+        let page: PageResponse<SshPublicKey> = serde_json::from_value(serde_json::json!({
+            "content": [
+                {
+                    "id": 2,
+                    "title": "ci-runner",
+                    "fingerprint": "SHA256:another",
+                    "added_time": "2024-07-01T00:00:00Z",
+                    "last_used_time": "2024-07-01T00:00:00Z"
+                }
+            ],
+            "total": 1
+        }))
+        .unwrap();
+        assert_eq!(page.total, 1);
+        assert_eq!(page.content.len(), 1);
+        assert_eq!(page.content[0].id, 2);
+        assert_eq!(page.content[0].title, "ci-runner");
+    }
+
+    /// 序列化钉扎：序列化时键名与 AList API 对齐。
+    #[cfg(feature = "auth-schema")]
+    #[test]
+    fn ssh_public_key_serializes_with_api_field_names() {
+        let key = SshPublicKey {
+            id: 1,
+            title: "laptop".to_owned(),
+            fingerprint: "SHA256:abc".to_owned(),
+            added_time: "2024-06-01T08:00:00Z".parse().unwrap(),
+            last_used_time: "2024-06-02T12:00:00Z".parse().unwrap(),
+        };
+        assert_eq!(
+            serde_json::to_value(&key).unwrap(),
+            serde_json::json!({
+                "id": 1,
+                "title": "laptop",
+                "fingerprint": "SHA256:abc",
+                "added_time": "2024-06-01T08:00:00Z",
+                "last_used_time": "2024-06-02T12:00:00Z"
             })
         );
     }
