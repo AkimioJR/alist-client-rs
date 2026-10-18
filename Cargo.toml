@@ -83,7 +83,7 @@ admin-label = ["admin-label-schema"]
 admin-label-file-binding = ["admin-label-file-binding-schema"]
 admin-index = ["admin-index-schema"]
 admin-message = ["admin-message-schema"]
-# 会话模型复用 auth 域 SessionResp（服务端同一结构体），故 schema feature 拉取 auth-schema
+# 会话模型复用 auth 域 SessionResponse（服务端同一结构体），故 schema feature 拉取 auth-schema
 admin-session = ["admin-session-schema"]
 admin-task = ["admin-task-schema"]
 

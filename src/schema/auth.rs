@@ -2,7 +2,7 @@
 //!
 //! 覆盖登录（明文/哈希）`LoginRequest`/`LoginResponse`、注册 `RegisterRequest`、
 //! 两步验证 `Generate2FaResponse`/`Verify2FaRequest`、`/api/me` 的 `UserResponse`
-//! （含 [`MeResponse`] 别名）、会话管理 [`SessionResp`]（含 [`SessionResponse`] 别名）
+//! （含 [`MeResponse`] 别名）、会话管理 [`SessionResponse`]
 //! 与当前用户 SSH 公钥 [`SshPublicKey`]。
 //!
 //! ## 字段形状来源
@@ -12,7 +12,7 @@
 //!   `gin.H{"token", "device_key"}`、`RegisterReq`、
 //!   `UserResp`、`Verify2FAReq` 与
 //!   `Generate2FA` 响应；
-//! - AList 服务端 session 处理模块中的 `SessionResp`；
+//! - AList 服务端 session 处理模块中的 `SessionResp`（由 [`SessionResponse`] 建模）；
 //! - AList 服务端 sshkey 处理模块与 model.SSHPublicKey 数据模型（当前用户
 //!   `GET /api/me/sshkey/list` 的分页元素）；
 //! - AList 服务端 model.User 数据模型的 JSON 字段；
@@ -26,7 +26,7 @@
 //! - `role_names`/`permissions` 为服务端新增字段：老服务器不返回，
 //!   新服务器在无角色时返回服务端 nil 切片序列化的 `null`，需同时容忍缺失与显式 `null`；
 //! - `device_key` 为新版本登录响应新增字段，老服务器仅返回 `token`；
-//! - `SessionResp` 为 AList `v3.52.0` 起新增的会话信息模型；`user_id` 在当前用户会话列表中省略，统一建模为 `Option<u64>`；
+//! - `SessionResponse` 为 AList `v3.52.0` 起新增的会话信息模型；`user_id` 在当前用户会话列表中省略，统一建模为 `Option<u64>`；
 //! - `SshPublicKey` 为 AList `v3.42.0` 起新增的 SSH 公钥模型。
 
 #[cfg(feature = "auth-schema")]
@@ -182,7 +182,7 @@ pub type MeResponse = UserResponse;
 /// 从 AList `v3.52.0` 起新增。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg(feature = "auth-schema")]
-pub struct SessionResp {
+pub struct SessionResponse {
     /// 会话设备标识键（对应服务端 `DeviceKey`）。
     pub session_id: String,
     /// 用户 ID（当前用户会话列表中可省略）。
@@ -199,10 +199,6 @@ pub struct SessionResp {
     /// 访问 IP 地址。
     pub ip: String,
 }
-
-/// [`SessionResp`] 的语义化别名。
-#[cfg(feature = "auth-schema")]
-pub type SessionResponse = SessionResp;
 
 /// 用户 SSH 公钥信息。
 ///
@@ -479,9 +475,9 @@ mod tests {
     /// 正向钉扎：当前用户会话列表返回示例（不含 `user_id` 字段）。
     #[cfg(feature = "auth-schema")]
     #[test]
-    fn session_resp_decodes_shape_without_user_id() {
+    fn session_response_decodes_shape_without_user_id() {
         // 形状来源：AList 服务端 session 处理模块 ListMySessions
-        let session: SessionResp = serde_json::from_value(serde_json::json!({
+        let session: SessionResponse = serde_json::from_value(serde_json::json!({
             "session_id": "sess-abc-123",
             "last_active": 1710000000,
             "status": 1,
@@ -503,9 +499,9 @@ mod tests {
     /// 正向钉扎：管理员会话列表或带 `user_id` 的会话对象返回示例。
     #[cfg(feature = "auth-schema")]
     #[test]
-    fn session_resp_decodes_shape_with_user_id() {
+    fn session_response_decodes_shape_with_user_id() {
         // 形状来源：AList 服务端 session 处理模块 ListSessions
-        let session: SessionResp = serde_json::from_value(serde_json::json!({
+        let session: SessionResponse = serde_json::from_value(serde_json::json!({
             "session_id": "sess-admin-456",
             "user_id": 42,
             "last_active": 1710000000,
@@ -525,8 +521,8 @@ mod tests {
     /// 兼容钉扎：显式 null 的 `user_id` 容忍解析为 None。
     #[cfg(feature = "auth-schema")]
     #[test]
-    fn session_resp_tolerates_null_user_id() {
-        let session: SessionResp = serde_json::from_value(serde_json::json!({
+    fn session_response_tolerates_null_user_id() {
+        let session: SessionResponse = serde_json::from_value(serde_json::json!({
             "session_id": "sess-null-user",
             "user_id": null,
             "last_active": 1710000000,
@@ -541,8 +537,8 @@ mod tests {
     /// 序列化钉扎：序列化时键名与 AList API 对齐。
     #[cfg(feature = "auth-schema")]
     #[test]
-    fn session_resp_serializes_with_api_field_names() {
-        let session = SessionResp {
+    fn session_response_serializes_with_api_field_names() {
+        let session = SessionResponse {
             session_id: "sess-test".to_owned(),
             user_id: Some(10),
             last_active: 1710000000,

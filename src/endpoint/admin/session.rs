@@ -2,7 +2,7 @@
 //!
 //! 覆盖 `/api/admin/session` 下的会话管理端点：
 //! 管理员查询全部登录会话（[`list`]）与踢出任意会话（[`evict`]）。
-//! 会话列表元素复用 auth 域的 [`SessionResp`](crate::schema::admin::session::SessionResp)
+//! 会话列表元素复用 auth 域的 [`SessionResponse`](crate::schema::admin::session::SessionResponse)
 //! （服务端为同一响应结构体，管理员列表总会携带 `user_id`）。
 //! 通过 [`Admin::session`](super::Admin::session) 获取句柄，推荐即建即用。
 

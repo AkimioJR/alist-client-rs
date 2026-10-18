@@ -1,7 +1,7 @@
 //! admin-session 端点：查询全部登录会话（管理员）。
 //!
 //! 对应 `GET /api/admin/session/list`；无需请求体，返回
-//! [`Vec<SessionResp>`]
+//! [`Vec<SessionResponse>`]
 //! （管理员列表总会携带 `user_id`）。
 //!
 //! # Version
@@ -10,7 +10,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::admin::session::SessionResp;
+use crate::schema::admin::session::SessionResponse;
 
 /// 查询全部登录会话请求构建器。
 ///
@@ -18,7 +18,7 @@ use crate::schema::admin::session::SessionResp;
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = GET, path = "/api/admin/session/list", model = Vec<SessionResp>)]
+#[endpoint(method = GET, path = "/api/admin/session/list", model = Vec<SessionResponse>)]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     #[endpoint(skip)]
@@ -38,7 +38,7 @@ impl<'a> super::Session<'a> {
     /// 查询全部登录会话（管理员）。
     ///
     /// 对应 AList `GET /api/admin/session/list`；返回所有用户的登录会话列表，
-    /// 成功时响应 `data` 为 [`Vec<SessionResp>`]
+    /// 成功时响应 `data` 为 [`Vec<SessionResponse>`]
     /// （复用 auth 域会话模型，管理员列表总会携带 `user_id` 字段）。
     /// 数据来源：AList 服务端路由定义的 admin `session` 分组与
     /// AList 服务端 session 处理模块（实现为 `ListSessions`）。
@@ -50,7 +50,7 @@ impl<'a> super::Session<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`Vec<SessionResp>`]。
+    /// [`Vec<SessionResponse>`]。
     ///
     /// # Errors
     ///
