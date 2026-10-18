@@ -152,11 +152,17 @@ mod tests {
     /// 的 200 响应示例应能解码为 `PageResponse<Meta>`。
     #[tokio::test]
     async fn send_decodes_openapi_list_example() {
-        use crate::test_support::{ok_json, spawn_mock_server};
+        let mut server = mockito::Server::new_async().await;
 
         let body = r#"{"code":200,"message":"success","data":{"content":[{"id":1,"path":"/a","password":"i","p_sub":false,"write":false,"w_sub":false,"hide":"","h_sub":false,"readme":"","r_sub":false}],"total":1}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], None).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("GET", "/api/admin/meta/list")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let resp = Request::new(&client).send().await.unwrap();
         assert_eq!(resp.total, 1);
@@ -164,33 +170,46 @@ mod tests {
         assert_eq!(resp.content[0].id, 1);
         assert_eq!(resp.content[0].path, "/a");
         assert_eq!(resp.content[0].password, "i");
+
+        mock.assert_async().await;
     }
 
     /// into-stream 翻页断言：逐页 `page=N` 请求，空页停止（含一次确认请求）。
     #[cfg(feature = "into-stream")]
     #[tokio::test]
     async fn into_stream_walks_pages_until_empty_content() {
-        use std::sync::{Arc, Mutex};
-
         use futures::StreamExt;
 
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![
-                ok_json(
-                    r#"{"code":200,"message":"success","data":{"content":[{"id":1,"path":"/a"}],"total":2}}"#,
-                ),
-                ok_json(
-                    r#"{"code":200,"message":"success","data":{"content":[{"id":2,"path":"/b"}],"total":2}}"#,
-                ),
-                ok_json(r#"{"code":200,"message":"success","data":{"content":[],"total":2}}"#),
-            ],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock_page1 = server
+            .mock("GET", "/api/admin/meta/list")
+            .match_query(mockito::Matcher::UrlEncoded("page".into(), "1".into()))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{"code":200,"message":"success","data":{"content":[{"id":1,"path":"/a"}],"total":2}}"#,
+            )
+            .create_async()
+            .await;
+        let mock_page2 = server
+            .mock("GET", "/api/admin/meta/list")
+            .match_query(mockito::Matcher::UrlEncoded("page".into(), "2".into()))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{"code":200,"message":"success","data":{"content":[{"id":2,"path":"/b"}],"total":2}}"#,
+            )
+            .create_async()
+            .await;
+        let mock_page3 = server
+            .mock("GET", "/api/admin/meta/list")
+            .match_query(mockito::Matcher::UrlEncoded("page".into(), "3".into()))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"content":[],"total":2}}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let items: Vec<Meta> = Request::new(&client)
             .into_stream()
@@ -201,10 +220,8 @@ mod tests {
         assert_eq!(items[0].path, "/a");
         assert_eq!(items[1].path, "/b");
 
-        let recorded = requests.lock().unwrap();
-        assert_eq!(recorded.len(), 3, "空页会多一次确认请求: {:?}", recorded);
-        assert!(recorded[0].contains("page=1"), "{}", recorded[0]);
-        assert!(recorded[1].contains("page=2"), "{}", recorded[1]);
-        assert!(recorded[2].contains("page=3"), "{}", recorded[2]);
+        mock_page1.assert_async().await;
+        mock_page2.assert_async().await;
+        mock_page3.assert_async().await;
     }
 }

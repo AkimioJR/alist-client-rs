@@ -101,15 +101,18 @@ mod tests {
     /// 收发路径：mock 服务器返回角色对象，断言请求行与解码结果。
     #[tokio::test]
     async fn send_gets_role_by_id_and_decodes_content() {
-        use std::sync::{Arc, Mutex};
+        let mut server = mockito::Server::new_async().await;
 
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        // 示例形状取自服务端角色模型的 JSON 字段（GetRole 直接返回角色对象）
         let body = r#"{"code":200,"message":"success","data":{"id":3,"name":"editor","description":"可编辑 /data","default":false,"permission_scopes":[{"path":"/data","permission":15}]}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("GET", "/api/admin/role/get")
+            .match_query(mockito::Matcher::UrlEncoded("id".into(), "3".into()))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let role = Request::new(&client, 3).send().await.unwrap();
         assert_eq!(role.id, 3);
@@ -117,11 +120,6 @@ mod tests {
         assert_eq!(role.permission_scopes.len(), 1);
         assert_eq!(role.permission_scopes[0].path, "/data");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("GET /api/admin/role/get?id=3"),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

@@ -106,16 +106,25 @@ mod tests {
     /// 的 200 响应示例应能解码为 [`Meta`]。
     #[tokio::test]
     async fn send_decodes_openapi_get_example() {
-        use crate::test_support::{ok_json, spawn_mock_server};
+        let mut server = mockito::Server::new_async().await;
 
         let body = r#"{"code":200,"message":"success","data":{"id":1,"path":"/a","password":"c","p_sub":false,"write":false,"w_sub":false,"hide":"","h_sub":false,"readme":"","r_sub":false}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], None).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("GET", "/api/admin/meta/get")
+            .match_query(mockito::Matcher::UrlEncoded("id".into(), "1".into()))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let meta = Request::new(&client, 1).send().await.unwrap();
         assert_eq!(meta.id, 1);
         assert_eq!(meta.path, "/a");
         assert_eq!(meta.password, "c");
         assert!(!meta.p_sub);
+
+        mock.assert_async().await;
     }
 }

@@ -108,15 +108,19 @@ mod tests {
     /// 的 200 响应示例（`data: null`）应解码为 `()`。
     #[tokio::test]
     async fn send_decodes_null_data() {
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let base_url = spawn_mock_server(
-            vec![ok_json(r#"{"code":200,"message":"success","data":null}"#)],
-            None,
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/admin/meta/delete")
+            .match_query(mockito::Matcher::UrlEncoded("id".into(), "3".into()))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         Request::new(&client, 3).send().await.unwrap();
+
+        mock.assert_async().await;
     }
 }

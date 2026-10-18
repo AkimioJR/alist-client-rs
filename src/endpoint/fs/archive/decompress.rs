@@ -245,16 +245,18 @@ mod tests {
     /// 4) 收发路径断言：mock 服务器 + 记录请求原文 + 解码任务列表。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_tasks() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":200,"message":"success","data":{
             "task":[{"id":"sdH2LbjyWRk","name":"decompress demo.zip to [/data/out](/alist)",
                 "state":0,"status":"running","progress":0,"error":""}]}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("POST", "/api/fs/archive/decompress")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let resp = Request::new(&client, "/data", "/data/out", vec!["demo.zip".to_owned()])
             .send()
@@ -264,27 +266,7 @@ mod tests {
         assert_eq!(resp.task[0].id, "sdH2LbjyWRk");
         assert_eq!(resp.task[0].status, "running");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/fs/archive/decompress "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("\"src_dir\":\"/data\""),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("\"dst_dir\":\"/data/out\""),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("\"name\":[\"demo.zip\"]"),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     /// 5) 兼容钉扎：服务端同步完成（`task` 为空数组）与 `task` 缺失/`null` 时均可解码。

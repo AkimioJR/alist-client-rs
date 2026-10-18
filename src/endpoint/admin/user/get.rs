@@ -111,19 +111,16 @@ mod tests {
     /// 收发路径：mock 服务器返回文档示例，验证用户对象解码与查询串原文。
     #[tokio::test]
     async fn send_decodes_admin_user() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
-                r#"{"code":200,"message":"success","data":{"id":1,"username":"admin","password":"","base_path":"/","role":2,"disabled":false,"permission":0,"sso_id":""}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let body = r#"{"code":200,"message":"success","data":{"id":1,"username":"admin","password":"","base_path":"/","role":2,"disabled":false,"permission":0,"sso_id":""}}"#;
+        let mock = server
+            .mock("GET", "/api/admin/user/get?id=1")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let user = Request::new(&client, 1).send().await.unwrap();
 
@@ -132,11 +129,6 @@ mod tests {
         assert_eq!(user.role, vec![2]); // 文档单值形状展开为数组
         assert!(!user.disabled);
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("GET /api/admin/user/get?id=1"),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

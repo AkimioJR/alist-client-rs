@@ -106,30 +106,22 @@ mod tests {
     /// 收发路径：mock 服务器断言请求体形状与 `data: null` 解码为 `()`。
     #[tokio::test]
     async fn send_posts_share_id_and_decodes_unit() {
-        use std::sync::{Arc, Mutex};
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/share/disable")
+            .match_body(mockito::Matcher::JsonString(
+                r#"{"share_id":"aBcD1234"}"#.to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .create_async()
+            .await;
 
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(r#"{"code":200,"message":"success","data":null}"#)],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let client = crate::Client::new(server.url()).unwrap();
 
         Request::new(&client, "aBcD1234").await.unwrap();
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/share/disable "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#"{"share_id":"aBcD1234"}"#),
-            "请求体应仅含 share_id: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

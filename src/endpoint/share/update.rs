@@ -157,14 +157,20 @@ mod tests {
     /// 收发路径：mock 服务器断言请求体形状并解码更新后的分享实体。
     #[tokio::test]
     async fn send_posts_body_and_decodes_share() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":200,"message":"success","data":{"id":1,"share_id":"aBcD1234","name":"docs","root_path":"/data/docs","is_dir":true,"has_password":true,"burn_after_read":false,"access_limit":5,"access_count":0,"remaining_accesses":5,"allow_preview":false,"allow_download":true,"enabled":true,"view_count":0,"download_count":0,"last_access_at":null,"consumed_at":null,"expires_at":null,"created_at":"2026-03-20T10:00:00+08:00","updated_at":"2026-03-21T10:00:00+08:00","url":"https://alist.example/s/aBcD1234"}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("POST", "/api/share/update")
+            .match_body(mockito::Matcher::JsonString(
+                r#"{"share_id":"aBcD1234","access_limit":5,"allow_preview":false}"#.to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+
+        let client = crate::Client::new(server.url()).unwrap();
 
         let share = Request::new(&client, "aBcD1234")
             .access_limit(5)
@@ -176,66 +182,32 @@ mod tests {
         assert_eq!(share.access_limit, 5);
         assert!(!share.allow_preview);
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/share/update "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""share_id":"aBcD1234""#),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""access_limit":5"#),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""allow_preview":false"#),
-            "Some(false) 应显式发送: {}",
-            recorded[0]
-        );
-        assert!(
-            !recorded[0].contains("expire_at"),
-            "None 过期时间应被跳过: {}",
-            recorded[0]
-        );
-        assert!(
-            !recorded[0].contains("password"),
-            "None 密码应被跳过: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     /// 收发路径：`expire_at` 传空串表示清除过期时间（服务端可空字符串语义）。
     #[tokio::test]
     async fn send_expire_at_empty_string_clears_expiry() {
-        use std::sync::{Arc, Mutex};
+        let mut server = mockito::Server::new_async().await;
+        let body = r#"{"code":200,"message":"success","data":{"id":1,"share_id":"aBcD1234","name":"docs","root_path":"/data/docs","is_dir":true,"has_password":false,"burn_after_read":false,"access_limit":0,"access_count":0,"remaining_accesses":0,"allow_preview":true,"allow_download":true,"enabled":true,"view_count":0,"download_count":0,"last_access_at":null,"consumed_at":null,"expires_at":null,"created_at":"2026-03-20T10:00:00+08:00","updated_at":"2026-03-21T10:00:00+08:00","url":"https://alist.example/s/aBcD1234"}}"#;
+        let mock = server
+            .mock("POST", "/api/share/update")
+            .match_body(mockito::Matcher::JsonString(
+                r#"{"share_id":"aBcD1234","expire_at":""}"#.to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
 
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
-                r#"{"code":200,"message":"success","data":{"id":1,"share_id":"aBcD1234","name":"docs","root_path":"/data/docs","is_dir":true,"has_password":false,"burn_after_read":false,"access_limit":0,"access_count":0,"remaining_accesses":0,"allow_preview":true,"allow_download":true,"enabled":true,"view_count":0,"download_count":0,"last_access_at":null,"consumed_at":null,"expires_at":null,"created_at":"2026-03-20T10:00:00+08:00","updated_at":"2026-03-21T10:00:00+08:00","url":"https://alist.example/s/aBcD1234"}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let client = crate::Client::new(server.url()).unwrap();
 
         let _ = Request::new(&client, "aBcD1234")
             .expire_at(String::new())
             .send()
             .await;
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains(r#""expire_at":""#),
-            "Some(\"\") 应显式发送空串以清除过期时间: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

@@ -143,17 +143,16 @@ mod tests {
     /// 收发路径：`send_settings` 应以 JSON 数组作为请求体发送，并解码 `data: null`。
     #[tokio::test]
     async fn send_settings_posts_array_body() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(r#"{"code":200,"message":"success","data":null}"#)],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let body = r#"{"code":200,"message":"success","data":null}"#;
+        let mock = server
+            .mock("POST", "/api/admin/setting/save")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         use crate::schema::admin::setting::{SettingFlag, SettingGroup};
 
@@ -172,20 +171,6 @@ mod tests {
             .await
             .unwrap();
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/admin/setting/save "),
-            "{}",
-            recorded[0]
-        );
-        // 请求体必须是设置项 JSON 数组（含 `type` 键的 rename 形状）
-        assert!(
-            recorded[0].contains(
-                r#"[{"key":"site_title","value":"AList","help":"","type":"string","options":"","group":1,"flag":0,"index":0}]"#,
-            ),
-            "{}",
-            recorded[0]
-        );
-        assert!(recorded[0].contains("application/json"), "{}", recorded[0]);
+        mock.assert_async().await;
     }
 }

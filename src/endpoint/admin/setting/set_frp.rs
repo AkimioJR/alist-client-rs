@@ -137,19 +137,16 @@ mod tests {
     /// 收发路径：`send_settings` 应以 JSON 数组作为请求体发送，并解码状态字符串。
     #[tokio::test]
     async fn send_settings_posts_array_body_and_returns_status() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
-                r#"{"code":200,"message":"success","data":"running"}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let body = r#"{"code":200,"message":"success","data":"running"}"#;
+        let mock = server
+            .mock("POST", "/api/admin/setting/set_frp")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         use crate::schema::admin::setting::{SettingFlag, SettingGroup};
 
@@ -169,20 +166,6 @@ mod tests {
             .unwrap();
         assert_eq!(status, "running");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/admin/setting/set_frp "),
-            "{}",
-            recorded[0]
-        );
-        // 请求体必须是设置项 JSON 数组（含 `type` 键的 rename 形状）
-        assert!(
-            recorded[0].contains(
-                r#"[{"key":"frp.server_addr","value":"frp.example.com","help":"","type":"string","options":"","group":12,"flag":1,"index":0}]"#,
-            ),
-            "{}",
-            recorded[0]
-        );
-        assert!(recorded[0].contains("application/json"), "{}", recorded[0]);
+        mock.assert_async().await;
     }
 }

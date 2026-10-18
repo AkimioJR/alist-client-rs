@@ -169,14 +169,21 @@ mod tests {
     /// 收发路径：mock 服务器断言请求体形状并解码分享实体。
     #[tokio::test]
     async fn send_posts_body_and_decodes_share() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":200,"message":"success","data":{"id":1,"share_id":"aBcD1234","name":"docs","root_path":"/data/docs","is_dir":true,"has_password":true,"burn_after_read":false,"access_limit":10,"access_count":0,"remaining_accesses":10,"allow_preview":true,"allow_download":true,"enabled":true,"view_count":0,"download_count":0,"last_access_at":null,"consumed_at":null,"expires_at":"2026-12-31T23:59:59+08:00","created_at":"2026-03-20T10:00:00+08:00","updated_at":"2026-03-20T10:00:00+08:00","url":"https://alist.example/s/aBcD1234"}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("POST", "/api/share/create")
+            .match_body(mockito::Matcher::JsonString(
+                r#"{"path":"/data/docs","password":"secret","expire_hours":24,"access_limit":10}"#
+                    .to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+
+        let client = crate::Client::new(server.url()).unwrap();
 
         let share = Request::new(&client, "/data/docs")
             .password("secret")
@@ -190,36 +197,6 @@ mod tests {
         assert_eq!(share.access_limit, 10);
         assert_eq!(share.url, "https://alist.example/s/aBcD1234");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/share/create "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""path":"/data/docs""#),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""password":"secret""#),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""expire_hours":24"#),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""access_limit":10"#),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            !recorded[0].contains("share_id"),
-            "未设置的自定义分享 ID 应被跳过: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

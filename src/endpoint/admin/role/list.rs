@@ -139,15 +139,21 @@ mod tests {
     /// 收发路径：mock 服务器返回 `PageResponse<Role>`，断言请求行与解码结果。
     #[tokio::test]
     async fn send_gets_role_page_and_decodes_content() {
-        use std::sync::{Arc, Mutex};
+        let mut server = mockito::Server::new_async().await;
 
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        // 示例形状取自服务端返回的 PageResponse 与服务端角色模型的 JSON 字段
         let body = r#"{"code":200,"message":"success","data":{"content":[{"id":1,"name":"admin","description":"","default":true,"permission_scopes":[{"path":"/","permission":65535}]}],"total":1}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("GET", "/api/admin/role/list")
+            .match_query(mockito::Matcher::AllOf(vec![
+                mockito::Matcher::UrlEncoded("page".into(), "1".into()),
+                mockito::Matcher::UrlEncoded("per_page".into(), "10".into()),
+            ]))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let page = Request::new(&client)
             .page(1)
@@ -160,41 +166,54 @@ mod tests {
         assert_eq!(page.content[0].name, "admin");
         assert_eq!(page.content[0].permission_scopes[0].permission, 65535);
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("GET /api/admin/role/list?page=1&per_page=10"),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     /// into-stream 翻页：逐页产出 `content` 元素，空页停止（含一次确认请求）。
     #[cfg(feature = "into-stream")]
     #[tokio::test]
     async fn into_stream_walks_pages_until_empty_content() {
-        use std::sync::{Arc, Mutex};
-
         use futures::StreamExt;
 
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![
-                ok_json(
-                    r#"{"code":200,"message":"success","data":{"content":[{"id":1,"name":"admin","description":"","default":true,"permission_scopes":null}],"total":2}}"#,
-                ),
-                ok_json(
-                    r#"{"code":200,"message":"success","data":{"content":[{"id":2,"name":"guest","description":"","default":false,"permission_scopes":[]}],"total":2}}"#,
-                ),
-                ok_json(
-                    r#"{"code":200,"message":"success","data":{"content":[],"total":2}}"#,
-                ),
-            ],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock_page1 = server
+            .mock("GET", "/api/admin/role/list")
+            .match_query(mockito::Matcher::AllOf(vec![
+                mockito::Matcher::UrlEncoded("page".into(), "1".into()),
+                mockito::Matcher::UrlEncoded("per_page".into(), "1".into()),
+            ]))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{"code":200,"message":"success","data":{"content":[{"id":1,"name":"admin","description":"","default":true,"permission_scopes":null}],"total":2}}"#,
+            )
+            .create_async()
+            .await;
+        let mock_page2 = server
+            .mock("GET", "/api/admin/role/list")
+            .match_query(mockito::Matcher::AllOf(vec![
+                mockito::Matcher::UrlEncoded("page".into(), "2".into()),
+                mockito::Matcher::UrlEncoded("per_page".into(), "1".into()),
+            ]))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{"code":200,"message":"success","data":{"content":[{"id":2,"name":"guest","description":"","default":false,"permission_scopes":[]}],"total":2}}"#,
+            )
+            .create_async()
+            .await;
+        let mock_page3 = server
+            .mock("GET", "/api/admin/role/list")
+            .match_query(mockito::Matcher::AllOf(vec![
+                mockito::Matcher::UrlEncoded("page".into(), "3".into()),
+                mockito::Matcher::UrlEncoded("per_page".into(), "1".into()),
+            ]))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"content":[],"total":2}}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let names: Vec<String> = Request::new(&client)
             .per_page(1)
@@ -204,10 +223,8 @@ mod tests {
             .await;
         assert_eq!(names, vec!["admin".to_owned(), "guest".to_owned()]);
 
-        let recorded = requests.lock().unwrap();
-        assert_eq!(recorded.len(), 3); // 空页会多一次确认请求
-        assert!(recorded[0].contains("page=1"), "{}", recorded[0]);
-        assert!(recorded[1].contains("page=2"), "{}", recorded[1]);
-        assert!(recorded[2].contains("page=3"), "{}", recorded[2]);
+        mock_page1.assert_async().await;
+        mock_page2.assert_async().await;
+        mock_page3.assert_async().await;
     }
 }

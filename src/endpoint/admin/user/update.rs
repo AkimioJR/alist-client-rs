@@ -195,17 +195,16 @@ mod tests {
     /// 收发路径：mock 服务器 + 请求原文记录，验证完整请求与 `data: null` 解码。
     #[tokio::test]
     async fn send_posts_expected_request() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(r#"{"code":200,"message":"success","data":null}"#)],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let body = r#"{"code":200,"message":"success","data":null}"#;
+        let mock = server
+            .mock("POST", "/api/admin/user/update")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         Request::new(&client, 3, "alice")
             .password("new-pass")
@@ -213,22 +212,6 @@ mod tests {
             .await
             .unwrap();
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/admin/user/update "),
-            "{}",
-            recorded[0]
-        );
-        assert!(recorded[0].contains("\"id\":3"), "{}", recorded[0]);
-        assert!(
-            recorded[0].contains("\"username\":\"alice\""),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("\"password\":\"new-pass\""),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

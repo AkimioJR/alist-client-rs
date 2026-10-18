@@ -110,19 +110,19 @@ mod tests {
     /// 断言 GET 方法、认证头注入与 schema 兼容解码。
     #[tokio::test]
     async fn send_gets_me_and_decodes_user_response() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("GET", "/api/me")
+            .match_header("authorization", "token-1")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":{"id":1,"username":"admin","password":"","base_path":"/","role":2,"disabled":false,"permission":0,"sso_id":"","otp":true}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url)
+            )
+            .create_async()
+            .await;
+
+        let client = crate::Client::new(server.url())
             .unwrap()
             .with_authentication(crate::Authentication::Token("token-1".to_owned()));
 
@@ -131,32 +131,30 @@ mod tests {
         assert_eq!(me.role, vec![2], "单值 role 应展开为数组");
         assert!(me.otp);
 
-        let recorded = requests.lock().unwrap();
-        assert!(recorded[0].contains("GET /api/me "), "{}", recorded[0]);
-        assert!(
-            recorded[0].contains("authorization: token-1"),
-            "应注入认证头: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     /// 收发路径：新服务器返回数组 role 与 `null` 集合字段时同样可解码。
     #[tokio::test]
     async fn send_decodes_array_role_and_null_collections() {
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("GET", "/api/me")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":{"id":2,"username":"user","password":"","base_path":"/","role":[2,3],"disabled":false,"permission":65535,"sso_id":"","otp":false,"role_names":null,"permissions":null}}"#,
-            )],
-            None,
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+            )
+            .create_async()
+            .await;
+
+        let client = crate::Client::new(server.url()).unwrap();
 
         let me = client.auth().me().send().await.unwrap();
         assert_eq!(me.role, vec![2, 3]);
         assert!(me.role_names.is_empty());
         assert!(me.permissions.is_empty());
+
+        mock.assert_async().await;
     }
 }

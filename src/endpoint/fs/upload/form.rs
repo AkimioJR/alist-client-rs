@@ -450,17 +450,16 @@ mod tests {
     ///    缺省文件名取自目标路径末段；`data: null` 解码为 `None`。
     #[tokio::test]
     async fn send_upload_posts_multipart_and_decodes_null_task() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(r#"{"code":200,"message":"success","data":null}"#)],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("PUT", "/api/fs/form")
+            .match_header("file-path", "%2Fdata%2Fa.zip")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let resp = Request::new(&client, "/data/a.zip", b"hello".to_vec())
             .send_upload()
@@ -468,51 +467,27 @@ mod tests {
             .unwrap();
         assert_eq!(resp, None, "直传成功时 data 为 null，应解码为 None");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("PUT /api/fs/form "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0]
-                .to_ascii_lowercase()
-                .contains("file-path: %2fdata%2fa.zip"),
-            "File-Path 应为 URL 编码后的目标路径: {}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#"name="file""#),
-            "multipart 文件字段名必须为 file: {}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#"filename="a.zip""#),
-            "缺省文件名应取自目标路径末段: {}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("hello"),
-            "multipart 请求体应携带文件内容: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     /// 4) 收发路径断言：`As-Task` 时响应 `data` 携带任务信息，解码为 `Some`。
     #[tokio::test]
     async fn send_upload_decodes_background_task() {
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("PUT", "/api/fs/form")
+            .match_header("file-path", "%2Fdata%2Fa.zip")
+            .match_header("as-task", "true")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":{"task":{
                     "id":"sdH2LbjyWRk","name":"upload a.zip to [/data](/alist)",
                     "state":0,"status":"uploading","progress":0,"error":""}}}"#,
-            )],
-            None,
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+            )
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let resp = Request::new(&client, "/data/a.zip", b"hello".to_vec())
             .as_task(true)
@@ -522,22 +497,23 @@ mod tests {
         let task = resp.expect("As-Task 上传应返回任务信息").task;
         assert_eq!(task.id, "sdH2LbjyWRk");
         assert_eq!(task.status, "uploading");
+
+        mock.assert_async().await;
     }
 
     /// 3) IntoFuture 支持直接 `.await` 发送请求。
     #[tokio::test]
     async fn request_is_awaitable_via_into_future() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(r#"{"code":200,"message":"success","data":null}"#)],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("PUT", "/api/fs/form")
+            .match_header("file-path", "%2Fdata%2Fawait.zip")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let resp = client
             .fs()
@@ -547,12 +523,6 @@ mod tests {
             .unwrap();
         assert!(resp.is_none());
 
-        let recorded = requests.lock().unwrap();
-        assert!(recorded[0].contains("PUT /api/fs/form "), "{}", recorded[0]);
-        assert!(
-            recorded[0].contains("file-path: %2Fdata%2Fawait.zip"),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

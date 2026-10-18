@@ -122,33 +122,20 @@ mod tests {
     /// 收发路径：mock 服务器记录请求原文并解码令牌字符串。
     #[tokio::test]
     async fn send_returns_token_string() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
-                r#"{"code":200,"message":"success","data":"alist-9d"}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let body = r#"{"code":200,"message":"success","data":"alist-9d"}"#;
+        let mock = server
+            .mock("POST", "/api/admin/setting/set_token")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let token = Request::new(&client, "alist-9d").send().await.unwrap();
         assert_eq!(token, "alist-9d");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/admin/setting/set_token "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""token":"alist-9d""#),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

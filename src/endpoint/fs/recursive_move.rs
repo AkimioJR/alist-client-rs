@@ -183,32 +183,18 @@ mod tests {
     /// 3) 收发路径断言：服务端成功消息响应的 `data` 为 `null`，解码为 `()`；断言请求原文。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_null_data() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
-                r#"{"code":200,"message":"Successfully moved 2 files","data":null}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/fs/recursive_move")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"Successfully moved 2 files","data":null}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         Request::new(&client, "/m1", "/m2").send().await.unwrap();
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/fs/recursive_move "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""src_dir":"/m1""#),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

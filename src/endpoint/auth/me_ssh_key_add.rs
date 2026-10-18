@@ -123,17 +123,20 @@ mod tests {
     /// 收发路径：mock 服务器返回 `data: null`，断言请求原文与 `()` 解码。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_null_data() {
-        use std::sync::{Arc, Mutex};
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/me/sshkey/add")
+            .match_header("authorization", "test-token")
+            .match_body(mockito::Matcher::JsonString(
+                r#"{"title":"laptop","key":"ssh-ed25519 AAAA test"}"#.to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .create_async()
+            .await;
 
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(r#"{"code":200,"message":"success","data":null}"#)],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url)
+        let client = crate::Client::new(server.url())
             .unwrap()
             .with_authentication(crate::Authentication::Token("test-token".to_owned()));
 
@@ -144,44 +147,23 @@ mod tests {
             .await
             .unwrap();
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/me/sshkey/add "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("authorization: test-token"),
-            "应注入认证头: {}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("\"title\":\"laptop\""),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("\"key\":\"ssh-ed25519 AAAA test\""),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     /// 收发路径：公钥格式非法时服务端返回 HTTP 200 + 信封 `code` 400，
     /// 断言客户端将其映射为 API 错误。
     #[tokio::test]
     async fn send_maps_invalid_key_to_api_error() {
-        use crate::test_support::{MockResponse, spawn_mock_server};
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/me/sshkey/add")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":400,"message":"provided key invalid","data":null}"#)
+            .create_async()
+            .await;
 
-        let base_url = spawn_mock_server(
-            vec![MockResponse {
-                status_line: "HTTP/1.1 200 OK",
-                body: r#"{"code":400,"message":"provided key invalid","data":null}"#.to_owned(),
-            }],
-            None,
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let client = crate::Client::new(server.url()).unwrap();
 
         let err = Request::new(&client, "bad", "not-a-key")
             .send()
@@ -194,5 +176,7 @@ mod tests {
             }
             other => panic!("expected Api, got {other:?}"),
         }
+
+        mock.assert_async().await;
     }
 }

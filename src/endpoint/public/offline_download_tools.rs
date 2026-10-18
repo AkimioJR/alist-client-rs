@@ -118,16 +118,19 @@ mod tests {
     /// 收发路径：mock 服务器返回就绪工具名数组，验证请求行与响应解码。
     #[tokio::test]
     async fn send_decodes_ready_tool_names() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
         // 示例形状取自 AList 服务端 offline download 工具管理器的实际返回
         // （按字典序排序的就绪工具名）
         let body = r#"{"code":200,"message":"success","data":["115 Cloud","aria2","qBittorrent"]}"#;
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("GET", "/api/public/offline_download_tools")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+
+        let client = crate::Client::new(server.url()).unwrap();
 
         let tools: OfflineDownloadToolsResponse = Request::new(&client).send().await.unwrap();
         assert_eq!(
@@ -139,11 +142,6 @@ mod tests {
             ]
         );
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("GET /api/public/offline_download_tools "),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

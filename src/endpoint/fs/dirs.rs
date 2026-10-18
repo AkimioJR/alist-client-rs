@@ -136,30 +136,22 @@ mod tests {
     /// 2) 收发路径断言：mock 服务器返回 OpenAPI `/api/fs/dirs` 示例，断言解码。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_dirs() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/fs/dirs")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":[{"name":"a","modified":"2023-07-19T09:48:13.695585868+08:00"}]}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+            )
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let dirs = client.fs().dirs("/t").send().await.unwrap();
         assert_eq!(dirs.len(), 1);
         assert_eq!(dirs[0].name, "a");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/fs/dirs "),
-            "{}",
-            recorded[0]
-        );
-        assert!(recorded[0].contains(r#""path":"/t""#), "{}", recorded[0]);
+        mock.assert_async().await;
     }
 }

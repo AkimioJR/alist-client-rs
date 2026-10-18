@@ -105,3 +105,6 @@ admin-index-schema = []
 admin-message-schema = []
 admin-session-schema = ["auth-schema"]
 admin-task-schema = ["task-schema"]
+
+[dev-dependencies]
+mockito = "1.7.2"

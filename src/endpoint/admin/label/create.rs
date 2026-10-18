@@ -152,19 +152,18 @@ mod tests {
     /// 2) 收发路径断言：mock 服务器 + 记录请求原文，响应解码为 CreateLabelResponse。
     #[tokio::test]
     async fn send_creates_label_and_returns_id() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
-                r#"{"code":200,"message":"success","data":{"id":42}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/admin/label/create")
+            .match_body(mockito::Matcher::PartialJsonString(
+                r#"{"name":"电影","description":"电影相关文件"}"#.to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"id":42}}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let resp = Request::new(&client, "电影")
             .description("电影相关文件")
@@ -173,17 +172,6 @@ mod tests {
             .unwrap();
         assert_eq!(resp.id, 42);
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/admin/label/create "),
-            "{}",
-            recorded[0]
-        );
-        assert!(recorded[0].contains("\"name\":\"电影\""), "{}", recorded[0]);
-        assert!(
-            recorded[0].contains("\"description\":\"电影相关文件\""),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

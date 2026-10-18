@@ -111,14 +111,17 @@ mod tests {
     /// 收发路径：mock 服务器返回驱动名数组，验证请求行与响应解码。
     #[tokio::test]
     async fn send_decodes_driver_names() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
+        let mut server = mockito::Server::new_async().await;
 
         let body = r#"{"code":200,"message":"success","data":["Local","115 Cloud","UC"]}"#;
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("GET", "/api/admin/driver/names")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let names: DriverNamesResponse = Request::new(&client).send().await.unwrap();
         assert_eq!(
@@ -126,11 +129,6 @@ mod tests {
             vec!["Local".to_owned(), "115 Cloud".to_owned(), "UC".to_owned()]
         );
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("GET /api/admin/driver/names"),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

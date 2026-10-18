@@ -90,7 +90,6 @@
 //! - **错误语义**：AList 多数错误以 HTTP 200 + 响应 `code` 非 200 返回，[`Client`]
 //!   统一转换为 [`Error::Api`]（状态码见 [`ApiStatusCode`]，内部错误分类见
 //!   [`InternalErrorKind`]）；HTTP 非 2xx 转换为 [`Error::HttpStatus`]。
-//! - **测试基建**：`test_support` 模块（仅测试构建）提供手搓的 mock 服务器。
 //!
 //! # 功能矩阵（feature flags）
 //!
@@ -127,9 +126,6 @@ pub(crate) mod client;
 pub mod endpoint;
 pub mod error;
 pub mod schema;
-
-#[cfg(test)]
-pub(crate) mod test_support;
 
 pub use client::{Authentication, Client};
 pub use error::{ApiStatusCode, Error, InternalErrorKind, Result};

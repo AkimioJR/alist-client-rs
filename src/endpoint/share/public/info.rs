@@ -151,14 +151,21 @@ mod tests {
     /// 收发路径：mock 服务器返回公开元信息并解码。
     #[tokio::test]
     async fn send_gets_share_info_and_decodes() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":200,"message":"success","data":{"share_id":"aBcD1234","name":"docs","is_dir":true,"has_password":true,"burn_after_read":false,"access_limit":10,"access_count":3,"remaining_accesses":7,"allow_preview":true,"allow_download":true,"authed":true,"consumed_at":null,"expires_at":"2026-12-31T23:59:59+08:00","created_at":"2026-03-20T10:00:00+08:00"}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("GET", "/api/public/share/info")
+            .match_query(mockito::Matcher::AllOf(vec![
+                mockito::Matcher::UrlEncoded("share_id".into(), "aBcD1234".into()),
+                mockito::Matcher::UrlEncoded("auth".into(), "share-token".into()),
+            ]))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+
+        let client = crate::Client::new(server.url()).unwrap();
 
         let info = Request::new(&client, "aBcD1234")
             .auth("share-token")
@@ -170,11 +177,6 @@ mod tests {
         assert!(info.authed);
         assert_eq!(info.remaining_accesses, 7);
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("GET /api/public/share/info?share_id=aBcD1234&auth=share-token"),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

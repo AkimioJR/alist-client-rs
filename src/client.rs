@@ -391,12 +391,11 @@ impl Client {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::{Arc, Mutex};
+    use std::sync::Arc;
 
     use serde::Deserialize;
 
     use super::*;
-    use crate::test_support::{MockResponse, ok_json, spawn_mock_server};
 
     #[derive(Debug, Deserialize, PartialEq)]
     struct MeData {
@@ -457,48 +456,78 @@ mod tests {
 
     #[tokio::test]
     async fn execute_decodes_success_response() {
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":200,"message":"success","data":{"username":"admin"}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], None).await;
-        let client = Client::new(base_url).unwrap();
+        let mock = server
+            .mock("GET", "/api/me")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = Client::new(server.url()).unwrap();
 
         let me: MeData = client
             .execute(client.request(Method::GET, "/api/me"))
             .await
             .unwrap();
         assert_eq!(me.username, "admin");
+        mock.assert_async().await;
     }
 
     #[tokio::test]
     async fn execute_null_data_decodes_to_unit_and_option() {
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":200,"message":"success","data":null}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], None).await;
-        let client = Client::new(base_url).unwrap();
+        let mock_post = server
+            .mock("POST", "/api/auth/2fa/verify")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = Client::new(server.url()).unwrap();
 
         let unit: () = client
             .execute(client.request(Method::POST, "/api/auth/2fa/verify"))
             .await
             .unwrap();
         assert_eq!(unit, ());
+        mock_post.assert_async().await;
 
-        let base_url = spawn_mock_server(vec![ok_json(body)], None).await;
-        let client = Client::new(base_url).unwrap();
+        let mock_get = server
+            .mock("GET", "/api/me")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
         let none: Option<MeData> = client
             .execute(client.request(Method::GET, "/api/me"))
             .await
             .unwrap();
         assert_eq!(none, None);
+        mock_get.assert_async().await;
     }
 
     #[tokio::test]
     async fn execute_maps_logical_error_code_to_api_error() {
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":403,"message":"password is incorrect","data":null}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], None).await;
-        let client = Client::new(base_url).unwrap();
+        let mock = server
+            .mock("GET", "/api/me")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = Client::new(server.url()).unwrap();
 
         let err = client
             .execute::<MeData>(client.request(Method::GET, "/api/me"))
             .await
             .unwrap_err();
+        mock.assert_async().await;
         match err {
             Error::Api {
                 code,
@@ -517,20 +546,20 @@ mod tests {
 
     #[tokio::test]
     async fn execute_maps_http_error_status() {
-        let base_url = spawn_mock_server(
-            vec![MockResponse {
-                status_line: "HTTP/1.1 500 Internal Server Error",
-                body: "boom".to_string(),
-            }],
-            None,
-        )
-        .await;
-        let client = Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("GET", "/api/me")
+            .with_status(500)
+            .with_body("boom")
+            .create_async()
+            .await;
+        let client = Client::new(server.url()).unwrap();
 
         let err = client
             .execute::<MeData>(client.request(Method::GET, "/api/me"))
             .await
             .unwrap_err();
+        mock.assert_async().await;
         assert!(matches!(
             err,
             Error::HttpStatus { status, body }
@@ -540,14 +569,22 @@ mod tests {
 
     #[tokio::test]
     async fn json_decode_errors_carry_request_context() {
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":200,"message":"success","data":{"unexpected":1}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], None).await;
-        let client = Client::new(base_url).unwrap();
+        let mock = server
+            .mock("GET", "/api/me")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = Client::new(server.url()).unwrap();
 
         let err = client
             .execute::<MeData>(client.request(Method::GET, "/api/me"))
             .await
             .unwrap_err();
+        mock.assert_async().await;
         match err {
             Error::Json {
                 method,
@@ -565,14 +602,39 @@ mod tests {
 
     #[tokio::test]
     async fn username_password_authentication_refreshes_expired_token() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let responses = vec![
-            ok_json(r#"{"code":401,"message":"token expired","data":null}"#),
-            ok_json(r#"{"code":200,"message":"success","data":{"token":"fresh-token"}}"#),
-            ok_json(r#"{"code":200,"message":"success","data":{"username":"admin"}}"#),
-        ];
-        let base_url = spawn_mock_server(responses, Some(Arc::clone(&requests))).await;
-        let client = Client::new(base_url)
+        let mut server = mockito::Server::new_async().await;
+        let mock_401 = server
+            .mock("GET", "/api/me")
+            .expect(1)
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":401,"message":"token expired","data":null}"#)
+            .create_async()
+            .await;
+        let mock_login = server
+            .mock("POST", "/api/auth/login")
+            .match_header("content-type", "application/json")
+            .match_body(mockito::Matcher::PartialJson(serde_json::json!({
+                "username": "admin",
+                "password": "password"
+            })))
+            .expect(1)
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"token":"fresh-token"}}"#)
+            .create_async()
+            .await;
+        let mock_retry = server
+            .mock("GET", "/api/me")
+            .match_header("authorization", "fresh-token")
+            .expect(1)
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"username":"admin"}}"#)
+            .create_async()
+            .await;
+
+        let client = Client::new(server.url())
             .unwrap()
             .with_authentication(Authentication::username_password("admin", "password"));
 
@@ -583,30 +645,23 @@ mod tests {
         assert_eq!(me.username, "admin");
         assert_eq!(client.token().as_deref(), Some("fresh-token"));
 
-        let requests = requests.lock().unwrap();
-        assert_eq!(requests.len(), 3);
-        assert!(requests[0].contains("GET /api/me "));
-        assert!(requests[1].contains("POST /api/auth/login "));
-        assert!(requests[1].contains("\"username\":\"admin\""));
-        assert!(requests[1].contains("\"password\":\"password\""));
-        assert!(requests[2].contains("GET /api/me "));
-        assert!(
-            requests[2]
-                .to_ascii_lowercase()
-                .contains("authorization: fresh-token"),
-            "重试请求应携带刷新后的 token: {}",
-            requests[2]
-        );
+        mock_401.assert_async().await;
+        mock_login.assert_async().await;
+        mock_retry.assert_async().await;
     }
 
     #[tokio::test]
     async fn username_password_authentication_with_otp_does_not_refresh_expired_token() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let responses = vec![ok_json(
-            r#"{"code":401,"message":"token expired","data":null}"#,
-        )];
-        let base_url = spawn_mock_server(responses, Some(Arc::clone(&requests))).await;
-        let client = Client::new(base_url).unwrap().with_authentication(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("GET", "/api/me")
+            .expect(1)
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":401,"message":"token expired","data":null}"#)
+            .create_async()
+            .await;
+        let client = Client::new(server.url()).unwrap().with_authentication(
             Authentication::username_password("admin", "password").otp_code("123456".to_string()),
         );
 
@@ -615,25 +670,38 @@ mod tests {
             result.is_err(),
             "设置了 otp_code 后因验证码已过时，不应尝试重新登录，应直接报错返回"
         );
-
-        let requests = requests.lock().unwrap();
-        assert_eq!(requests.len(), 1, "只应发送初始请求，不应触发重登");
-        assert!(requests[0].contains("GET /api/me "));
+        mock.assert_async().await;
     }
 
     #[tokio::test]
     async fn http_unauthorized_status_also_triggers_refresh() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let responses = vec![
-            MockResponse {
-                status_line: "HTTP/1.1 401 Unauthorized",
-                body: "unauthorized".to_string(),
-            },
-            ok_json(r#"{"code":200,"message":"success","data":{"token":"fresh-token"}}"#),
-            ok_json(r#"{"code":200,"message":"success","data":{"username":"admin"}}"#),
-        ];
-        let base_url = spawn_mock_server(responses, Some(Arc::clone(&requests))).await;
-        let client = Client::new(base_url)
+        let mut server = mockito::Server::new_async().await;
+        let mock_401 = server
+            .mock("GET", "/api/me")
+            .expect(1)
+            .with_status(401)
+            .with_body("unauthorized")
+            .create_async()
+            .await;
+        let mock_login = server
+            .mock("POST", "/api/auth/login")
+            .expect(1)
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"token":"fresh-token"}}"#)
+            .create_async()
+            .await;
+        let mock_retry = server
+            .mock("GET", "/api/me")
+            .match_header("authorization", "fresh-token")
+            .expect(1)
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"username":"admin"}}"#)
+            .create_async()
+            .await;
+
+        let client = Client::new(server.url())
             .unwrap()
             .with_authentication(Authentication::username_password("admin", "password"));
 
@@ -643,25 +711,46 @@ mod tests {
             .unwrap();
         assert_eq!(me.username, "admin");
 
-        let requests = requests.lock().unwrap();
-        assert_eq!(requests.len(), 3);
-        assert!(
-            requests[2]
-                .to_ascii_lowercase()
-                .contains("authorization: fresh-token")
-        );
+        mock_401.assert_async().await;
+        mock_login.assert_async().await;
+        mock_retry.assert_async().await;
     }
 
     #[tokio::test]
     async fn username_password_authentication_with_hash_refreshes_via_login_hash() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let responses = vec![
-            ok_json(r#"{"code":401,"message":"token expired","data":null}"#),
-            ok_json(r#"{"code":200,"message":"success","data":{"token":"fresh-token"}}"#),
-            ok_json(r#"{"code":200,"message":"success","data":{"username":"admin"}}"#),
-        ];
-        let base_url = spawn_mock_server(responses, Some(Arc::clone(&requests))).await;
-        let client = Client::new(base_url)
+        let mut server = mockito::Server::new_async().await;
+        let mock_401 = server
+            .mock("GET", "/api/me")
+            .expect(1)
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":401,"message":"token expired","data":null}"#)
+            .create_async()
+            .await;
+        let mock_login = server
+            .mock("POST", "/api/auth/login/hash")
+            .match_header("content-type", "application/json")
+            .match_body(mockito::Matcher::PartialJson(serde_json::json!({
+                "username": "admin",
+                "password": "hashed-pwd"
+            })))
+            .expect(1)
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"token":"fresh-token"}}"#)
+            .create_async()
+            .await;
+        let mock_retry = server
+            .mock("GET", "/api/me")
+            .match_header("authorization", "fresh-token")
+            .expect(1)
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"username":"admin"}}"#)
+            .create_async()
+            .await;
+
+        let client = Client::new(server.url())
             .unwrap()
             .with_authentication(Authentication::username_password("admin", "hashed-pwd").hash());
 
@@ -672,27 +761,23 @@ mod tests {
         assert_eq!(me.username, "admin");
         assert_eq!(client.token().as_deref(), Some("fresh-token"));
 
-        let requests = requests.lock().unwrap();
-        assert_eq!(requests.len(), 3);
-        assert!(requests[0].contains("GET /api/me "));
-        assert!(
-            requests[1].contains("POST /api/auth/login/hash "),
-            "启用 hash 的凭据在刷新时应请求 /api/auth/login/hash: {}",
-            requests[1]
-        );
-        assert!(requests[1].contains(r#""username":"admin""#));
-        assert!(requests[1].contains(r#""password":"hashed-pwd""#));
-        assert!(requests[2].contains("GET /api/me "));
+        mock_401.assert_async().await;
+        mock_login.assert_async().await;
+        mock_retry.assert_async().await;
     }
 
     #[tokio::test]
     async fn token_authentication_does_not_refresh_on_401() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let responses = vec![ok_json(
-            r#"{"code":401,"message":"token expired","data":null}"#,
-        )];
-        let base_url = spawn_mock_server(responses, Some(Arc::clone(&requests))).await;
-        let client = Client::new(base_url)
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("GET", "/api/me")
+            .expect(1)
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":401,"message":"token expired","data":null}"#)
+            .create_async()
+            .await;
+        let client = Client::new(server.url())
             .unwrap()
             .with_authentication(Authentication::Token("token-1".to_string()));
 
@@ -707,31 +792,27 @@ mod tests {
                 ..
             }
         ));
-        assert_eq!(
-            requests.lock().unwrap().len(),
-            1,
-            "Token 凭据不应触发重新登录"
-        );
         assert_eq!(client.token().as_deref(), Some("token-1"));
+        mock.assert_async().await;
     }
 
     #[tokio::test]
     async fn execute_text_returns_plain_body() {
-        let base_url = spawn_mock_server(
-            vec![MockResponse {
-                status_line: "HTTP/1.1 200 OK",
-                body: "pong".to_string(),
-            }],
-            None,
-        )
-        .await;
-        let client = Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("GET", "/ping")
+            .with_status(200)
+            .with_body("pong")
+            .create_async()
+            .await;
+        let client = Client::new(server.url()).unwrap();
 
         let text = client
             .execute_text(client.request(Method::GET, "/ping"))
             .await
             .unwrap();
         assert_eq!(text, "pong");
+        mock.assert_async().await;
     }
 
     #[tokio::test]

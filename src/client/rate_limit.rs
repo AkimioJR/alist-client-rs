@@ -54,10 +54,7 @@ mod tests {
     use serde::Deserialize;
 
     use super::*;
-    use crate::{
-        Client,
-        test_support::{ok_json, spawn_mock_server},
-    };
+    use crate::Client;
 
     #[derive(Debug, Deserialize, PartialEq)]
     struct MeData {
@@ -97,9 +94,17 @@ mod tests {
 
     #[tokio::test]
     async fn api_request_rate_limit_delays_consecutive_requests() {
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":200,"message":"success","data":{"username":"admin"}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body), ok_json(body)], None).await;
-        let client = Client::new(base_url)
+        let mock = server
+            .mock("GET", "/api/me")
+            .expect(2)
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = Client::new(server.url())
             .unwrap()
             .with_api_request_interval(Duration::from_millis(50));
 
@@ -115,5 +120,6 @@ mod tests {
         assert_eq!(first.username, "admin");
         assert_eq!(second.username, "admin");
         assert!(started_at.elapsed() >= Duration::from_millis(45));
+        mock.assert_async().await;
     }
 }

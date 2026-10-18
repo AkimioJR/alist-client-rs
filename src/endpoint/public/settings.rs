@@ -103,14 +103,17 @@ mod tests {
     /// 2) 收发路径断言：mock 服务器 + 记录请求原文 + 解码设置映射。
     #[tokio::test]
     async fn send_gets_settings_map() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":200,"message":"success","data":{"site_title":"AList","default_page_size":"30"}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("GET", "/api/public/settings")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+
+        let client = crate::Client::new(server.url()).unwrap();
 
         let settings = Request::new(&client).send().await.unwrap();
         assert_eq!(
@@ -122,11 +125,6 @@ mod tests {
             Some("30")
         );
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("GET /api/public/settings "),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

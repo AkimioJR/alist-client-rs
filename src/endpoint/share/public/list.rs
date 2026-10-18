@@ -163,14 +163,21 @@ mod tests {
     /// 收发路径：mock 服务器断言请求体形状并解码列表响应。
     #[tokio::test]
     async fn send_posts_body_and_decodes_list() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":200,"message":"success","data":{"content":[{"name":"demo.txt","size":1024,"is_dir":false,"modified":"2026-03-20T10:00:00+08:00","created":"2026-03-20T10:00:00+08:00","thumb":"","type":0,"path":"/demo.txt","download_url":"https://alist.example/sd/aBcD1234/demo.txt?auth=t"}],"total":1,"page":1,"per_page":30,"has_more":false,"pages_total":1}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("POST", "/api/public/share/list")
+            .match_body(mockito::Matcher::JsonString(
+                r#"{"share_id":"aBcD1234","token":"share-token","page":1,"per_page":30}"#
+                    .to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+
+        let client = crate::Client::new(server.url()).unwrap();
 
         let page = Request::new(&client, "aBcD1234")
             .token("share-token")
@@ -185,58 +192,54 @@ mod tests {
         assert!(!page.has_more);
         assert!(page.content[0].download_url.is_some());
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/public/share/list "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""share_id":"aBcD1234""#),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""token":"share-token""#),
-            "{}",
-            recorded[0]
-        );
-        assert!(recorded[0].contains(r#""page":1"#), "{}", recorded[0]);
-        assert!(recorded[0].contains(r#""per_page":30"#), "{}", recorded[0]);
-        assert!(
-            !recorded[0].contains(r#""path""#),
-            "None 路径应被跳过: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     /// into-stream 翻页：翻页字段为请求体 `page`，逐页产出 `content` 元素。
     #[cfg(feature = "into-stream")]
     #[tokio::test]
     async fn into_stream_walks_pages_until_empty_content() {
-        use std::sync::{Arc, Mutex};
-
         use futures::StreamExt;
 
-        use crate::test_support::{ok_json, spawn_mock_server};
+        let mut server = mockito::Server::new_async().await;
+        let mock_page1 = server
+            .mock("POST", "/api/public/share/list")
+            .match_body(mockito::Matcher::JsonString(
+                r#"{"share_id":"aBcD1234","token":"share-token","page":1,"per_page":1}"#.to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{"code":200,"message":"success","data":{"content":[{"name":"a.txt","size":1,"is_dir":false,"modified":"2026-03-20T10:00:00+08:00","created":"2026-03-20T10:00:00+08:00","thumb":"","type":0,"path":"/a.txt"}],"total":2,"page":1,"per_page":1,"has_more":true,"pages_total":2}}"#,
+            )
+            .create_async()
+            .await;
+        let mock_page2 = server
+            .mock("POST", "/api/public/share/list")
+            .match_body(mockito::Matcher::JsonString(
+                r#"{"share_id":"aBcD1234","token":"share-token","page":2,"per_page":1}"#.to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{"code":200,"message":"success","data":{"content":[{"name":"b.txt","size":2,"is_dir":false,"modified":"2026-03-20T10:00:00+08:00","created":"2026-03-20T10:00:00+08:00","thumb":"","type":0,"path":"/b.txt"}],"total":2,"page":2,"per_page":1,"has_more":false,"pages_total":2}}"#,
+            )
+            .create_async()
+            .await;
+        let mock_page3 = server
+            .mock("POST", "/api/public/share/list")
+            .match_body(mockito::Matcher::JsonString(
+                r#"{"share_id":"aBcD1234","token":"share-token","page":3,"per_page":1}"#.to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{"code":200,"message":"success","data":{"content":[],"total":2,"page":3,"per_page":1,"has_more":false,"pages_total":2}}"#,
+            )
+            .create_async()
+            .await;
 
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![
-                ok_json(
-                    r#"{"code":200,"message":"success","data":{"content":[{"name":"a.txt","size":1,"is_dir":false,"modified":"2026-03-20T10:00:00+08:00","created":"2026-03-20T10:00:00+08:00","thumb":"","type":0,"path":"/a.txt"}],"total":2,"page":1,"per_page":1,"has_more":true,"pages_total":2}}"#,
-                ),
-                ok_json(
-                    r#"{"code":200,"message":"success","data":{"content":[{"name":"b.txt","size":2,"is_dir":false,"modified":"2026-03-20T10:00:00+08:00","created":"2026-03-20T10:00:00+08:00","thumb":"","type":0,"path":"/b.txt"}],"total":2,"page":2,"per_page":1,"has_more":false,"pages_total":2}}"#,
-                ),
-                ok_json(
-                    r#"{"code":200,"message":"success","data":{"content":[],"total":2,"page":3,"per_page":1,"has_more":false,"pages_total":2}}"#,
-                ),
-            ],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let client = crate::Client::new(server.url()).unwrap();
 
         let names: Vec<String> = Request::new(&client, "aBcD1234")
             .token("share-token")
@@ -247,10 +250,8 @@ mod tests {
             .await;
         assert_eq!(names, vec!["a.txt".to_owned(), "b.txt".to_owned()]);
 
-        let recorded = requests.lock().unwrap();
-        assert_eq!(recorded.len(), 3); // 空页会多一次确认请求
-        assert!(recorded[0].contains(r#""page":1"#), "{}", recorded[0]);
-        assert!(recorded[1].contains(r#""page":2"#), "{}", recorded[1]);
-        assert!(recorded[2].contains(r#""page":3"#), "{}", recorded[2]);
+        mock_page1.assert_async().await;
+        mock_page2.assert_async().await;
+        mock_page3.assert_async().await;
     }
 }

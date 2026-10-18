@@ -243,20 +243,20 @@ mod tests {
     /// 收发路径：`send_bytes` 返回原始响应字节（不走 JSON 响应解码）。
     #[tokio::test]
     async fn send_bytes_returns_raw_export_body() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{MockResponse, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![MockResponse {
-                status_line: "HTTP/1.1 200 OK",
-                body: "PK-fake-docx-export".to_string(),
-            }],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("GET", "/api/fs/lark/export/download")
+            .match_query(mockito::Matcher::AllOf(vec![
+                mockito::Matcher::UrlEncoded("path".into(), "/lark/notes".into()),
+                mockito::Matcher::UrlEncoded("file_token".into(), "docx-token".into()),
+                mockito::Matcher::UrlEncoded("filename".into(), "notes.docx".into()),
+            ]))
+            .with_status(200)
+            .with_header("content-type", "application/octet-stream")
+            .with_body("PK-fake-docx-export")
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let bytes = Request::new(&client, "/lark/notes", "docx-token")
             .filename("notes.docx")
@@ -265,33 +265,27 @@ mod tests {
             .unwrap();
         assert_eq!(bytes, b"PK-fake-docx-export");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("GET /api/fs/lark/export/download?"),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("path=%2Flark%2Fnotes&file_token=docx-token&filename=notes.docx"),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     /// 错误路径：服务端非 2xx（如目标存储不是 Lark）时返回状态码错误。
     #[tokio::test]
     async fn send_bytes_surfaces_http_error_status() {
-        use crate::test_support::{MockResponse, spawn_mock_server};
-
-        let base_url = spawn_mock_server(
-            vec![MockResponse {
-                status_line: "HTTP/1.1 400 Bad Request",
-                body: r#"{"code":400,"message":"lark export download is not supported for this storage","data":null}"#.to_string(),
-            }],
-            None,
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("GET", "/api/fs/lark/export/download")
+            .match_query(mockito::Matcher::AllOf(vec![
+                mockito::Matcher::UrlEncoded("path".into(), "/local/file".into()),
+                mockito::Matcher::UrlEncoded("file_token".into(), "docx-token".into()),
+            ]))
+            .with_status(400)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{"code":400,"message":"lark export download is not supported for this storage","data":null}"#,
+            )
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let err = Request::new(&client, "/local/file", "docx-token")
             .send_bytes()
@@ -301,5 +295,7 @@ mod tests {
             matches!(err, crate::Error::HttpStatus { status, .. } if status.as_u16() == 400),
             "应返回 HTTP 状态码错误: {err:?}"
         );
+
+        mock.assert_async().await;
     }
 }

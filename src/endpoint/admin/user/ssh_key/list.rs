@@ -114,10 +114,7 @@ impl<'a> super::SshKey<'a> {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::{Arc, Mutex};
-
     use super::*;
-    use crate::test_support::{ok_json, spawn_mock_server};
 
     const SSH_KEY_JSON: &str = r#"{"id":1,"title":"laptop","fingerprint":"SHA256:abc","added_time":"2024-06-01T08:00:00Z","last_used_time":"2024-06-02T12:00:00Z"}"#;
 
@@ -159,12 +156,18 @@ mod tests {
     /// 收发路径断言：mock 服务器 + 记录请求原文，并解码分页响应。
     #[tokio::test]
     async fn send_lists_ssh_public_keys_from_page_response() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = format!(
             r#"{{"code":200,"message":"success","data":{{"content":[{SSH_KEY_JSON}],"total":1}}}}"#
         );
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url)
+        let mock = server
+            .mock("GET", "/api/admin/user/sshkey/list?uid=42")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url())
             .unwrap()
             .with_authentication(crate::Authentication::Token("token-1".to_owned()));
 
@@ -175,13 +178,7 @@ mod tests {
         assert_eq!(page.content[0].title, "laptop");
         assert_eq!(page.content[0].fingerprint, "SHA256:abc");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("GET /api/admin/user/sshkey/list?"),
-            "{}",
-            recorded[0]
-        );
-        assert!(recorded[0].contains("uid=42"), "{}", recorded[0]);
+        mock.assert_async().await;
     }
 
     /// into-stream 翻页断言（列表端点）。
@@ -190,19 +187,25 @@ mod tests {
     async fn into_stream_walks_pages_until_empty_content() {
         use futures::StreamExt;
 
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let page_body = format!(
             r#"{{"code":200,"message":"success","data":{{"content":[{SSH_KEY_JSON}],"total":1}}}}"#
         );
-        let base_url = spawn_mock_server(
-            vec![
-                ok_json(page_body),
-                ok_json(r#"{"code":200,"message":"success","data":{"content":[],"total":1}}"#),
-            ],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock1 = server
+            .mock("GET", "/api/admin/user/sshkey/list?uid=42&page=1")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(page_body)
+            .create_async()
+            .await;
+        let mock2 = server
+            .mock("GET", "/api/admin/user/sshkey/list?uid=42&page=2")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"content":[],"total":1}}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let ids: Vec<u64> = Request::new(&client, 42)
             .into_stream()
@@ -211,11 +214,7 @@ mod tests {
             .await;
         assert_eq!(ids, vec![1]);
 
-        let recorded = requests.lock().unwrap();
-        assert_eq!(recorded.len(), 2, "空页会多一次确认请求");
-        assert!(recorded[0].contains("page=1"), "{}", recorded[0]);
-        assert!(recorded[0].contains("uid=42"), "{}", recorded[0]);
-        assert!(recorded[1].contains("page=2"), "{}", recorded[1]);
-        assert!(recorded[1].contains("uid=42"), "{}", recorded[1]);
+        mock1.assert_async().await;
+        mock2.assert_async().await;
     }
 }

@@ -20,7 +20,7 @@ src/endpoint/<组>/<端点>.rs # 端点 Request 文件（空壳，待实现 ← 
 src/schema.rs               # schema 模块接线（已完成）
 src/schema/common.rs        # 共享模型：Response/PageRequest/PageResponse/TaskInfo/UploadResponse（已完成）
 src/schema/<组>.rs          # 各域 schema 文件（空壳，待实现 ← 主要工作面）
-src/test_support.rs         # 仅测试构建：手搓 TcpListener mock 服务器（勿用于生产代码）
+# 单元测试 mock：采用 dev-dependencies 下的 mockito 异步服务器模拟 HTTP 响应
 docs/design.md              # 本文档
 ```
 
@@ -276,7 +276,7 @@ cargo test -p alist-client-derive                         # 宏自身单元测�
 
 - **格式化纪律**：`cargo +nightly fmt --check` 只用于检测；需要格式化时只格式化自己负责的文件：
   `cargo +nightly fmt -- <file>...`。**禁止裸跑 `cargo fmt`**（会波及他人正在修改的文件）。
-- 测试基础设施：`crate::test_support::spawn_mock_server`（手搓 tokio TcpListener，逐请求返回预设响应、
+- 测试基础设施：采用 `mockito::Server::new_async().await` 模拟预设响应、
   可记录请求原文）。端点测试写法参考 `src/endpoint.rs` 的 `mod tests`（含 URL 构建断言、body/查询串断言、
   认证头断言、`data: null`、`into_stream` 翻页等）。客户端行为（响应包装/刷新/限速/错误分类）测试在
   `src/client.rs` 内联 `mod tests`。

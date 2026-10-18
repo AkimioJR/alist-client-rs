@@ -131,12 +131,10 @@ impl<'a> super::LabelFileBinding<'a> {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::{Arc, Mutex};
 
     use chrono::{DateTime, Utc};
 
     use super::*;
-    use crate::test_support::{ok_json, spawn_mock_server};
 
     /// 构造一条绑定记录（按服务端标签绑定模型形状）。
     fn sample_binding(file_name: &str, label_id: u64) -> LabelFileBinding {
@@ -200,15 +198,19 @@ mod tests {
     /// 收发路径断言：mock 服务器 + 记录请求原文，并解码响应内恢复结果。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_msg() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
-                r#"{"code":200,"message":"success","data":{"msg":"restored 2 rows"}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url)
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/admin/label_file_binding/restore")
+            .match_header("authorization", "token-1")
+            .match_body(mockito::Matcher::PartialJsonString(
+                r#"{"bindings":[{"file_name":"movie.mp4","label_id":3},{"file_name":"song.flac","label_id":4}],"keep_ids":true}"#.to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"msg":"restored 2 rows"}}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url())
             .unwrap()
             .with_authentication(crate::Authentication::Token("token-1".to_owned()));
 
@@ -225,18 +227,6 @@ mod tests {
         .unwrap();
         assert_eq!(resp.msg, "restored 2 rows");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/admin/label_file_binding/restore "),
-            "{}",
-            recorded[0]
-        );
-        assert!(recorded[0].contains("\"bindings\":["), "{}", recorded[0]);
-        assert!(recorded[0].contains("\"keep_ids\":true"), "{}", recorded[0]);
-        assert!(
-            recorded[0].contains("\"file_name\":\"movie.mp4\""),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

@@ -113,31 +113,22 @@ mod tests {
     /// 收发路径断言：mock 服务器返回 AList OpenAPI 获取存储详情示例，解码 `Storage`。
     #[tokio::test]
     async fn send_decodes_storage_detail() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        // 示例 JSON：AList OpenAPI 规范 /api/admin/storage/get 响应示例
-        let base_url = spawn_mock_server(
-            vec![ok_json(
-                r#"{"code":200,"message":"success","data":{"id":2,"mount_path":"/aa","order":1,"driver":"Aliyundrive","cache_expiration":30,"status":"work","addition":"{\"root_folder_id\":\"\",\"refresh_token\":\"\"}","remark":"","modified":"2022-11-26T21:50:44.142348853+08:00","disabled":false,"order_by":"","order_direction":"","extract_folder":"front","web_proxy":false,"webdav_policy":"302_redirect","down_proxy_url":""}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let body = r#"{"code":200,"message":"success","data":{"id":2,"mount_path":"/aa","order":1,"driver":"Aliyundrive","cache_expiration":30,"status":"work","addition":"{\"root_folder_id\":\"\",\"refresh_token\":\"\"}","remark":"","modified":"2022-11-26T21:50:44.142348853+08:00","disabled":false,"order_by":"","order_direction":"","extract_folder":"front","web_proxy":false,"webdav_policy":"302_redirect","down_proxy_url":""}}"#;
+        let mock = server
+            .mock("GET", "/api/admin/storage/get?id=2")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let storage = Request::new(&client, 2).send().await.unwrap();
         assert_eq!(storage.id, 2);
         assert_eq!(storage.mount_path, "/aa");
         assert_eq!(storage.driver, "Aliyundrive");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("GET /api/admin/storage/get?id=2 "),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

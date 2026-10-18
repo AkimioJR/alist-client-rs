@@ -122,41 +122,42 @@ mod tests {
     /// 2) 收发路径断言：`send_text` 返回原始文本 `pong`（不走响应解码）。
     #[tokio::test]
     async fn send_text_returns_plain_pong_body() {
-        use crate::test_support::{MockResponse, spawn_mock_server};
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("GET", "/ping")
+            .with_status(200)
+            .with_header("content-type", "text/plain")
+            .with_body("pong")
+            .create_async()
+            .await;
 
-        let base_url = spawn_mock_server(
-            vec![MockResponse {
-                status_line: "HTTP/1.1 200 OK",
-                body: "pong".to_string(),
-            }],
-            None,
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let client = crate::Client::new(server.url()).unwrap();
 
         let text = Request::new(&client).send_text().await.unwrap();
         assert_eq!(text, "pong");
+
+        mock.assert_async().await;
     }
 
     /// 3) HTTP 非 2xx 时按状态码报错（而非尝试解析 JSON 响应）。
     #[tokio::test]
     async fn send_text_maps_http_error_status() {
-        use crate::test_support::{MockResponse, spawn_mock_server};
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("GET", "/ping")
+            .with_status(500)
+            .with_body("boom")
+            .create_async()
+            .await;
 
-        let base_url = spawn_mock_server(
-            vec![MockResponse {
-                status_line: "HTTP/1.1 500 Internal Server Error",
-                body: "boom".to_string(),
-            }],
-            None,
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let client = crate::Client::new(server.url()).unwrap();
 
         let err = Request::new(&client).send_text().await.unwrap_err();
         assert!(
             matches!(err, crate::Error::HttpStatus { status, .. } if status.as_u16() == 500),
             "应返回 HttpStatus 错误: {err:?}"
         );
+
+        mock.assert_async().await;
     }
 }

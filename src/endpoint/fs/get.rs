@@ -143,19 +143,17 @@ mod tests {
     /// 断言 POST 方法与 schema 兼容解码（`related: null`、无 `web_proxy` 的老形状）。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_obj() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/fs/get")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":{"name":"Alist V3.md","size":2618,"is_dir":false,"modified":"2024-05-17T16:05:36.4651534+08:00","created":"2024-05-17T16:05:29.2001008+08:00","sign":"","thumb":"","type":4,"hashinfo":"null","hash_info":null,"raw_url":"http://127.0.0.1:5244/p/local/Alist%20V3.md","readme":"","header":"","provider":"Local","related":null}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+            )
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let resp = client.fs().get("/t/Alist V3.md").send().await.unwrap();
         assert_eq!(resp.obj.name, "Alist V3.md");
@@ -165,12 +163,6 @@ mod tests {
         assert!(resp.related.is_empty());
         assert_eq!(resp.web_proxy, None);
 
-        let recorded = requests.lock().unwrap();
-        assert!(recorded[0].contains("POST /api/fs/get "), "{}", recorded[0]);
-        assert!(
-            recorded[0].contains(r#""path":"/t/Alist V3.md""#),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

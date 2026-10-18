@@ -145,19 +145,19 @@ mod tests {
     /// 收发路径：mock 服务器 + 记录请求原文。
     #[tokio::test]
     async fn send_posts_expected_request() {
-        use std::sync::{Arc, Mutex};
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/auth/login/hash")
+            .match_body(mockito::Matcher::JsonString(
+                r#"{"username":"admin","password":"hashed-password"}"#.to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"token":"abcd"}}"#)
+            .create_async()
+            .await;
 
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
-                r#"{"code":200,"message":"success","data":{"token":"abcd"}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let client = crate::Client::new(server.url()).unwrap();
 
         let login = Request::new(&client, "admin", "hashed-password")
             .send()
@@ -166,22 +166,6 @@ mod tests {
         assert_eq!(login.token, "abcd");
         assert_eq!(login.device_key, None, "老服务器响应不含 device_key");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/auth/login/hash "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("\"username\":\"admin\""),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("\"password\":\"hashed-password\""),
-            "{}",
-            recorded[0]
-        );
-        assert!(!recorded[0].contains("otp_code"), "{}", recorded[0]);
+        mock.assert_async().await;
     }
 }

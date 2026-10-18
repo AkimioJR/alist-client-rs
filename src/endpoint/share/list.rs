@@ -135,14 +135,21 @@ mod tests {
     /// 收发路径：mock 服务器返回分页分享列表并解码。
     #[tokio::test]
     async fn send_gets_share_page_and_decodes_content() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":200,"message":"success","data":{"content":[{"id":1,"share_id":"aBcD1234","name":"docs","root_path":"/data/docs","is_dir":true,"has_password":false,"burn_after_read":false,"access_limit":0,"access_count":0,"remaining_accesses":0,"allow_preview":true,"allow_download":true,"enabled":true,"view_count":0,"download_count":0,"last_access_at":null,"consumed_at":null,"expires_at":null,"created_at":"2026-03-20T10:00:00+08:00","updated_at":"2026-03-20T10:00:00+08:00","url":"https://alist.example/s/aBcD1234"}],"total":1}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("GET", "/api/share/list")
+            .match_query(mockito::Matcher::AllOf(vec![
+                mockito::Matcher::UrlEncoded("page".into(), "1".into()),
+                mockito::Matcher::UrlEncoded("per_page".into(), "10".into()),
+            ]))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+
+        let client = crate::Client::new(server.url()).unwrap();
 
         let page = Request::new(&client)
             .page(1)
@@ -155,41 +162,55 @@ mod tests {
         assert_eq!(page.content[0].share_id, "aBcD1234");
         assert!(page.content[0].enabled);
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("GET /api/share/list?page=1&per_page=10"),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     /// into-stream 翻页：逐页产出分享实体，空页停止（含一次确认请求）。
     #[cfg(feature = "into-stream")]
     #[tokio::test]
     async fn into_stream_walks_pages_until_empty_content() {
-        use std::sync::{Arc, Mutex};
-
         use futures::StreamExt;
 
-        use crate::test_support::{ok_json, spawn_mock_server};
+        let mut server = mockito::Server::new_async().await;
+        let mock_page1 = server
+            .mock("GET", "/api/share/list")
+            .match_query(mockito::Matcher::AllOf(vec![
+                mockito::Matcher::UrlEncoded("page".into(), "1".into()),
+                mockito::Matcher::UrlEncoded("per_page".into(), "1".into()),
+            ]))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{"code":200,"message":"success","data":{"content":[{"id":1,"share_id":"idOne000","name":"first","root_path":"/a","is_dir":true,"has_password":false,"burn_after_read":false,"access_limit":0,"access_count":0,"remaining_accesses":0,"allow_preview":true,"allow_download":true,"enabled":true,"view_count":0,"download_count":0,"last_access_at":null,"consumed_at":null,"expires_at":null,"created_at":"2026-03-20T10:00:00+08:00","updated_at":"2026-03-20T10:00:00+08:00","url":"https://alist.example/s/idOne000"}],"total":2}}"#,
+            )
+            .create_async()
+            .await;
+        let mock_page2 = server
+            .mock("GET", "/api/share/list")
+            .match_query(mockito::Matcher::AllOf(vec![
+                mockito::Matcher::UrlEncoded("page".into(), "2".into()),
+                mockito::Matcher::UrlEncoded("per_page".into(), "1".into()),
+            ]))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{"code":200,"message":"success","data":{"content":[{"id":2,"share_id":"idTwo0000","name":"second","root_path":"/b","is_dir":false,"has_password":true,"burn_after_read":false,"access_limit":0,"access_count":0,"remaining_accesses":0,"allow_preview":true,"allow_download":true,"enabled":true,"view_count":0,"download_count":0,"last_access_at":null,"consumed_at":null,"expires_at":null,"created_at":"2026-03-20T10:00:00+08:00","updated_at":"2026-03-20T10:00:00+08:00","url":"https://alist.example/s/idTwo0000"}],"total":2}}"#,
+            )
+            .create_async()
+            .await;
+        let mock_page3 = server
+            .mock("GET", "/api/share/list")
+            .match_query(mockito::Matcher::AllOf(vec![
+                mockito::Matcher::UrlEncoded("page".into(), "3".into()),
+                mockito::Matcher::UrlEncoded("per_page".into(), "1".into()),
+            ]))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"content":[],"total":2}}"#)
+            .create_async()
+            .await;
 
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![
-                ok_json(
-                    r#"{"code":200,"message":"success","data":{"content":[{"id":1,"share_id":"idOne000","name":"first","root_path":"/a","is_dir":true,"has_password":false,"burn_after_read":false,"access_limit":0,"access_count":0,"remaining_accesses":0,"allow_preview":true,"allow_download":true,"enabled":true,"view_count":0,"download_count":0,"last_access_at":null,"consumed_at":null,"expires_at":null,"created_at":"2026-03-20T10:00:00+08:00","updated_at":"2026-03-20T10:00:00+08:00","url":"https://alist.example/s/idOne000"}],"total":2}}"#,
-                ),
-                ok_json(
-                    r#"{"code":200,"message":"success","data":{"content":[{"id":2,"share_id":"idTwo0000","name":"second","root_path":"/b","is_dir":false,"has_password":true,"burn_after_read":false,"access_limit":0,"access_count":0,"remaining_accesses":0,"allow_preview":true,"allow_download":true,"enabled":true,"view_count":0,"download_count":0,"last_access_at":null,"consumed_at":null,"expires_at":null,"created_at":"2026-03-20T10:00:00+08:00","updated_at":"2026-03-20T10:00:00+08:00","url":"https://alist.example/s/idTwo0000"}],"total":2}}"#,
-                ),
-                ok_json(
-                    r#"{"code":200,"message":"success","data":{"content":[],"total":2}}"#,
-                ),
-            ],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let client = crate::Client::new(server.url()).unwrap();
 
         let names: Vec<String> = Request::new(&client)
             .per_page(1)
@@ -199,10 +220,8 @@ mod tests {
             .await;
         assert_eq!(names, vec!["first".to_owned(), "second".to_owned()]);
 
-        let recorded = requests.lock().unwrap();
-        assert_eq!(recorded.len(), 3); // 空页会多一次确认请求
-        assert!(recorded[0].contains("page=1"), "{}", recorded[0]);
-        assert!(recorded[1].contains("page=2"), "{}", recorded[1]);
-        assert!(recorded[2].contains("page=3"), "{}", recorded[2]);
+        mock_page1.assert_async().await;
+        mock_page2.assert_async().await;
+        mock_page3.assert_async().await;
     }
 }

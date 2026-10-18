@@ -159,10 +159,8 @@ impl<'a> super::LabelFileBinding<'a> {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::{Arc, Mutex};
 
     use super::*;
-    use crate::test_support::{ok_json, spawn_mock_server};
 
     /// 请求形状断言：方法/URL/查询串与 JSON 请求体键名。
     #[test]
@@ -202,15 +200,19 @@ mod tests {
     /// 收发路径断言：mock 服务器 + 记录请求原文，并解码响应内 `data`。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_msg() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
-                r#"{"code":200,"message":"success","data":{"msg":"添加成功！"}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url)
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/admin/label_file_binding/create")
+            .match_header("authorization", "token-1")
+            .match_body(mockito::Matcher::PartialJsonString(
+                r#"{"name":"movie.mp4","label_ids":"1,2"}"#.to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"msg":"添加成功！"}}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url())
             .unwrap()
             .with_authentication(crate::Authentication::Token("token-1".to_owned()));
 
@@ -221,21 +223,6 @@ mod tests {
             .unwrap();
         assert_eq!(resp.msg, "添加成功！");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/admin/label_file_binding/create "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("\"name\":\"movie.mp4\""),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("\"label_ids\":\"1,2\""),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

@@ -124,24 +124,22 @@ mod tests {
     /// 收发路径：mock 服务器返回驱动模板映射，验证请求行与响应解码。
     #[tokio::test]
     async fn send_decodes_driver_template_map() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
+        let mut server = mockito::Server::new_async().await;
 
         let body = r#"{"code":200,"message":"success","data":{"Local":{"common":[],"additional":[],"config":{"name":"Local","local_sort":false,"only_local":true,"only_proxy":false,"no_cache":false,"no_upload":false,"need_ms":false,"default_root":"","alert":""}}}}"#;
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("GET", "/api/admin/driver/list")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let templates: DriverListResponse = Request::new(&client).send().await.unwrap();
         assert!(templates.contains_key("Local"));
         assert_eq!(templates["Local"]["config"]["name"], "Local");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("GET /api/admin/driver/list"),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

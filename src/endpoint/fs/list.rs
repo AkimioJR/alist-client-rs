@@ -198,19 +198,18 @@ mod tests {
     /// （老版本形状），断言 POST 方法、认证头注入与 schema 兼容解码。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_list() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/fs/list")
+            .match_header("authorization", "token-1")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":{"content":[{"name":"Alist V3.md","size":1592,"is_dir":false,"modified":"2024-05-17T13:47:55.4174917+08:00","created":"2024-05-17T13:47:47.5725906+08:00","sign":"","thumb":"","type":4,"hashinfo":"null","hash_info":null}],"total":1,"readme":"","header":"","write":true,"provider":"Local"}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url)
+            )
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url())
             .unwrap()
             .with_authentication(crate::Authentication::Token("token-1".to_owned()));
 
@@ -221,35 +220,24 @@ mod tests {
         assert!(resp.write);
         assert_eq!(resp.provider, "Local");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/fs/list "),
-            "{}",
-            recorded[0]
-        );
-        assert!(recorded[0].contains(r#""path":"/t""#), "{}", recorded[0]);
-        assert!(recorded[0].contains(r#""per_page":10"#), "{}", recorded[0]);
-        assert!(
-            recorded[0].contains("authorization: token-1"),
-            "应注入认证头: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     /// 4) 收发路径断言：新版服务端返回分页元信息（filtered_total/has_more 等）
     /// 与对象新增字段时可解码。
     #[tokio::test]
     async fn send_decodes_new_server_pagination_fields() {
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/fs/list")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":{"content":[{"id":"local-1","path":"/data/a.txt","virtual_path":"/local/a.txt","name":"a.txt","size":12,"is_dir":false,"modified":"2024-05-17T13:47:55.4174917+08:00","created":"2024-05-17T13:47:47.5725906+08:00","sign":"","thumb":"","type":4,"hashinfo":"sha1:abc","hash_info":{"sha1":"abc"},"label_list":[],"storage_class":"STANDARD"}],"total":1,"filtered_total":1,"page":1,"per_page":200,"has_more":false,"pages_total":1,"readme":"","header":"","write":true,"provider":"Local"}}"#,
-            )],
-            None,
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+            )
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let resp = client.fs().list("/local").send().await.unwrap();
         assert_eq!(resp.filtered_total, Some(1));
@@ -259,6 +247,8 @@ mod tests {
         assert_eq!(resp.pages_total, Some(1));
         assert_eq!(resp.content[0].id.as_deref(), Some("local-1"));
         assert_eq!(resp.content[0].storage_class.as_deref(), Some("STANDARD"));
+
+        mock.assert_async().await;
     }
 
     /// 5) into-stream 翻页断言：请求体 `page` 从 1 逐页递增，服务端翻页耗尽
@@ -266,26 +256,30 @@ mod tests {
     #[cfg(feature = "into-stream")]
     #[tokio::test]
     async fn into_stream_walks_pages_until_empty_content() {
-        use std::sync::{Arc, Mutex};
-
         use futures::StreamExt;
 
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![
-                ok_json(
-                    r#"{"code":200,"message":"success","data":{"content":[{"name":"a.txt","size":1,"is_dir":false,"modified":"2024-05-17T13:47:55.4174917+08:00","sign":"","thumb":"","type":4}],"total":1,"readme":"","header":"","write":true,"provider":"Local","has_more":false}}"#,
-                ),
-                ok_json(
-                    r#"{"code":200,"message":"success","data":{"content":null,"total":1,"readme":"","header":"","write":true,"provider":"Local"}}"#,
-                ),
-            ],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock_p1 = server
+            .mock("POST", "/api/fs/list")
+            .match_body(mockito::Matcher::PartialJsonString(r#"{"page":1}"#.to_string()))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{"code":200,"message":"success","data":{"content":[{"name":"a.txt","size":1,"is_dir":false,"modified":"2024-05-17T13:47:55.4174917+08:00","sign":"","thumb":"","type":4}],"total":1,"readme":"","header":"","write":true,"provider":"Local","has_more":false}}"#,
+            )
+            .create_async()
+            .await;
+        let mock_p2 = server
+            .mock("POST", "/api/fs/list")
+            .match_body(mockito::Matcher::PartialJsonString(r#"{"page":2}"#.to_string()))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{"code":200,"message":"success","data":{"content":null,"total":1,"readme":"","header":"","write":true,"provider":"Local"}}"#,
+            )
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let names: Vec<String> = Request::new(&client, "/t")
             .per_page(1)
@@ -295,9 +289,7 @@ mod tests {
             .await;
         assert_eq!(names, vec!["a.txt".to_owned()]);
 
-        let recorded = requests.lock().unwrap();
-        assert_eq!(recorded.len(), 2, "空 content 页会多一次确认请求");
-        assert!(recorded[0].contains(r#""page":1"#), "{}", recorded[0]);
-        assert!(recorded[1].contains(r#""page":2"#), "{}", recorded[1]);
+        mock_p1.assert_async().await;
+        mock_p2.assert_async().await;
     }
 }

@@ -81,10 +81,7 @@ impl<'a> super::SshKey<'a> {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::{Arc, Mutex};
-
     use super::*;
-    use crate::test_support::{ok_json, spawn_mock_server};
 
     /// 请求形状：POST /api/admin/user/sshkey/delete，查询串携带 id，无请求体。
     #[test]
@@ -108,21 +105,19 @@ mod tests {
     /// 收发路径：mock 服务器返回 data: null，验证解码为 ()。
     #[tokio::test]
     async fn send_deletes_ssh_public_key() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(r#"{"code":200,"message":"success","data":null}"#)],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let body = r#"{"code":200,"message":"success","data":null}"#;
+        let mock = server
+            .mock("POST", "/api/admin/user/sshkey/delete?id=7")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         Request::new(&client, 7).send().await.unwrap();
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("POST /api/admin/user/sshkey/delete?id=7"),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

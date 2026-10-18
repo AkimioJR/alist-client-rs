@@ -138,14 +138,20 @@ mod tests {
     /// 收发路径：mock 服务器断言请求体形状并解码详情响应。
     #[tokio::test]
     async fn send_posts_body_and_decodes_get() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":200,"message":"success","data":{"item":{"name":"demo.txt","size":2048,"is_dir":false,"modified":"2026-03-20T10:00:00+08:00","created":"2026-03-20T10:00:00+08:00","thumb":"","type":0,"path":"/demo.txt","download_url":"https://alist.example/sd/aBcD1234/demo.txt?auth=t"},"provider":"Local"}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("POST", "/api/public/share/get")
+            .match_body(mockito::Matcher::JsonString(
+                r#"{"share_id":"aBcD1234","path":"/demo.txt","token":"share-token"}"#.to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+
+        let client = crate::Client::new(server.url()).unwrap();
 
         let detail = Request::new(&client, "aBcD1234")
             .path("/demo.txt")
@@ -157,50 +163,31 @@ mod tests {
         assert_eq!(detail.item.name, "demo.txt");
         assert_eq!(detail.item.path, "/demo.txt");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/public/share/get "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""share_id":"aBcD1234""#),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""path":"/demo.txt""#),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""token":"share-token""#),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     /// 收发路径：可选项缺省时请求体仅含 `share_id`；直接 `.await` 走 IntoFuture。
     #[tokio::test]
     async fn send_with_defaults_via_into_future() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":200,"message":"success","data":{"item":{"name":"root","size":0,"is_dir":true,"modified":"2026-03-20T10:00:00+08:00","created":"2026-03-20T10:00:00+08:00","thumb":"","type":1,"path":"/"},"provider":"unknown"}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("POST", "/api/public/share/get")
+            .match_body(mockito::Matcher::JsonString(
+                r#"{"share_id":"aBcD1234"}"#.to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+
+        let client = crate::Client::new(server.url()).unwrap();
 
         let detail = Request::new(&client, "aBcD1234").await.unwrap();
         assert!(detail.item.is_dir);
         assert_eq!(detail.provider, "unknown");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains(r#"{"share_id":"aBcD1234"}"#),
-            "可选项缺省时请求体应仅含 share_id: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

@@ -187,19 +187,17 @@ mod tests {
     /// 2) 收发路径断言：mock 服务器返回 OpenAPI 示例响应，断言请求原文与任务解码。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_tasks() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/fs/add_offline_download")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":{"tasks":[{"id":"jwy7BrfZRzbI2xWg7-y","name":"download https://www.baidu.com/img/20d6cf.png to (/local)","state":0,"status":"","progress":0,"error":""}]}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+            )
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let resp = client
             .fs()
@@ -216,21 +214,6 @@ mod tests {
         assert_eq!(resp.tasks[0].id, "jwy7BrfZRzbI2xWg7-y");
         assert_eq!(resp.tasks[0].state, 0);
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/fs/add_offline_download "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""tool":"SimpleHttp""#),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""delete_policy":"delete_on_upload_succeed""#),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

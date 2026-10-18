@@ -97,32 +97,19 @@ mod tests {
     /// 收发路径断言：请求不携带 JSON Content-Type（无 body 字段）。
     #[tokio::test]
     async fn send_posts_without_json_content_type() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(r#"{"code":200,"message":"success","data":null}"#)],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let body = r#"{"code":200,"message":"success","data":null}"#;
+        let mock = server
+            .mock("POST", "/api/admin/storage/load_all")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         Request::new(&client).send().await.unwrap();
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/admin/storage/load_all "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            !recorded[0]
-                .to_ascii_lowercase()
-                .contains("content-type: application/json"),
-            "无请求体字段的请求不应携带 JSON Content-Type: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

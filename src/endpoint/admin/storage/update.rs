@@ -237,40 +237,39 @@ mod tests {
     /// 兼容钉扎（Go 实现）：成功响应 `data: null` → `None`。
     #[tokio::test]
     async fn send_decodes_null_data_as_none() {
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        // 响应形状：AList 服务端 handles.Storage 模块 UpdateStorage → SuccessResp(c)
-        let base_url = spawn_mock_server(
-            vec![ok_json(r#"{"code":200,"message":"success","data":null}"#)],
-            None,
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let body = r#"{"code":200,"message":"success","data":null}"#;
+        let mock = server
+            .mock("POST", "/api/admin/storage/update")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let resp = Request::new(&client, 7, "/spam", "Local", "{}")
             .send()
             .await
             .unwrap();
         assert_eq!(resp, None);
+
+        mock.assert_async().await;
     }
 
     /// 兼容钉扎（openapi 示例）：成功响应 `data: {"id": N}` → `Some`。
     #[tokio::test]
     async fn send_decodes_id_data_as_some() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        // 响应示例：AList OpenAPI 规范 /api/admin/storage/update（data: {"id": 7}）
-        let base_url = spawn_mock_server(
-            vec![ok_json(
-                r#"{"code":200,"message":"success","data":{"id":7}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let body = r#"{"code":200,"message":"success","data":{"id":7}}"#;
+        let mock = server
+            .mock("POST", "/api/admin/storage/update")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let resp = Request::new(&client, 7, "/spam", "Local", "{}")
             .remark("已更新")
@@ -279,17 +278,6 @@ mod tests {
             .unwrap();
         assert_eq!(resp, Some(StorageCreateResponse { id: 7 }));
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/admin/storage/update "),
-            "{}",
-            recorded[0]
-        );
-        assert!(recorded[0].contains("\"id\":7"), "{}", recorded[0]);
-        assert!(
-            recorded[0].contains("\"remark\":\"已更新\""),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

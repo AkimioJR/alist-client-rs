@@ -106,19 +106,18 @@ mod tests {
     /// 收发路径：mock 服务器返回消息 JSON，断言 POST 方法与正确解码。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_message() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/admin/message/get")
+            .match_header("authorization", "admin-token")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":{"type":"string","content":"dev mode"}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url)
+            )
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url())
             .unwrap()
             .with_authentication(crate::Authentication::Token("admin-token".to_owned()));
 
@@ -126,16 +125,6 @@ mod tests {
         assert_eq!(message.r#type, "string");
         assert_eq!(message.content, serde_json::json!("dev mode"));
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/admin/message/get "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("authorization: admin-token"),
-            "应注入认证头: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

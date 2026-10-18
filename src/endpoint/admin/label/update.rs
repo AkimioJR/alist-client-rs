@@ -155,14 +155,19 @@ mod tests {
     /// 2) 收发路径断言：mock 服务器 + 记录请求原文，响应解码为更新后的 Label。
     #[tokio::test]
     async fn send_updates_label_and_returns_it() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = format!(r#"{{"code":200,"message":"success","data":{LABEL_JSON}}}"#);
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("POST", "/api/admin/label/update")
+            .match_body(mockito::Matcher::PartialJsonString(
+                r##"{"id":1,"name":"电影","bg_color":"#FF0000"}"##.to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let label = Request::new(&client, 1, "电影")
             .description("电影相关文件")
@@ -174,18 +179,6 @@ mod tests {
         assert_eq!(label.name, "电影");
         assert_eq!(label.description.as_deref(), Some("电影相关文件"));
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/admin/label/update "),
-            "{}",
-            recorded[0]
-        );
-        assert!(recorded[0].contains("\"id\":1"), "{}", recorded[0]);
-        assert!(recorded[0].contains("\"name\":\"电影\""), "{}", recorded[0]);
-        assert!(
-            recorded[0].contains("\"bg_color\":\"#FF0000\""),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

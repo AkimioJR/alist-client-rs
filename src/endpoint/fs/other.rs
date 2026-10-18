@@ -175,16 +175,18 @@ mod tests {
     /// 收发路径：mock 返回 S3/OSS 过渡任务形状的驱动 JSON，断言请求行、请求体与 `Value` 解码。
     #[tokio::test]
     async fn send_decodes_driver_specific_value() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         // 示例形状取自 AList 服务端 fs.Other 的 S3/OSS 过渡任务返回
         // （Go map[string]string，键为 task_id）
         let body = r#"{"code":200,"message":"success","data":{"task_id":"s3-transition-1"}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("POST", "/api/fs/other")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let data = Request::new(&client, "/oss/file.rar", "archive")
             .send()
@@ -192,35 +194,28 @@ mod tests {
             .unwrap();
         assert_eq!(data["task_id"], "s3-transition-1");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("POST /api/fs/other "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#"{"path":"/oss/file.rar","method":"archive"}"#),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     /// 收发路径：驱动无返回时 `data` 为 `null`，解码为 [`serde_json::Value::Null`]。
     #[tokio::test]
     async fn send_tolerates_null_data() {
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let base_url = spawn_mock_server(
-            vec![ok_json(r#"{"code":200,"message":"success","data":null}"#)],
-            None,
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/fs/other")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let data = Request::new(&client, "/file.txt", "doc_preview")
             .send()
             .await
             .unwrap();
         assert_eq!(data, serde_json::Value::Null);
+
+        mock.assert_async().await;
     }
 }

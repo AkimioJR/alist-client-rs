@@ -84,10 +84,7 @@ impl<'a> super::Auth<'a> {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::{Arc, Mutex};
-
     use super::*;
-    use crate::test_support::{ok_json, spawn_mock_server};
 
     /// 请求形状：POST /api/me/sshkey/delete，查询串携带 id，无请求体。
     #[test]
@@ -111,46 +108,41 @@ mod tests {
     /// 收发路径：mock 服务器返回 `data: null`，断言请求原文与 `()` 解码。
     #[tokio::test]
     async fn send_deletes_ssh_public_key() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(r#"{"code":200,"message":"success","data":null}"#)],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url)
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/me/sshkey/delete")
+            .match_query(mockito::Matcher::UrlEncoded("id".into(), "7".into()))
+            .match_header("authorization", "test-token")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .create_async()
+            .await;
+
+        let client = crate::Client::new(server.url())
             .unwrap()
             .with_authentication(crate::Authentication::Token("test-token".to_owned()));
 
         client.auth().me_ssh_key_delete(7).send().await.unwrap();
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("POST /api/me/sshkey/delete?id=7"),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("authorization: test-token"),
-            "应注入认证头: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     /// 收发路径：密钥不存在时服务端返回 HTTP 200 + 信封 `code` 404，
     /// 断言客户端将其映射为 API 错误。
     #[tokio::test]
     async fn send_maps_missing_key_to_api_error() {
-        use crate::test_support::{MockResponse, spawn_mock_server};
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/me/sshkey/delete")
+            .match_query(mockito::Matcher::UrlEncoded("id".into(), "999".into()))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":404,"message":"failed to get public key","data":null}"#)
+            .create_async()
+            .await;
 
-        let base_url = spawn_mock_server(
-            vec![MockResponse {
-                status_line: "HTTP/1.1 200 OK",
-                body: r#"{"code":404,"message":"failed to get public key","data":null}"#.to_owned(),
-            }],
-            None,
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let client = crate::Client::new(server.url()).unwrap();
 
         let err = client
             .auth()
@@ -165,5 +157,7 @@ mod tests {
             }
             other => panic!("expected Api, got {other:?}"),
         }
+
+        mock.assert_async().await;
     }
 }

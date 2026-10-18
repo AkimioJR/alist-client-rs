@@ -108,19 +108,18 @@ mod tests {
     /// 收发路径：mock 服务器返回进度 JSON，断言 GET 方法与正确解码。
     #[tokio::test]
     async fn send_gets_progress_and_decodes_index_progress() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("GET", "/api/admin/index/progress")
+            .match_header("authorization", "admin-token")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":{"obj_count":12345,"is_done":true,"last_done_time":"2024-06-01T08:00:00Z","error":""}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url)
+            )
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url())
             .unwrap()
             .with_authentication(crate::Authentication::Token("admin-token".to_owned()));
 
@@ -130,16 +129,6 @@ mod tests {
         assert!(progress.last_done_time.is_some());
         assert_eq!(progress.error, "");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("GET /api/admin/index/progress "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("authorization: admin-token"),
-            "应注入认证头: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

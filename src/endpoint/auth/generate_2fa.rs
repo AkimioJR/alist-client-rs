@@ -102,19 +102,19 @@ mod tests {
     /// 收发路径：mock 服务器 + 记录请求原文，解码生成密钥响应。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_generated_2fa() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/auth/2fa/generate")
+            .match_header("authorization", "token-1")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":{"qr":"data:image/png;base64,iVBORw0KGgoAAAANSUhE","secret":"RPQZG4MDS3"}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url)
+            )
+            .create_async()
+            .await;
+
+        let client = crate::Client::new(server.url())
             .unwrap()
             .with_authentication(crate::Authentication::Token("token-1".to_owned()));
 
@@ -122,16 +122,6 @@ mod tests {
         assert_eq!(generated.secret, "RPQZG4MDS3");
         assert!(generated.qr.starts_with("data:image/png;base64,"));
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/auth/2fa/generate "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("authorization: token-1"),
-            "应注入认证头: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

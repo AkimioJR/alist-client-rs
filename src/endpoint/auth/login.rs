@@ -194,19 +194,21 @@ mod tests {
     /// 收发路径：mock 服务器 + 记录请求原文，解码登录响应。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_login_response() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/auth/login")
+            .match_body(mockito::Matcher::JsonString(
+                r#"{"username":"admin","password":"password","otp_code":"123456"}"#.to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":{"token":"abcd","device_key":"key-1"}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+            )
+            .create_async()
+            .await;
+
+        let client = crate::Client::new(server.url()).unwrap();
 
         let login = Request::new(&client, "admin", "password")
             .otp_code("123456")
@@ -216,31 +218,6 @@ mod tests {
         assert_eq!(login.token, "abcd");
         assert_eq!(login.device_key.as_deref(), Some("key-1"));
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/auth/login "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            !recorded[0].contains("/api/auth/login/hash"),
-            "不应误用哈希登录路径: {}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("\"username\":\"admin\""),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("\"password\":\"password\""),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("\"otp_code\":\"123456\""),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

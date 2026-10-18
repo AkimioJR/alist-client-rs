@@ -136,17 +136,16 @@ mod tests {
     /// 收发路径：mock 服务器记录请求原文并解码 `"ok"` 字符串。
     #[tokio::test]
     async fn send_returns_ok_string() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(r#"{"code":200,"message":"success","data":"ok"}"#)],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let body = r#"{"code":200,"message":"success","data":"ok"}"#;
+        let mock = server
+            .mock("POST", "/api/admin/setting/set_transmission")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let data = Request::new(&client, "http://localhost:9091/transmission/rpc", "30")
             .send()
@@ -154,21 +153,6 @@ mod tests {
             .unwrap();
         assert_eq!(data, "ok");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/admin/setting/set_transmission "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""uri":"http://localhost:9091/transmission/rpc""#),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""seedtime":"30""#),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

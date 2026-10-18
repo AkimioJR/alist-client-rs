@@ -55,10 +55,7 @@ impl<'a> super::Admin<'a> {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::{Arc, Mutex};
-
     use super::*;
-    use crate::test_support::{ok_json, spawn_mock_server};
 
     /// 验证管理员任务句柄的作用域为 [`TaskScope::Admin`]。
     #[test]
@@ -103,37 +100,38 @@ mod tests {
     /// 验证 `client.admin().task().upload().undone()` 发送 `GET /api/admin/task/upload/undone`。
     #[tokio::test]
     async fn admin_task_upload_undone_sends_get_request() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":200,"message":"success","data":[]}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url)
+        let mock = server
+            .mock("GET", "/api/admin/task/upload/undone")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url())
             .unwrap()
             .with_authentication(crate::Authentication::Token("admin-token".to_owned()));
 
         let undone = client.admin().task().upload().undone().await.unwrap();
         assert!(undone.is_empty());
 
-        let recorded = requests.lock().unwrap();
-        assert_eq!(recorded.len(), 1);
-        assert!(
-            recorded[0].contains("GET /api/admin/task/upload/undone"),
-            "请求未包含预期的 GET 路径: {}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("authorization: admin-token"),
-            "请求应携带认证头: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     /// 验证 `client.admin().task().copy().info("tid")` 发送 `POST /api/admin/task/copy/info?tid=tid`。
     #[tokio::test]
     async fn admin_task_copy_info_sends_post_request() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":200,"message":"success","data":{"id":"tid","name":"copy file","state":2,"status":"running","progress":50.0,"error":""}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url)
+        let mock = server
+            .mock("POST", "/api/admin/task/copy/info?tid=tid")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url())
             .unwrap()
             .with_authentication(crate::Authentication::Token("admin-token".to_owned()));
 
@@ -141,17 +139,6 @@ mod tests {
         assert_eq!(info.id, "tid");
         assert_eq!(info.name, "copy file");
 
-        let recorded = requests.lock().unwrap();
-        assert_eq!(recorded.len(), 1);
-        assert!(
-            recorded[0].contains("POST /api/admin/task/copy/info?tid=tid"),
-            "请求未包含预期的 POST 路径与查询参数: {}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("authorization: admin-token"),
-            "请求应携带认证头: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

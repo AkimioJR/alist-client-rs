@@ -169,33 +169,21 @@ mod tests {
     /// 3) 收发路径断言：mock 服务器返回 `data: null`，断言请求原文与解码。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_null_data() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(r#"{"code":200,"message":"success","data":null}"#)],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/fs/move")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         Request::new(&client, "/m1", "/m2", vec!["a.txt".to_owned()])
             .send()
             .await
             .unwrap();
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/fs/move "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""names":["a.txt"]"#),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

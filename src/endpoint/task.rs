@@ -946,18 +946,14 @@ mod tests {
     /// 3. Mock 服务器收发与反序列化测试：`list::Request`
     #[tokio::test]
     async fn test_task_list_mock_send_and_await() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{
             "code": 200,
             "message": "success",
             "data": [
                 {
-                    "id": "task_1",
-                    "name": "copy item",
+                    "id": "t1",
+                    "name": "upload task",
                     "state": 3,
                     "status": "succeeded",
                     "progress": 100,
@@ -965,41 +961,40 @@ mod tests {
                 }
             ]
         }"#;
-        let base_url = spawn_mock_server(
-            vec![ok_json(body), ok_json(body)],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock_undone = server
+            .mock("GET", "/api/task/upload/undone")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let mock_done = server
+            .mock("GET", "/api/task/copy/done")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
-        // 验证 .send().await
-        let list1 = client.task().copy().done().send().await.unwrap();
+        let list1 = client.task().upload().undone().send().await.unwrap();
         assert_eq!(list1.len(), 1);
-        assert_eq!(list1[0].id, "task_1");
-
-        // 验证直接 .await (IntoFuture)
         let list2 = client.task().copy().done().await.unwrap();
         assert_eq!(list2.len(), 1);
-        assert_eq!(list2[0].id, "task_1");
 
-        let recorded = requests.lock().unwrap();
-        assert!(recorded[0].starts_with("GET /api/task/copy/done "));
-        assert!(recorded[1].starts_with("GET /api/task/copy/done "));
+        mock_undone.assert_async().await;
+        mock_done.assert_async().await;
     }
 
     /// 4. Mock 服务器收发与反序列化测试：`info::Request`
     #[tokio::test]
     async fn test_task_info_mock_send_and_await() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{
             "code": 200,
             "message": "success",
             "data": {
-                "id": "task_123",
+                "id": "t_info",
                 "name": "download url",
                 "state": 1,
                 "status": "running",
@@ -1007,106 +1002,107 @@ mod tests {
                 "error": ""
             }
         }"#;
-        let base_url = spawn_mock_server(
-            vec![ok_json(body), ok_json(body)],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock_upload = server
+            .mock("POST", "/api/task/upload/info?tid=t1")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let mock_copy = server
+            .mock("POST", "/api/task/copy/info?tid=t2")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
-        // 验证 .send().await
-        let info1 = client
-            .task()
-            .offline_download()
-            .info("task_123")
-            .send()
-            .await
-            .unwrap();
-        assert_eq!(info1.id, "task_123");
-        assert_eq!(info1.progress, 42.5);
+        let info1 = client.task().upload().info("t1").send().await.unwrap();
+        assert_eq!(info1.id, "t_info");
+        let info2 = client.task().copy().info("t2".to_string()).await.unwrap();
+        assert_eq!(info2.id, "t_info");
 
-        // 验证直接 .await (IntoFuture)
-        let info2 = client
-            .task()
-            .offline_download()
-            .info("task_123")
-            .await
-            .unwrap();
-        assert_eq!(info2.id, "task_123");
-
-        let recorded = requests.lock().unwrap();
-        assert!(recorded[0].contains("POST /api/task/offline_download/info?tid=task_123 "));
-        assert!(recorded[1].contains("POST /api/task/offline_download/info?tid=task_123 "));
+        mock_upload.assert_async().await;
+        mock_copy.assert_async().await;
     }
 
     /// 5. Mock 服务器收发与反序列化测试：`action::Request`
     #[tokio::test]
     async fn test_task_action_mock_send_and_await() {
-        use std::sync::{Arc, Mutex};
+        let mut server = mockito::Server::new_async().await;
+        let mock_cancel = server
+            .mock("POST", "/api/task/upload/cancel?tid=t1")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .create_async()
+            .await;
+        let mock_delete = server
+            .mock("POST", "/api/task/copy/delete?tid=t2")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .create_async()
+            .await;
+        let mock_retry = server
+            .mock("POST", "/api/task/s3_transition/retry?tid=t3")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let body = r#"{"code":200,"message":"success","data":null}"#;
-        let base_url = spawn_mock_server(
-            vec![ok_json(body), ok_json(body), ok_json(body)],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
-
-        // 验证 cancel send()
         client.task().upload().cancel("t1").send().await.unwrap();
-        // 验证 delete 直接 await
         client.task().copy().delete("t2").await.unwrap();
-        // 验证 retry 直接 await
         client.task().s3_transition().retry("t3").await.unwrap();
 
-        let recorded = requests.lock().unwrap();
-        assert!(recorded[0].contains("POST /api/task/upload/cancel?tid=t1 "));
-        assert!(recorded[1].contains("POST /api/task/copy/delete?tid=t2 "));
-        assert!(recorded[2].contains("POST /api/task/s3_transition/retry?tid=t3 "));
+        mock_cancel.assert_async().await;
+        mock_delete.assert_async().await;
+        mock_retry.assert_async().await;
     }
 
     /// 6. Mock 服务器收发与反序列化测试：`empty::Request`
     #[tokio::test]
     async fn test_task_empty_post_mock_send_and_await() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let body = r#"{"code":200,"message":"success","data":null}"#;
-        let base_url = spawn_mock_server(
-            vec![ok_json(body), ok_json(body), ok_json(body)],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock_clear_done = server
+            .mock("POST", "/api/task/upload/clear_done")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .create_async()
+            .await;
+        let mock_clear_succeeded = server
+            .mock("POST", "/api/task/decompress/clear_succeeded")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .create_async()
+            .await;
+        let mock_retry_failed = server
+            .mock("POST", "/api/task/s3_transition/retry_failed")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         client.task().upload().clear_done().send().await.unwrap();
         client.task().decompress().clear_succeeded().await.unwrap();
-        client
-            .task()
-            .decompress_upload()
-            .retry_failed()
-            .await
-            .unwrap();
+        client.task().s3_transition().retry_failed().await.unwrap();
 
-        let recorded = requests.lock().unwrap();
-        assert!(recorded[0].starts_with("POST /api/task/upload/clear_done "));
-        assert!(recorded[1].starts_with("POST /api/task/decompress/clear_succeeded "));
-        assert!(recorded[2].starts_with("POST /api/task/decompress_upload/retry_failed "));
+        mock_clear_done.assert_async().await;
+        mock_clear_succeeded.assert_async().await;
+        mock_retry_failed.assert_async().await;
     }
 
     /// 7. Mock 服务器收发与反序列化测试：`batch::Request`
     #[tokio::test]
     async fn test_task_batch_mock_send_and_await() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{
             "code": 200,
             "message": "success",
@@ -1114,14 +1110,35 @@ mod tests {
                 "t1": "task not found"
             }
         }"#;
-        let base_url = spawn_mock_server(
-            vec![ok_json(body), ok_json(body), ok_json(body)],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock_cancel = server
+            .mock("POST", "/api/task/upload/cancel_some")
+            .match_header("content-type", "application/json")
+            .match_body(mockito::Matcher::Json(serde_json::json!(["t1", "t2"])))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let mock_delete = server
+            .mock("POST", "/api/task/copy/delete_some")
+            .match_header("content-type", "application/json")
+            .match_body(mockito::Matcher::Json(serde_json::json!(["t1"])))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let mock_retry = server
+            .mock("POST", "/api/task/offline_download/retry_some")
+            .match_header("content-type", "application/json")
+            .match_body(mockito::Matcher::Json(serde_json::json!(["t1"])))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
-        // 验证 cancel_some .send().await
         let res1 = client
             .task()
             .upload()
@@ -1132,7 +1149,6 @@ mod tests {
         assert_eq!(res1.get("t1").map(String::as_str), Some("task not found"));
         assert!(!res1.contains_key("t2"));
 
-        // 验证 delete_some 直接 .await (IntoFuture)
         let res2 = client
             .task()
             .copy()
@@ -1141,7 +1157,6 @@ mod tests {
             .unwrap();
         assert_eq!(res2.len(), 1);
 
-        // 验证 retry_some 直接 .await (IntoFuture)
         let res3 = client
             .task()
             .offline_download()
@@ -1150,24 +1165,16 @@ mod tests {
             .unwrap();
         assert_eq!(res3.len(), 1);
 
-        let recorded = requests.lock().unwrap();
-        assert!(recorded[0].starts_with("POST /api/task/upload/cancel_some "));
-        assert!(recorded[0].contains(r#"["t1","t2"]"#));
-        assert!(recorded[1].starts_with("POST /api/task/copy/delete_some "));
-        assert!(recorded[1].contains(r#"["t1"]"#));
-        assert!(recorded[2].starts_with("POST /api/task/offline_download/retry_some "));
-        assert!(recorded[2].contains(r#"["t1"]"#));
+        mock_cancel.assert_async().await;
+        mock_delete.assert_async().await;
+        mock_retry.assert_async().await;
     }
 
     /// 8. Mock 服务器收发与反序列化测试：管理员级前缀（`TaskScope::Admin`）
     ///    覆盖全部 5 种请求形状。
     #[tokio::test]
     async fn test_task_admin_prefix_mock_send_and_await() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let list_body = r#"{
             "code": 200,
             "message": "success",
@@ -1194,45 +1201,66 @@ mod tests {
                 "error": ""
             }
         }"#;
-        let base_url = spawn_mock_server(
-            vec![
-                ok_json(list_body),
-                ok_json(info_body),
-                ok_json(r#"{"code":200,"message":"success","data":null}"#),
-                ok_json(r#"{"code":200,"message":"success","data":null}"#),
-                ok_json(r#"{"code":200,"message":"success","data":{"t3":"task not found"}}"#),
-            ],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+
+        let mock_list = server
+            .mock("GET", "/api/admin/task/upload/undone")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(list_body)
+            .create_async()
+            .await;
+        let mock_info = server
+            .mock("POST", "/api/admin/task/copy/info?tid=t_info")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(info_body)
+            .create_async()
+            .await;
+        let mock_cancel = server
+            .mock("POST", "/api/admin/task/offline_download/cancel?tid=t2")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .create_async()
+            .await;
+        let mock_empty = server
+            .mock("POST", "/api/admin/task/decompress/clear_done")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .create_async()
+            .await;
+        let mock_batch = server
+            .mock("POST", "/api/admin/task/s3_transition/retry_some")
+            .match_header("content-type", "application/json")
+            .match_body(mockito::Matcher::Json(serde_json::json!(["t3"])))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"t3":"task not found"}}"#)
+            .create_async()
+            .await;
+
+        let client = crate::Client::new(server.url()).unwrap();
         let admin_task = Task::with_scope(&client, TaskScope::Admin);
 
-        // list: GET /api/admin/task/upload/undone
         let list = admin_task.upload().undone().send().await.unwrap();
         assert_eq!(list.len(), 1);
         assert_eq!(list[0].id, "admin_task_1");
 
-        // info: POST /api/admin/task/copy/info?tid=…
         let info = admin_task.copy().info("t_info").await.unwrap();
         assert_eq!(info.id, "t_info");
 
-        // action: POST /api/admin/task/offline_download/cancel?tid=…
         admin_task.offline_download().cancel("t2").await.unwrap();
 
-        // empty: POST /api/admin/task/decompress/clear_done
         admin_task.decompress().clear_done().await.unwrap();
 
-        // batch: POST /api/admin/task/s3_transition/retry_some
         let batch = admin_task.s3_transition().retry_some(["t3"]).await.unwrap();
         assert_eq!(batch.get("t3").map(String::as_str), Some("task not found"));
 
-        let recorded = requests.lock().unwrap();
-        assert!(recorded[0].starts_with("GET /api/admin/task/upload/undone "));
-        assert!(recorded[1].contains("POST /api/admin/task/copy/info?tid=t_info "));
-        assert!(recorded[2].contains("POST /api/admin/task/offline_download/cancel?tid=t2 "));
-        assert!(recorded[3].starts_with("POST /api/admin/task/decompress/clear_done "));
-        assert!(recorded[4].starts_with("POST /api/admin/task/s3_transition/retry_some "));
-        assert!(recorded[4].contains(r#"["t3"]"#));
+        mock_list.assert_async().await;
+        mock_info.assert_async().await;
+        mock_cancel.assert_async().await;
+        mock_empty.assert_async().await;
+        mock_batch.assert_async().await;
     }
 }

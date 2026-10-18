@@ -154,19 +154,16 @@ mod tests {
     /// 收发路径：mock 服务器记录请求原文并解码设置项数组。
     #[tokio::test]
     async fn send_returns_settings_array() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
-                r#"{"code":200,"message":"success","data":[{"key":"token","value":"alist-2a","help":"","type":"string","options":"","group":0,"flag":1}]}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let body = r#"{"code":200,"message":"success","data":[{"key":"token","value":"alist-2a","help":"","type":"string","options":"","group":0,"flag":1}]}"#;
+        let mock = server
+            .mock("GET", "/api/admin/setting/list")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let settings = Request::new(&client).send().await.unwrap();
         assert_eq!(settings.len(), 1);
@@ -178,11 +175,6 @@ mod tests {
         assert_eq!(settings[0].flag, SettingFlag::Private);
         assert_eq!(settings[0].index, None);
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("GET /api/admin/setting/list"),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

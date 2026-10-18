@@ -145,16 +145,19 @@ mod tests {
     /// 2) 收发路径断言：mock 服务器 + 记录请求原文。
     #[tokio::test]
     async fn send_lists_labels_from_page_response() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = format!(
             r#"{{"code":200,"message":"success","data":{{"content":[{LABEL_JSON}],"total":1}}}}"#
         );
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("GET", "/api/label/list")
+            .match_query(mockito::Matcher::UrlEncoded("per_page".into(), "50".into()))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let page = Request::new(&client).per_page(50).send().await.unwrap();
         assert_eq!(page.total, 1);
@@ -162,38 +165,36 @@ mod tests {
         assert_eq!(page.content[0].label_type, 2);
         assert_eq!(page.content[0].name, "电影");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("GET /api/label/list?"),
-            "{}",
-            recorded[0]
-        );
-        assert!(recorded[0].contains("per_page=50"), "{}", recorded[0]);
+        mock.assert_async().await;
     }
 
     /// 3) into-stream 翻页断言（列表端点）。
     #[cfg(feature = "into-stream")]
     #[tokio::test]
     async fn into_stream_walks_pages_until_empty_content() {
-        use std::sync::{Arc, Mutex};
-
         use futures::StreamExt;
 
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let page_body = format!(
             r#"{{"code":200,"message":"success","data":{{"content":[{LABEL_JSON}],"total":1}}}}"#
         );
-        let base_url = spawn_mock_server(
-            vec![
-                ok_json(page_body),
-                ok_json(r#"{"code":200,"message":"success","data":{"content":[],"total":1}}"#),
-            ],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock_page1 = server
+            .mock("GET", "/api/label/list")
+            .match_query(mockito::Matcher::UrlEncoded("page".into(), "1".into()))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(page_body)
+            .create_async()
+            .await;
+        let mock_page2 = server
+            .mock("GET", "/api/label/list")
+            .match_query(mockito::Matcher::UrlEncoded("page".into(), "2".into()))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"content":[],"total":1}}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let ids: Vec<u64> = Request::new(&client)
             .into_stream()
@@ -202,9 +203,7 @@ mod tests {
             .await;
         assert_eq!(ids, vec![1]);
 
-        let recorded = requests.lock().unwrap();
-        assert_eq!(recorded.len(), 2, "空页会多一次确认请求");
-        assert!(recorded[0].contains("page=1"), "{}", recorded[0]);
-        assert!(recorded[1].contains("page=2"), "{}", recorded[1]);
+        mock_page1.assert_async().await;
+        mock_page2.assert_async().await;
     }
 }

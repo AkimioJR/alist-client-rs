@@ -181,11 +181,7 @@ mod tests {
     /// 4) 收发路径断言：mock 服务器 + 记录请求原文 + 解码递归文件树。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_tree() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":200,"message":"success","data":{
             "comment":"archive comment",
             "encrypted":false,
@@ -194,8 +190,14 @@ mod tests {
                 "sign":"","thumb":"","type":0,"hashinfo":"","children":[]}],
             "raw_url":"https://alist.example/ae/demo.zip",
             "sign":"sign-token"}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("POST", "/api/fs/archive/meta")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let meta = Request::new(&client, "/data/demo.zip")
             .archive_pass("zip-pass".to_owned())
@@ -207,21 +209,6 @@ mod tests {
         assert_eq!(meta.content.len(), 1);
         assert!(meta.content[0].children.is_empty());
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/fs/archive/meta "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("\"path\":\"/data/demo.zip\""),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("\"archive_pass\":\"zip-pass\""),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

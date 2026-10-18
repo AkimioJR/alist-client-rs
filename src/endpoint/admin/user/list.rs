@@ -125,19 +125,16 @@ mod tests {
     /// 收发路径：mock 服务器返回文档示例，验证分页形态与 `role` 单值展开的解码。
     #[tokio::test]
     async fn send_decodes_page_response_of_admin_user() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
-                r#"{"code":200,"message":"success","data":{"content":[{"id":1,"username":"admin","password":"","base_path":"/","role":2,"disabled":false,"permission":0,"sso_id":""},{"id":2,"username":"guest","password":"","base_path":"/","role":1,"disabled":true,"permission":0,"sso_id":""}],"total":2}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let body = r#"{"code":200,"message":"success","data":{"content":[{"id":1,"username":"admin","password":"","base_path":"/","role":2,"disabled":false,"permission":0,"sso_id":""},{"id":2,"username":"guest","password":"","base_path":"/","role":1,"disabled":true,"permission":0,"sso_id":""}],"total":2}}"#;
+        let mock = server
+            .mock("GET", "/api/admin/user/list")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let page = Request::new(&client).send().await.unwrap();
 
@@ -147,11 +144,6 @@ mod tests {
         assert_eq!(page.content[0].role, vec![2]);
         assert!(page.content[1].disabled);
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("GET /api/admin/user/list"),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

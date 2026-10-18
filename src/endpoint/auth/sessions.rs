@@ -96,19 +96,19 @@ mod tests {
     /// 收发路径：mock 服务器返回会话列表 JSON，断言 GET 方法与正确解码。
     #[tokio::test]
     async fn send_gets_sessions_and_decodes_session_list() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("GET", "/api/me/sessions")
+            .match_header("authorization", "test-token")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":[{"session_id":"device-abc","last_active":1710000000,"status":1,"ua":"Mozilla/5.0","ip":"192.168.1.1"}]}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url)
+            )
+            .create_async()
+            .await;
+
+        let client = crate::Client::new(server.url())
             .unwrap()
             .with_authentication(crate::Authentication::Token("test-token".to_owned()));
 
@@ -121,16 +121,6 @@ mod tests {
         assert_eq!(sessions[0].ua, "Mozilla/5.0");
         assert_eq!(sessions[0].ip, "192.168.1.1");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("GET /api/me/sessions "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("authorization: test-token"),
-            "应注入认证头: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

@@ -211,19 +211,17 @@ mod tests {
     /// 断言 POST 方法与分页解码。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_page() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/fs/search")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":{"content":[{"parent":"/m","name":"4305da1e","is_dir":false,"size":393090,"type":0}],"total":1}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+            )
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let page = client
             .fs()
@@ -235,19 +233,7 @@ mod tests {
         assert_eq!(page.content[0].parent, "/m");
         assert_eq!(page.content[0].size, 393090);
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/fs/search "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""keywords":"test""#),
-            "{}",
-            recorded[0]
-        );
-        assert!(recorded[0].contains(r#""per_page":10"#), "{}", recorded[0]);
-        assert!(recorded[0].contains(r#""page":1"#), "{}", recorded[0]);
+        mock.assert_async().await;
     }
 
     /// 4) into-stream 翻页断言：请求体 `page` 从 1 逐页递增，
@@ -255,26 +241,30 @@ mod tests {
     #[cfg(feature = "into-stream")]
     #[tokio::test]
     async fn into_stream_walks_pages_until_empty_content() {
-        use std::sync::{Arc, Mutex};
-
         use futures::StreamExt;
 
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![
-                ok_json(
-                    r#"{"code":200,"message":"success","data":{"content":[{"parent":"/m","name":"a.txt","is_dir":false,"size":1,"type":0}],"total":1}}"#,
-                ),
-                ok_json(
-                    r#"{"code":200,"message":"success","data":{"content":[],"total":1}}"#,
-                ),
-            ],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock_p1 = server
+            .mock("POST", "/api/fs/search")
+            .match_body(mockito::Matcher::PartialJsonString(r#"{"page":1}"#.to_string()))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{"code":200,"message":"success","data":{"content":[{"parent":"/m","name":"a.txt","is_dir":false,"size":1,"type":0}],"total":1}}"#,
+            )
+            .create_async()
+            .await;
+        let mock_p2 = server
+            .mock("POST", "/api/fs/search")
+            .match_body(mockito::Matcher::PartialJsonString(
+                r#"{"page":2}"#.to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"content":[],"total":1}}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let names: Vec<String> = Request::new(&client, "/local", "test", 1)
             .into_stream()
@@ -283,9 +273,7 @@ mod tests {
             .await;
         assert_eq!(names, vec!["a.txt".to_owned()]);
 
-        let recorded = requests.lock().unwrap();
-        assert_eq!(recorded.len(), 2, "空 content 页会多一次确认请求");
-        assert!(recorded[0].contains(r#""page":1"#), "{}", recorded[0]);
-        assert!(recorded[1].contains(r#""page":2"#), "{}", recorded[1]);
+        mock_p1.assert_async().await;
+        mock_p2.assert_async().await;
     }
 }

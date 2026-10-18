@@ -110,14 +110,17 @@ mod tests {
     /// 2) 收发路径断言：mock 服务器 + 记录请求原文，响应解码为 Label。
     #[tokio::test]
     async fn send_gets_label_by_id() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = format!(r#"{{"code":200,"message":"success","data":{LABEL_JSON}}}"#);
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("GET", "/api/label/get")
+            .match_query(mockito::Matcher::UrlEncoded("id".into(), "1".into()))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let label = Request::new(&client, 1).send().await.unwrap();
         assert_eq!(label.id, 1);
@@ -125,11 +128,6 @@ mod tests {
         assert_eq!(label.name, "电影");
         assert_eq!(label.bg_color.as_deref(), Some("#FF0000"));
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("GET /api/label/get?id=1 "),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

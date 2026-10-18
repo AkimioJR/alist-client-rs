@@ -109,10 +109,8 @@ impl<'a> super::LabelFileBinding<'a> {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::{Arc, Mutex};
 
     use super::*;
-    use crate::test_support::{ok_json, spawn_mock_server};
 
     /// 请求形状断言：GET 方法、URL 路径与 `label_id` 查询参数。
     #[test]
@@ -138,15 +136,18 @@ mod tests {
     /// 收发路径断言：mock 服务器 + 记录请求原文，并解码响应内文件条目数组。
     #[tokio::test]
     async fn send_reads_query_and_decodes_files() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("GET", "/api/label_file_binding/get_file_by_label")
+            .match_query(mockito::Matcher::UrlEncoded("label_id".into(), "1,2".into()))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":[{"id":"obj-1","path":"/data","name":"movie.mp4","size":1024,"is_dir":false,"modified":"2024-06-01T08:00:00Z","created":"2024-05-01T08:00:00Z","sign":"","thumb":"","type":2,"hashinfo":"","label_list":[{"id":1,"type":0,"name":"收藏","description":"","bg_color":"","create_time":"2024-06-01T08:00:00Z"}]}]}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url)
+            )
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url())
             .unwrap()
             .with_authentication(crate::Authentication::Token("token-1".to_owned()));
 
@@ -157,26 +158,26 @@ mod tests {
         assert_eq!(files[0].id, "obj-1");
         assert_eq!(files[0].label_list.len(), 1);
 
-        let recorded = requests.lock().unwrap();
-        // 逗号分隔的标签 ID 在查询串中按百分号编码传输
-        assert!(
-            recorded[0].contains("GET /api/label_file_binding/get_file_by_label?label_id=1%2C2"),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     /// `data: null` 兼容：无结果时解码为 `None`。
     #[tokio::test]
     async fn send_decodes_null_data_as_none() {
-        let base_url = spawn_mock_server(
-            vec![ok_json(r#"{"code":200,"message":"success","data":null}"#)],
-            None,
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("GET", "/api/label_file_binding/get_file_by_label")
+            .match_query(mockito::Matcher::UrlEncoded("label_id".into(), "7".into()))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let files = Request::new(&client, "7").await.unwrap();
         assert_eq!(files, None);
+
+        mock.assert_async().await;
     }
 }

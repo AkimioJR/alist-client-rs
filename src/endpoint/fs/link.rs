@@ -128,17 +128,19 @@ mod tests {
     /// 收发路径：mock 返回带请求头与有效期的直链，断言请求体与解码结果。
     #[tokio::test]
     async fn send_posts_path_and_decodes_link() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         // 示例形状取自 AList 服务端 fsmanage 模块 `Link` 处理器的响应
         // （model.Link 的 JSON 序列化：Expiration 为无 tag 的 Go 字段名，
         // concurrency/part_size 为 v3.26.0+ 的小写键名）
         let body = r#"{"code":200,"message":"success","data":{"url":"https://example.com/d/file.mkv","header":{"User-Agent":["alist"]},"Expiration":3600000000000,"concurrency":4,"part_size":10485760}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("POST", "/api/fs/link")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let link = Request::new(&client, "/local/movie.mkv")
             .send()
@@ -153,33 +155,24 @@ mod tests {
         assert_eq!(link.concurrency, Some(4));
         assert_eq!(link.part_size, Some(10_485_760));
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("POST /api/fs/link "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#"{"path":"/local/movie.mkv"}"#),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     /// 收发路径：仅本地代理分支返回 `header: null` 与 `Expiration: null`，
     /// 分别归约为空映射与 [`None`]。
     #[tokio::test]
     async fn send_tolerates_null_header_and_expiration() {
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/fs/link")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":{"url":"http://127.0.0.1:5244/p/local/file.mkv?d&sign=x","header":null,"Expiration":null}}"#,
-            )],
-            None,
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+            )
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let link = Request::new(&client, "/local/file.mkv")
             .send()
@@ -188,5 +181,7 @@ mod tests {
         assert_eq!(link.url, "http://127.0.0.1:5244/p/local/file.mkv?d&sign=x");
         assert!(link.header.is_empty(), "null 的 header 归约为空映射");
         assert_eq!(link.expiration, None);
+
+        mock.assert_async().await;
     }
 }

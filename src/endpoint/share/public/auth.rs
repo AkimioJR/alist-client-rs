@@ -132,19 +132,19 @@ mod tests {
     /// 收发路径：mock 服务器断言请求体形状并返回令牌。
     #[tokio::test]
     async fn send_posts_password_and_decodes_token() {
-        use std::sync::{Arc, Mutex};
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/public/share/auth")
+            .match_body(mockito::Matcher::JsonString(
+                r#"{"share_id":"aBcD1234","password":"secret"}"#.to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"token":"share-token-1"}}"#)
+            .create_async()
+            .await;
 
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
-                r#"{"code":200,"message":"success","data":{"token":"share-token-1"}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let client = crate::Client::new(server.url()).unwrap();
 
         let resp = Request::new(&client, "aBcD1234")
             .password("secret")
@@ -153,49 +153,29 @@ mod tests {
             .unwrap();
         assert_eq!(resp.token, "share-token-1");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/public/share/auth "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""share_id":"aBcD1234""#),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""password":"secret""#),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     /// 收发路径：无密码分享不发送 `password` 字段，响应 `token` 为空串。
     #[tokio::test]
     async fn send_skips_none_password() {
-        use std::sync::{Arc, Mutex};
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/public/share/auth")
+            .match_body(mockito::Matcher::JsonString(
+                r#"{"share_id":"aBcD1234"}"#.to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"token":""}}"#)
+            .create_async()
+            .await;
 
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
-                r#"{"code":200,"message":"success","data":{"token":""}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let client = crate::Client::new(server.url()).unwrap();
 
         let resp = Request::new(&client, "aBcD1234").await.unwrap();
         assert_eq!(resp.token, "");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            !recorded[0].contains("password"),
-            "None 密码应被跳过: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

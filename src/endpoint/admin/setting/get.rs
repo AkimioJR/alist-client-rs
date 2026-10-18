@@ -121,19 +121,16 @@ mod tests {
     /// 收发路径：mock 服务器记录请求原文并解码单个设置项。
     #[tokio::test]
     async fn send_returns_single_setting() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
-                r#"{"code":200,"message":"success","data":{"key":"hide_files","value":"/\\/README.md/i","help":"","type":"text","options":"","group":4,"flag":0}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let body = r#"{"code":200,"message":"success","data":{"key":"hide_files","value":"/\\/README.md/i","help":"","type":"text","options":"","group":4,"flag":0}}"#;
+        let mock = server
+            .mock("GET", "/api/admin/setting/get?key=hide_files")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let setting = Request::new(&client, "hide_files").send().await.unwrap();
         assert_eq!(setting.key, "hide_files");
@@ -143,11 +140,6 @@ mod tests {
         assert_eq!(setting.group, SettingGroup::Global);
         assert_eq!(setting.flag, SettingFlag::Public);
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("GET /api/admin/setting/get?key=hide_files"),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

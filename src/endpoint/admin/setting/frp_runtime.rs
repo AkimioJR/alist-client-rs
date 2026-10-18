@@ -132,31 +132,22 @@ mod tests {
     /// 收发路径：mock 服务器记录请求原文并解码 `FrpRuntimeInfo`。
     #[tokio::test]
     async fn send_returns_runtime_info() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
-                r#"{"code":200,"message":"success","data":{"status":"running","logs":["[2026-01-01T00:00:00+08:00] initialized","[2026-01-01T00:00:01+08:00] service started"]}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let body = r#"{"code":200,"message":"success","data":{"status":"running","logs":["[2026-01-01T00:00:00+08:00] initialized","[2026-01-01T00:00:01+08:00] service started"]}}"#;
+        let mock = server
+            .mock("GET", "/api/admin/setting/frp_runtime?limit=50")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let runtime = Request::new(&client).limit(50).send().await.unwrap();
         assert_eq!(runtime.status, "running");
         assert_eq!(runtime.logs.len(), 2);
         assert!(runtime.logs[1].ends_with("service started"));
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("GET /api/admin/setting/frp_runtime"),
-            "{}",
-            recorded[0]
-        );
-        assert!(recorded[0].contains("limit=50"), "{}", recorded[0]);
+        mock.assert_async().await;
     }
 }

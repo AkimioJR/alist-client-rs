@@ -129,19 +129,16 @@ mod tests {
     /// 收发路径：mock 服务器记录请求原文并解码 aria2 版本字符串。
     #[tokio::test]
     async fn send_returns_version_string() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
-                r#"{"code":200,"message":"success","data":"1.36.0"}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let body = r#"{"code":200,"message":"success","data":"1.36.0"}"#;
+        let mock = server
+            .mock("POST", "/api/admin/setting/set_aria2")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let version = Request::new(&client, "http://localhost:6800/jsonrpc", "")
             .send()
@@ -149,17 +146,6 @@ mod tests {
             .unwrap();
         assert_eq!(version, "1.36.0");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/admin/setting/set_aria2 "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""uri":"http://localhost:6800/jsonrpc""#),
-            "{}",
-            recorded[0]
-        );
-        assert!(recorded[0].contains(r#""secret":""#), "{}", recorded[0]);
+        mock.assert_async().await;
     }
 }

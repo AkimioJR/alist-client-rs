@@ -114,16 +114,19 @@ mod tests {
     /// 收发路径：mock 服务器返回扩展名数组，验证请求行与响应解码。
     #[tokio::test]
     async fn send_decodes_archive_extensions() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
         // 示例形状取自 AList 服务端 archive 工具注册表的实际返回
         // （键即扩展名，自带前导点号；顺序不固定）
         let body = r#"{"code":200,"message":"success","data":[".7z",".iso",".rar",".tar"]}"#;
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("GET", "/api/public/archive_extensions")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+
+        let client = crate::Client::new(server.url()).unwrap();
 
         let extensions: ArchiveExtensionsResponse = Request::new(&client).send().await.unwrap();
         assert_eq!(
@@ -136,11 +139,6 @@ mod tests {
             ]
         );
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("GET /api/public/archive_extensions "),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

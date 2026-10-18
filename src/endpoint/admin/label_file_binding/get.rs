@@ -109,10 +109,8 @@ impl<'a> super::LabelFileBinding<'a> {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::{Arc, Mutex};
 
     use super::*;
-    use crate::test_support::{ok_json, spawn_mock_server};
 
     /// 请求形状断言：GET 方法、URL 路径与 `file_name` 查询参数。
     #[test]
@@ -141,15 +139,18 @@ mod tests {
     /// 收发路径断言：mock 服务器 + 记录请求原文，并解码响应内标签数组。
     #[tokio::test]
     async fn send_reads_query_and_decodes_labels() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("GET", "/api/label_file_binding/get")
+            .match_query(mockito::Matcher::UrlEncoded("file_name".into(), "movie.mp4".into()))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":[{"id":1,"type":0,"name":"收藏","description":"","bg_color":"","create_time":"2024-06-01T08:00:00Z"}]}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url)
+            )
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url())
             .unwrap()
             .with_authentication(crate::Authentication::Token("token-1".to_owned()));
 
@@ -159,25 +160,29 @@ mod tests {
         assert_eq!(labels[0].id, 1);
         assert_eq!(labels[0].name, "收藏");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("GET /api/label_file_binding/get?file_name=movie.mp4"),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     /// `data: null` 兼容：文件未绑定标签时解码为 `None`。
     #[tokio::test]
     async fn send_decodes_null_data_as_none() {
-        let base_url = spawn_mock_server(
-            vec![ok_json(r#"{"code":200,"message":"success","data":null}"#)],
-            None,
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("GET", "/api/label_file_binding/get")
+            .match_query(mockito::Matcher::UrlEncoded(
+                "file_name".into(),
+                "empty.txt".into(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let labels = Request::new(&client, "empty.txt").await.unwrap();
         assert_eq!(labels, None);
+
+        mock.assert_async().await;
     }
 }

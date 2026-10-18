@@ -65,12 +65,8 @@ pub mod admin;
 
 #[cfg(test)]
 mod tests {
-    use std::sync::{Arc, Mutex};
-
     use alist_client_derive::EndpointRequest;
     use serde::Deserialize;
-
-    use crate::test_support::{ok_json, spawn_mock_server};
 
     // ---------------------------------------------------------------------------
     // 派生宏冒烟测试：在主 crate 中以真实 Client 驱动派生生成的
@@ -167,10 +163,19 @@ mod tests {
 
     #[tokio::test]
     async fn send_posts_json_body_and_decodes_response() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":200,"message":"success","data":{"content":[{"id":1}],"total":1}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url)
+        let mock = server
+            .mock("POST", "/api/test/echo?page=2")
+            .match_header("authorization", "token-1")
+            .match_header("content-type", "application/json")
+            .match_body(r#"{"path":"/data","password":"secret"}"#)
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url())
             .unwrap()
             .with_authentication(crate::Authentication::Token("token-1".to_string()));
 
@@ -184,70 +189,69 @@ mod tests {
         assert_eq!(resp.total, 1);
         assert_eq!(resp.content, vec![EchoItem { id: 1 }]);
 
-        let recorded = requests.lock().unwrap();
-        let request = &recorded[0];
-        assert!(request.contains("POST /api/test/echo"), "{request}");
-        assert!(
-            request
-                .to_ascii_lowercase()
-                .contains("authorization: token-1"),
-            "send 应触发认证头注入: {request}"
-        );
-        assert!(request.contains("\"path\":\"/data\""), "{request}");
-        assert!(request.contains("\"password\":\"secret\""), "{request}");
+        mock.assert_async().await;
     }
 
     #[tokio::test]
     async fn request_is_awaitable_via_into_future() {
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":200,"message":"success","data":{"content":[{"id":7}],"total":1}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], None).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("POST", "/api/test/echo?page=1")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let resp: EchoResp = Request::new(&client, "/data".to_string())
             .page(1)
             .await
             .unwrap();
         assert_eq!(resp.content[0].id, 7);
+
+        mock.assert_async().await;
     }
 
     #[tokio::test]
     async fn send_raw_decodes_to_custom_type() {
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":200,"message":"success","data":{"content":[],"total":0}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], None).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("POST", "/api/test/echo")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let raw: serde_json::Value = Request::new(&client, "/data".to_string())
             .send_raw()
             .await
             .unwrap();
         assert_eq!(raw["total"], 0);
+
+        mock.assert_async().await;
     }
 
     #[tokio::test]
     async fn no_body_request_sends_no_json_content_type() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(r#"{"code":200,"message":"success","data":null}"#)],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/test/noop")
+            .match_header("content-type", mockito::Matcher::Missing)
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         NoopRequest::new(&client).send().await.unwrap();
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("POST /api/test/noop"),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            !recorded[0]
-                .to_ascii_lowercase()
-                .contains("content-type: application/json"),
-            "无请求体字段的请求不应携带 JSON Content-Type: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     #[cfg(feature = "into-stream")]
@@ -255,21 +259,33 @@ mod tests {
     async fn into_stream_walks_pages_until_empty_content() {
         use futures::StreamExt;
 
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![
-                ok_json(
-                    r#"{"code":200,"message":"success","data":{"content":[{"id":1},{"id":2}],"total":3}}"#,
-                ),
-                ok_json(
-                    r#"{"code":200,"message":"success","data":{"content":[{"id":3}],"total":3}}"#,
-                ),
-                ok_json(r#"{"code":200,"message":"success","data":{"content":[],"total":3}}"#),
-            ],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock_p1 = server
+            .mock("POST", "/api/test/echo?page=1")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{"code":200,"message":"success","data":{"content":[{"id":1},{"id":2}],"total":3}}"#,
+            )
+            .create_async()
+            .await;
+        let mock_p2 = server
+            .mock("POST", "/api/test/echo?page=2")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{"code":200,"message":"success","data":{"content":[{"id":3}],"total":3}}"#,
+            )
+            .create_async()
+            .await;
+        let mock_p3 = server
+            .mock("POST", "/api/test/echo?page=3")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"content":[],"total":3}}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let items: Vec<u64> = Request::new(&client, "/data".to_string())
             .into_stream()
@@ -278,10 +294,8 @@ mod tests {
             .await;
         assert_eq!(items, vec![1, 2, 3]);
 
-        let recorded = requests.lock().unwrap();
-        assert_eq!(recorded.len(), 3);
-        assert!(recorded[0].contains("page=1"), "{}", recorded[0]);
-        assert!(recorded[1].contains("page=2"), "{}", recorded[1]);
-        assert!(recorded[2].contains("page=3"), "{}", recorded[2]);
+        mock_p1.assert_async().await;
+        mock_p2.assert_async().await;
+        mock_p3.assert_async().await;
     }
 }

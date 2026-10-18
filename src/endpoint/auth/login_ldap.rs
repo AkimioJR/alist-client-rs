@@ -134,19 +134,21 @@ mod tests {
     /// 收发路径：mock 服务器返回 token，断言请求原文与响应解码。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_login_response() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/auth/login/ldap")
+            .match_body(mockito::Matcher::JsonString(
+                r#"{"username":"alice","password":"ldap-password"}"#.to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":{"token":"ldap-token","device_key":"key-1"}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+            )
+            .create_async()
+            .await;
+
+        let client = crate::Client::new(server.url()).unwrap();
 
         let login = Request::new(&client, "alice", "ldap-password")
             .send()
@@ -155,44 +157,23 @@ mod tests {
         assert_eq!(login.token, "ldap-token");
         assert_eq!(login.device_key.as_deref(), Some("key-1"));
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/auth/login/ldap "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            !recorded[0].contains("/api/auth/login/hash"),
-            "不应误用哈希登录路径: {}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("\"username\":\"alice\""),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("\"password\":\"ldap-password\""),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     /// 收发路径：服务端未启用 LDAP 时返回 HTTP 200 + 信封 `code` 403，
     /// 断言客户端将其映射为 API 错误。
     #[tokio::test]
     async fn send_maps_disabled_ldap_to_api_error() {
-        use crate::test_support::{MockResponse, spawn_mock_server};
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/auth/login/ldap")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":403,"message":"ldap is not enabled","data":null}"#)
+            .create_async()
+            .await;
 
-        let base_url = spawn_mock_server(
-            vec![MockResponse {
-                status_line: "HTTP/1.1 200 OK",
-                body: r#"{"code":403,"message":"ldap is not enabled","data":null}"#.to_owned(),
-            }],
-            None,
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let client = crate::Client::new(server.url()).unwrap();
 
         let err = Request::new(&client, "alice", "ldap-password")
             .send()
@@ -205,5 +186,7 @@ mod tests {
             }
             other => panic!("expected Api, got {other:?}"),
         }
+
+        mock.assert_async().await;
     }
 }

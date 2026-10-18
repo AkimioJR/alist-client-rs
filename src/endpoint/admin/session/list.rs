@@ -104,19 +104,18 @@ mod tests {
     /// 收发路径：mock 服务器返回会话列表 JSON（含 `user_id`），断言正确解码。
     #[tokio::test]
     async fn send_gets_all_sessions_and_decodes_session_list() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("GET", "/api/admin/session/list")
+            .match_header("authorization", "admin-token")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":[{"session_id":"device-admin","user_id":1,"last_active":1710000000,"status":1,"ua":"Mozilla/5.0","ip":"192.168.1.1"},{"session_id":"device-guest","user_id":2,"last_active":1710000100,"status":0,"ua":"curl/8.0","ip":"10.0.0.2"}]}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url)
+            )
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url())
             .unwrap()
             .with_authentication(crate::Authentication::Token("admin-token".to_owned()));
 
@@ -129,16 +128,6 @@ mod tests {
         assert_eq!(sessions[1].user_id, Some(2));
         assert_eq!(sessions[1].ip, "10.0.0.2");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("GET /api/admin/session/list "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("authorization: admin-token"),
-            "应注入认证头: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

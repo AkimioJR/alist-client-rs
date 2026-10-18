@@ -141,25 +141,27 @@ mod tests {
     /// 收发路径：mock 服务器返回单个驱动模板，验证请求行、查询串与响应解码。
     #[tokio::test]
     async fn send_decodes_single_driver_info() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
+        let mut server = mockito::Server::new_async().await;
 
         let body = r#"{"code":200,"message":"success","data":{"common":[{"name":"mount_path","type":"string","default":"","options":"","required":true,"help":""}],"additional":[],"config":{"name":"Local","local_sort":false,"only_local":true,"only_proxy":false,"no_cache":false,"no_upload":false,"need_ms":false,"default_root":"","alert":""}}}"#;
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("GET", "/api/admin/driver/info")
+            .match_query(mockito::Matcher::UrlEncoded(
+                "driver".into(),
+                "Local".into(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let info: DriverInfo = Request::new(&client, "Local").send().await.unwrap();
         assert_eq!(info.config.name, "Local");
         assert_eq!(info.common[0].name, "mount_path");
         assert_eq!(info.common[0].value_type, "string");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].starts_with("GET /api/admin/driver/info?driver=Local"),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

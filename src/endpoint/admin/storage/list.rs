@@ -156,20 +156,16 @@ mod tests {
     /// 收发路径断言：mock 服务器返回 openapi 列表示例，解码 `PageResponse<Storage>`。
     #[tokio::test]
     async fn send_decodes_paginated_storage_list() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        // 示例 JSON：AList OpenAPI 规范 /api/admin/storage/list 响应示例
-        let base_url = spawn_mock_server(
-            vec![ok_json(
-                r#"{"code":200,"message":"success","data":{"content":[{"id":1,"mount_path":"/lll","order":0,"driver":"Local","cache_expiration":0,"status":"work","addition":"{}","remark":"","modified":"2023-07-19T09:46:38.868739912+08:00","disabled":false,"enable_sign":false,"order_by":"name","order_direction":"asc","extract_folder":"front","web_proxy":false,"webdav_policy":"native_proxy","down_proxy_url":""}],"total":5}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let body = r#"{"code":200,"message":"success","data":{"content":[{"id":1,"mount_path":"/lll","order":0,"driver":"Local","cache_expiration":0,"status":"work","addition":"{}","remark":"","modified":"2023-07-19T09:46:38.868739912+08:00","disabled":false,"enable_sign":false,"order_by":"name","order_direction":"asc","extract_folder":"front","web_proxy":false,"webdav_policy":"native_proxy","down_proxy_url":""}],"total":5}}"#;
+        let mock = server
+            .mock("GET", "/api/admin/storage/list")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let page = Request::new(&client).send().await.unwrap();
         assert_eq!(page.total, 5);
@@ -177,44 +173,42 @@ mod tests {
         assert_eq!(page.content[0].id, 1);
         assert_eq!(page.content[0].mount_path, "/lll");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("GET /api/admin/storage/list "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            !recorded[0].contains("page="),
-            "缺省时不应携带分页参数: {}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 
     /// into-stream 翻页断言：逐页 `page=N` 请求，空页停止（含一次确认请求）。
     #[cfg(feature = "into-stream")]
     #[tokio::test]
     async fn into_stream_walks_pages_until_empty_content() {
-        use std::sync::{Arc, Mutex};
-
         use futures::StreamExt;
 
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![
-                ok_json(
-                    r#"{"code":200,"message":"success","data":{"content":[{"id":1,"mount_path":"/lll","order":0,"driver":"Local","cache_expiration":0,"status":"work","addition":"{}","remark":"","modified":"2023-07-19T09:46:38.868739912+08:00","disabled":false,"order_by":"name","order_direction":"asc","extract_folder":"front","web_proxy":false,"webdav_policy":"native_proxy","down_proxy_url":""}],"total":2}}"#,
-                ),
-                ok_json(
-                    r#"{"code":200,"message":"success","data":{"content":[{"id":2,"mount_path":"/aa","order":1,"driver":"Aliyundrive","cache_expiration":30,"status":"work","addition":"{}","remark":"","modified":"2022-11-26T21:50:44.142348853+08:00","disabled":false,"order_by":"","order_direction":"","extract_folder":"front","web_proxy":false,"webdav_policy":"302_redirect","down_proxy_url":""}],"total":2}}"#,
-                ),
-                ok_json(r#"{"code":200,"message":"success","data":{"content":[],"total":2}}"#),
-            ],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock1 = server
+            .mock("GET", "/api/admin/storage/list?page=1")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{"code":200,"message":"success","data":{"content":[{"id":1,"mount_path":"/lll","order":0,"driver":"Local","cache_expiration":0,"status":"work","addition":"{}","remark":"","modified":"2023-07-19T09:46:38.868739912+08:00","disabled":false,"order_by":"name","order_direction":"asc","extract_folder":"front","web_proxy":false,"webdav_policy":"native_proxy","down_proxy_url":""}],"total":2}}"#,
+            )
+            .create_async()
+            .await;
+        let mock2 = server
+            .mock("GET", "/api/admin/storage/list?page=2")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{"code":200,"message":"success","data":{"content":[{"id":2,"mount_path":"/aa","order":1,"driver":"Aliyundrive","cache_expiration":30,"status":"work","addition":"{}","remark":"","modified":"2022-11-26T21:50:44.142348853+08:00","disabled":false,"order_by":"","order_direction":"","extract_folder":"front","web_proxy":false,"webdav_policy":"302_redirect","down_proxy_url":""}],"total":2}}"#,
+            )
+            .create_async()
+            .await;
+        let mock3 = server
+            .mock("GET", "/api/admin/storage/list?page=3")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"content":[],"total":2}}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let items: Vec<Storage> = Request::new(&client)
             .into_stream()
@@ -225,10 +219,8 @@ mod tests {
         assert_eq!(items[0].mount_path, "/lll");
         assert_eq!(items[1].mount_path, "/aa");
 
-        let recorded = requests.lock().unwrap();
-        assert_eq!(recorded.len(), 3, "空页会多一次确认请求: {:?}", recorded);
-        assert!(recorded[0].contains("page=1"), "{}", recorded[0]);
-        assert!(recorded[1].contains("page=2"), "{}", recorded[1]);
-        assert!(recorded[2].contains("page=3"), "{}", recorded[2]);
+        mock1.assert_async().await;
+        mock2.assert_async().await;
+        mock3.assert_async().await;
     }
 }

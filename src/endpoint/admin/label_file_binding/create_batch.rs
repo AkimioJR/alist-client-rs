@@ -117,10 +117,8 @@ impl<'a> super::LabelFileBinding<'a> {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::{Arc, Mutex};
 
     use super::*;
-    use crate::test_support::{ok_json, spawn_mock_server};
 
     /// 请求形状断言：方法/URL 与 `items` 数组请求体。
     #[test]
@@ -167,15 +165,21 @@ mod tests {
     /// 收发路径断言：mock 服务器 + 记录请求原文，并解码响应内批量结果。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_batch_result() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/admin/label_file_binding/create_batch")
+            .match_header("authorization", "token-1")
+            .match_body(mockito::Matcher::PartialJsonString(
+                r#"{"items":[{"name":"movie.mp4","label_ids":"1,2"},{"is_dir":true,"name":"folder"}]}"#.to_string(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":{"total":2,"succeed":1,"failed":1,"results":[{"name":"movie.mp4","ok":true},{"name":"folder","ok":false,"errMsg":"Unable to bind folder"}]}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url)
+            )
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url())
             .unwrap()
             .with_authentication(crate::Authentication::Token("token-1".to_owned()));
 
@@ -206,13 +210,6 @@ mod tests {
             Some("Unable to bind folder")
         );
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/admin/label_file_binding/create_batch "),
-            "{}",
-            recorded[0]
-        );
-        assert!(recorded[0].contains("\"items\":["), "{}", recorded[0]);
-        assert!(recorded[0].contains("\"is_dir\":true"), "{}", recorded[0]);
+        mock.assert_async().await;
     }
 }

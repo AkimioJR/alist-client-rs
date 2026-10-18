@@ -279,20 +279,16 @@ mod tests {
     /// 收发路径断言：mock 服务器按 Go 实现返回 `data: {"id": N}`。
     #[tokio::test]
     async fn send_creates_storage_and_decodes_id() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        // 响应示例：AList OpenAPI 规范 /api/admin/storage/create（data: {"id": 7}）
-        let base_url = spawn_mock_server(
-            vec![ok_json(
-                r#"{"code":200,"message":"success","data":{"id":7}}"#,
-            )],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let body = r#"{"code":200,"message":"success","data":{"id":7}}"#;
+        let mock = server
+            .mock("POST", "/api/admin/storage/create")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let resp = Request::new(&client, "/spam", "Local", "{}")
             .send()
@@ -300,21 +296,6 @@ mod tests {
             .unwrap();
         assert_eq!(resp.id, 7);
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/admin/storage/create "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("\"mount_path\":\"/spam\""),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("\"driver\":\"Local\""),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

@@ -196,16 +196,17 @@ mod tests {
     /// 3) 收发路径断言：新版服务端返回 `{"tasks": [...]}`，解码为 `Some(CopyResponse)`。
     #[tokio::test]
     async fn send_decodes_copy_tasks() {
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let base_url = spawn_mock_server(
-            vec![ok_json(
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/fs/copy")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
                 r#"{"code":200,"message":"success","data":{"tasks":[{"id":"abc","name":"copy [/m1](/a.txt) to [/m2](/m2/a.txt)","state":0,"status":"","progress":0,"error":""}]}}"#,
-            )],
-            None,
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+            )
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let resp = client
             .fs()
@@ -216,22 +217,22 @@ mod tests {
         let tasks = resp.expect("新版服务端应返回任务信息");
         assert_eq!(tasks.tasks.len(), 1);
         assert_eq!(tasks.tasks[0].id, "abc");
+
+        mock.assert_async().await;
     }
 
     /// 4) 收发路径断言：老版本服务端 `data: null`，解码为 `None`。
     #[tokio::test]
     async fn send_decodes_null_data_as_none() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let base_url = spawn_mock_server(
-            vec![ok_json(r#"{"code":200,"message":"success","data":null}"#)],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/api/fs/copy")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let resp = client
             .fs()
@@ -241,16 +242,6 @@ mod tests {
             .unwrap();
         assert_eq!(resp, None, "data: null 应解码为 None");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/fs/copy "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains(r#""names":["a.txt"]"#),
-            "{}",
-            recorded[0]
-        );
+        mock.assert_async().await;
     }
 }

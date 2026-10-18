@@ -132,10 +132,8 @@ impl<'a> super::LabelFileBinding<'a> {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::{Arc, Mutex};
 
     use super::*;
-    use crate::test_support::{ok_json, spawn_mock_server};
 
     /// 绑定记录示例 JSON（按 AList 服务端标签绑定模型字段构造）。
     const BINDING_JSON: &str = r#"{"id":7,"user_id":1,"label_id":3,"file_name":"movie.mp4","create_time":"2024-06-01T08:00:00Z"}"#;
@@ -183,12 +181,23 @@ mod tests {
     /// 收发路径断言：mock 服务器 + 记录请求原文，并解码分页响应。
     #[tokio::test]
     async fn send_lists_bindings_from_page_response() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = format!(
             r#"{{"code":200,"message":"success","data":{{"content":[{BINDING_JSON}],"total":1}}}}"#
         );
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url)
+        let mock = server
+            .mock("GET", "/api/admin/label_file_binding/list")
+            .match_header("authorization", "token-1")
+            .match_query(mockito::Matcher::UrlEncoded(
+                "page_size".into(),
+                "50".into(),
+            ))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url())
             .unwrap()
             .with_authentication(crate::Authentication::Token("token-1".to_owned()));
 
@@ -200,13 +209,7 @@ mod tests {
         assert_eq!(page.content[0].label_id, 3);
         assert_eq!(page.content[0].file_name, "movie.mp4");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("GET /api/admin/label_file_binding/list?"),
-            "{}",
-            recorded[0]
-        );
-        assert!(recorded[0].contains("page_size=50"), "{}", recorded[0]);
+        mock.assert_async().await;
     }
 
     /// into-stream 翻页断言（列表端点）。
@@ -215,19 +218,27 @@ mod tests {
     async fn into_stream_walks_pages_until_empty_content() {
         use futures::StreamExt;
 
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let page_body = format!(
             r#"{{"code":200,"message":"success","data":{{"content":[{BINDING_JSON}],"total":1}}}}"#
         );
-        let base_url = spawn_mock_server(
-            vec![
-                ok_json(page_body),
-                ok_json(r#"{"code":200,"message":"success","data":{"content":[],"total":1}}"#),
-            ],
-            Some(Arc::clone(&requests)),
-        )
-        .await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock_page1 = server
+            .mock("GET", "/api/admin/label_file_binding/list")
+            .match_query(mockito::Matcher::UrlEncoded("page".into(), "1".into()))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(page_body)
+            .create_async()
+            .await;
+        let mock_page2 = server
+            .mock("GET", "/api/admin/label_file_binding/list")
+            .match_query(mockito::Matcher::UrlEncoded("page".into(), "2".into()))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"code":200,"message":"success","data":{"content":[],"total":1}}"#)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let ids: Vec<u64> = Request::new(&client)
             .into_stream()
@@ -236,9 +247,7 @@ mod tests {
             .await;
         assert_eq!(ids, vec![7]);
 
-        let recorded = requests.lock().unwrap();
-        assert_eq!(recorded.len(), 2, "空页会多一次确认请求");
-        assert!(recorded[0].contains("page=1"), "{}", recorded[0]);
-        assert!(recorded[1].contains("page=2"), "{}", recorded[1]);
+        mock_page1.assert_async().await;
+        mock_page2.assert_async().await;
     }
 }

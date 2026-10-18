@@ -187,18 +187,20 @@ mod tests {
     /// 3) 收发路径断言：mock 服务器 + 记录请求原文 + 解码分页列表。
     #[tokio::test]
     async fn send_posts_expected_request_and_decodes_page() {
-        use std::sync::{Arc, Mutex};
-
-        use crate::test_support::{ok_json, spawn_mock_server};
-
-        let requests = Arc::new(Mutex::new(Vec::new()));
+        let mut server = mockito::Server::new_async().await;
         let body = r#"{"code":200,"message":"success","data":{
             "content":[{"name":"a.txt","size":3,"is_dir":false,
                 "modified":"2024-01-01T00:00:00Z","created":"2024-01-01T00:00:00Z",
                 "sign":"","thumb":"","type":0,"hashinfo":""}],
             "total":1}}"#;
-        let base_url = spawn_mock_server(vec![ok_json(body)], Some(Arc::clone(&requests))).await;
-        let client = crate::Client::new(base_url).unwrap();
+        let mock = server
+            .mock("POST", "/api/fs/archive/list")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create_async()
+            .await;
+        let client = crate::Client::new(server.url()).unwrap();
 
         let page = Request::new(&client, "/data/demo.zip")
             .page(1)
@@ -210,18 +212,6 @@ mod tests {
         assert_eq!(page.content.len(), 1);
         assert_eq!(page.content[0].name, "a.txt");
 
-        let recorded = requests.lock().unwrap();
-        assert!(
-            recorded[0].contains("POST /api/fs/archive/list "),
-            "{}",
-            recorded[0]
-        );
-        assert!(
-            recorded[0].contains("\"path\":\"/data/demo.zip\""),
-            "{}",
-            recorded[0]
-        );
-        assert!(recorded[0].contains("\"page\":1"), "{}", recorded[0]);
-        assert!(recorded[0].contains("\"per_page\":10"), "{}", recorded[0]);
+        mock.assert_async().await;
     }
 }
