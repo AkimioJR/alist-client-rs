@@ -1,7 +1,7 @@
 //! 任务列表查询端点请求构建器。
 //!
 //! 对应 `GET /api/task/{category}/{action}`（查询未完成列表 `undone` 或已完成列表 `done`；
-//! 经管理员句柄 [`crate::Client::admin_task`] 调用时路径前缀为 `/api/admin/task`），
+//! 经管理员句柄 `client.admin().task()` 调用时路径前缀为 `/api/admin/task`），
 //! 响应数据反序列化为 [`TaskInfoList`]。
 //!
 //! # Version

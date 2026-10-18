@@ -20,8 +20,8 @@
 //!   `middlewares.AuthAdmin`），仅管理员凭据可用（非管理员收到 403 错误），
 //!   可查看与操作全部用户的任务。
 //!
-//! 通过 [`Client::task`](crate::Client::task) 获取用户级句柄（默认），
-//! 通过 [`Client::admin_task`](crate::Client::admin_task) 获取管理员级句柄；
+//! 通过 [`Client::task`](crate::Client::task) 获取用户级句柄（默认）；
+//! 管理员级句柄则由管理端句柄通过 `client.admin().task()` 获取（需启用 `admin-task` feature）；
 //! 前缀选择以 [`TaskScope`] 表达，可用 [`Task::scope`] 查询。
 //!
 //! ## 使用模式
@@ -29,6 +29,7 @@
 //! 1. 语义化分类链式调用（用户级前缀）：
 //!    ```no_run
 //!    # use alist_client::Client;
+//!    # #[cfg(feature = "task")]
 //!    # async fn example(client: &Client) -> alist_client::Result<()> {
 //!    let uploads = client.task().upload().undone().await?;
 //!    let copy_tasks = client.task().copy().done().await?;
@@ -41,12 +42,13 @@
 //!    # }
 //!    ```
 //!
-//! 2. 通用动态分类入口（管理员级前缀）：
+//! 2. 通用动态分类入口（用户级前缀）：
 //!    ```no_run
 //!    # use alist_client::Client;
 //!    # use alist_client::endpoint::task::TaskCategory;
+//!    # #[cfg(feature = "task")]
 //!    # async fn example(client: &Client) -> alist_client::Result<()> {
-//!    let tasks = client.admin_task().category(TaskCategory::Copy).done().await?;
+//!    let tasks = client.task().category(TaskCategory::Copy).done().await?;
 //!    # Ok(())
 //!    # }
 //!    ```
@@ -143,6 +145,7 @@ impl<'a> TaskCategoryHandle<'a> {
     /// ```no_run
     /// use alist_client::{Authentication, Client};
     ///
+    /// # #[cfg(feature = "task")]
     /// # async fn example() -> alist_client::Result<()> {
     /// let client = Client::new("https://alist.example.com")?
     ///     .with_authentication(Authentication::token("TOKEN".to_owned()));
@@ -175,6 +178,7 @@ impl<'a> TaskCategoryHandle<'a> {
     /// ```no_run
     /// use alist_client::{Authentication, Client};
     ///
+    /// # #[cfg(feature = "task")]
     /// # async fn example() -> alist_client::Result<()> {
     /// let client = Client::new("https://alist.example.com")?
     ///     .with_authentication(Authentication::token("TOKEN".to_owned()));
@@ -207,6 +211,7 @@ impl<'a> TaskCategoryHandle<'a> {
     /// ```no_run
     /// use alist_client::{Authentication, Client};
     ///
+    /// # #[cfg(feature = "task")]
     /// # async fn example() -> alist_client::Result<()> {
     /// let client = Client::new("https://alist.example.com")?
     ///     .with_authentication(Authentication::token("TOKEN".to_owned()));
@@ -242,6 +247,7 @@ impl<'a> TaskCategoryHandle<'a> {
     /// ```no_run
     /// use alist_client::{Authentication, Client};
     ///
+    /// # #[cfg(feature = "task")]
     /// # async fn example() -> alist_client::Result<()> {
     /// let client = Client::new("https://alist.example.com")?
     ///     .with_authentication(Authentication::token("TOKEN".to_owned()));
@@ -277,6 +283,7 @@ impl<'a> TaskCategoryHandle<'a> {
     /// ```no_run
     /// use alist_client::{Authentication, Client};
     ///
+    /// # #[cfg(feature = "task")]
     /// # async fn example() -> alist_client::Result<()> {
     /// let client = Client::new("https://alist.example.com")?
     ///     .with_authentication(Authentication::token("TOKEN".to_owned()));
@@ -308,6 +315,7 @@ impl<'a> TaskCategoryHandle<'a> {
     /// ```no_run
     /// use alist_client::{Authentication, Client};
     ///
+    /// # #[cfg(feature = "task")]
     /// # async fn example() -> alist_client::Result<()> {
     /// let client = Client::new("https://alist.example.com")?
     ///     .with_authentication(Authentication::token("TOKEN".to_owned()));
@@ -339,6 +347,7 @@ impl<'a> TaskCategoryHandle<'a> {
     /// ```no_run
     /// use alist_client::{Authentication, Client};
     ///
+    /// # #[cfg(feature = "task")]
     /// # async fn example() -> alist_client::Result<()> {
     /// let client = Client::new("https://alist.example.com")?
     ///     .with_authentication(Authentication::token("TOKEN".to_owned()));
@@ -374,6 +383,7 @@ impl<'a> TaskCategoryHandle<'a> {
     /// ```no_run
     /// use alist_client::{Authentication, Client};
     ///
+    /// # #[cfg(feature = "task")]
     /// # async fn example() -> alist_client::Result<()> {
     /// let client = Client::new("https://alist.example.com")?
     ///     .with_authentication(Authentication::token("TOKEN".to_owned()));
@@ -405,6 +415,7 @@ impl<'a> TaskCategoryHandle<'a> {
     /// ```no_run
     /// use alist_client::{Authentication, Client};
     ///
+    /// # #[cfg(feature = "task")]
     /// # async fn example() -> alist_client::Result<()> {
     /// let client = Client::new("https://alist.example.com")?
     ///     .with_authentication(Authentication::token("TOKEN".to_owned()));
@@ -441,6 +452,7 @@ impl<'a> TaskCategoryHandle<'a> {
     /// ```no_run
     /// use alist_client::{Authentication, Client};
     ///
+    /// # #[cfg(feature = "task")]
     /// # async fn example() -> alist_client::Result<()> {
     /// let client = Client::new("https://alist.example.com")?
     ///     .with_authentication(Authentication::token("TOKEN".to_owned()));
@@ -480,6 +492,7 @@ impl<'a> TaskCategoryHandle<'a> {
     /// ```no_run
     /// use alist_client::{Authentication, Client};
     ///
+    /// # #[cfg(feature = "task")]
     /// # async fn example() -> alist_client::Result<()> {
     /// let client = Client::new("https://alist.example.com")?
     ///     .with_authentication(Authentication::token("TOKEN".to_owned()));
@@ -519,6 +532,7 @@ impl<'a> TaskCategoryHandle<'a> {
     /// ```no_run
     /// use alist_client::{Authentication, Client};
     ///
+    /// # #[cfg(feature = "task")]
     /// # async fn example() -> alist_client::Result<()> {
     /// let client = Client::new("https://alist.example.com")?
     ///     .with_authentication(Authentication::token("TOKEN".to_owned()));
@@ -540,7 +554,7 @@ impl<'a> TaskCategoryHandle<'a> {
 ///
 /// 作为任务端点方法的顶层命名空间路由句柄。
 /// 通过 [`Client::task`](crate::Client::task)（用户级 `/api/task` 前缀）或
-/// [`Client::admin_task`](crate::Client::admin_task)（管理员级 `/api/admin/task` 前缀）
+/// 管理端的 `client.admin().task()`（管理员级 `/api/admin/task` 前缀，需启用 `admin-task` feature）
 /// 获取，推荐即建即用；前缀作用域可用 [`Task::scope`] 查询。
 pub struct Task<'a> {
     client: &'a crate::Client,
@@ -552,6 +566,7 @@ impl<'a> Task<'a> {
     ///
     /// 默认使用用户级 `/api/task` 前缀（[`TaskScope::User`]），
     /// 与 [`Client::task`](crate::Client::task) 行为一致。
+    #[cfg(feature = "task")]
     #[inline]
     pub(crate) fn new(client: &'a crate::Client) -> Self {
         Self {
@@ -561,6 +576,7 @@ impl<'a> Task<'a> {
     }
 
     /// 创建指定路由前缀作用域的任务句柄。
+    #[cfg(any(feature = "admin-task", test))]
     #[inline]
     pub(crate) fn with_scope(client: &'a crate::Client, scope: TaskScope) -> Self {
         Self { client, scope }
@@ -587,6 +603,7 @@ impl<'a> Task<'a> {
     /// use alist_client::{Authentication, Client};
     /// use alist_client::endpoint::task::TaskCategory;
     ///
+    /// # #[cfg(feature = "task")]
     /// # async fn example() -> alist_client::Result<()> {
     /// let client = Client::new("https://alist.example.com")?
     ///     .with_authentication(Authentication::token("TOKEN".to_owned()));
@@ -668,42 +685,7 @@ impl<'a> Task<'a> {
     }
 }
 
-impl crate::Client {
-    /// 获取管理员级任务管理句柄。
-    ///
-    /// 对应 AList `/api/admin/task` 路由，与 [`Client::task`](crate::Client::task)
-    /// 共享同一套端点方法与响应模型，仅路由前缀与访问控制不同。
-    ///
-    /// # 适用前提
-    ///
-    /// - 服务端路由中间件为认证与管理员校验（AList 服务端 `middlewares.AuthAdmin`），
-    ///   必须携带管理员凭据；非管理员调用将收到 403 错误。
-    /// - 管理员前缀可查询与操作全部用户的任务；用户级前缀
-    ///   （[`Client::task`](crate::Client::task)）对非管理员仅暴露本人创建的任务。
-    ///
-    /// 管理员前缀自 AList `v3.0.0` 起即存在；从 AList `v3.39.1` 起，任务路由新增
-    /// 用户级 `/api/task` 前缀并保留管理员前缀作为兼容别名。
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// use alist_client::{Authentication, Client};
-    ///
-    /// # async fn example() -> alist_client::Result<()> {
-    /// let client = Client::new("https://alist.example.com")?
-    ///     .with_authentication(Authentication::token("ADMIN_TOKEN".to_owned()));
-    /// let uploads = client.admin_task().upload().undone().await?;
-    /// # Ok(())
-    /// # }
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn admin_task(&self) -> Task<'_> {
-        Task::with_scope(self, TaskScope::Admin)
-    }
-}
-
-#[cfg(test)]
+#[cfg(all(test, feature = "task"))]
 mod tests {
     use super::*;
 
@@ -817,14 +799,14 @@ mod tests {
         }
     }
 
-    /// 1b. 验证管理员级前缀（`client.admin_task`）下所有 7 种类别生成的 URL 路径是否正确。
+    /// 1b. 验证管理员级前缀（`TaskScope::Admin`）下所有 7 种类别生成的 URL 路径是否正确。
     #[test]
     fn test_admin_scope_all_categories_url_paths() {
         let client = crate::Client::new("https://alist.example").unwrap();
 
         for (cat, slug) in all_categories() {
             assert_eq!(cat.as_str(), slug);
-            let handle = client.admin_task().category(cat);
+            let handle = Task::with_scope(&client, TaskScope::Admin).category(cat);
             assert_twelve_actions(
                 &handle,
                 &format!("https://alist.example/api/admin/task/{slug}"),
@@ -837,7 +819,10 @@ mod tests {
     fn test_task_scope_accessor() {
         let client = crate::Client::new("https://alist.example").unwrap();
         assert_eq!(client.task().scope(), TaskScope::User);
-        assert_eq!(client.admin_task().scope(), TaskScope::Admin);
+        assert_eq!(
+            Task::with_scope(&client, TaskScope::Admin).scope(),
+            TaskScope::Admin
+        );
         assert_eq!(TaskScope::User.as_str(), "task");
         assert_eq!(TaskScope::Admin.as_str(), "admin/task");
 
@@ -854,8 +839,7 @@ mod tests {
             "https://alist.example/api/task/upload/done"
         );
         assert_eq!(
-            client
-                .admin_task()
+            Task::with_scope(&client, TaskScope::Admin)
                 .decompress_upload()
                 .undone()
                 .build_request()
@@ -1175,7 +1159,7 @@ mod tests {
         assert!(recorded[2].contains(r#"["t1"]"#));
     }
 
-    /// 8. Mock 服务器收发与反序列化测试：管理员级前缀（`client.admin_task`）
+    /// 8. Mock 服务器收发与反序列化测试：管理员级前缀（`TaskScope::Admin`）
     ///    覆盖全部 5 种请求形状。
     #[tokio::test]
     async fn test_task_admin_prefix_mock_send_and_await() {
@@ -1222,34 +1206,25 @@ mod tests {
         )
         .await;
         let client = crate::Client::new(base_url).unwrap();
+        let admin_task = Task::with_scope(&client, TaskScope::Admin);
 
         // list: GET /api/admin/task/upload/undone
-        let list = client.admin_task().upload().undone().send().await.unwrap();
+        let list = admin_task.upload().undone().send().await.unwrap();
         assert_eq!(list.len(), 1);
         assert_eq!(list[0].id, "admin_task_1");
 
         // info: POST /api/admin/task/copy/info?tid=…
-        let info = client.admin_task().copy().info("t_info").await.unwrap();
+        let info = admin_task.copy().info("t_info").await.unwrap();
         assert_eq!(info.id, "t_info");
 
         // action: POST /api/admin/task/offline_download/cancel?tid=…
-        client
-            .admin_task()
-            .offline_download()
-            .cancel("t2")
-            .await
-            .unwrap();
+        admin_task.offline_download().cancel("t2").await.unwrap();
 
         // empty: POST /api/admin/task/decompress/clear_done
-        client.admin_task().decompress().clear_done().await.unwrap();
+        admin_task.decompress().clear_done().await.unwrap();
 
         // batch: POST /api/admin/task/s3_transition/retry_some
-        let batch = client
-            .admin_task()
-            .s3_transition()
-            .retry_some(["t3"])
-            .await
-            .unwrap();
+        let batch = admin_task.s3_transition().retry_some(["t3"]).await.unwrap();
         assert_eq!(batch.get("t3").map(String::as_str), Some("task not found"));
 
         let recorded = requests.lock().unwrap();

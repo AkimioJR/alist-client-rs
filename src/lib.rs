@@ -76,7 +76,7 @@
 //!         │     ├── .copy()                跨存储复制任务
 //!         │     └── ...                    离线下载/转存/S3转换/解压等类别
 //!         ├── client.share()   → Share    分享（公开分享浏览 + 分享管理）
-//!         └── client.admin()   → Admin    管理端（元信息/用户/存储/驱动/设置/角色/标签）
+//!         └── client.admin()   → Admin    管理端（元信息/用户/存储/驱动/设置/角色/标签/会话/任务等）
 //! ```
 //!
 //! - **请求构建器**：每个操作一个 `Request` 结构体（`src/endpoint/<组>/<端点>.rs`），
@@ -112,6 +112,10 @@
 //! | `admin-role` | 管理端·角色 |
 //! | `admin-label` | 管理端·标签 |
 //! | `admin-label-file-binding` | 管理端·标签-文件绑定 |
+//! | `admin-index` | 管理端·搜索索引 |
+//! | `admin-message` | 管理端·消息队列 |
+//! | `admin-session` | 管理端·会话管理 |
+//! | `admin-task` | 管理端·任务管理（覆盖 7 种任务类别，管理员权限） |
 //! | `stream` | 响应体流式读取（`tokio-util`） |
 //! | `into-stream` | 列表端点自动翻页流（`async-stream` + `futures`） |
 //!

@@ -2,7 +2,7 @@
 //!
 //! 对应 `POST /api/task/{category}/{action}`（清空已完成 `clear_done`、
 //! 清空已成功 `clear_succeeded`、重试所有失败 `retry_failed`；
-//! 经管理员句柄 [`crate::Client::admin_task`] 调用时路径前缀为 `/api/admin/task`），
+//! 经管理员句柄 `client.admin().task()` 调用时路径前缀为 `/api/admin/task`），
 //! 成功时响应 `data: null`，返回 `()`。
 //!
 //! # Version

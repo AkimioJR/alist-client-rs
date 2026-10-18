@@ -1,7 +1,7 @@
 //! 单个任务控制端点请求构建器。
 //!
 //! 对应 `POST /api/task/{category}/{action}?tid={tid}`（取消 `cancel`、删除 `delete`、重试 `retry`；
-//! 经管理员句柄 [`crate::Client::admin_task`] 调用时路径前缀为 `/api/admin/task`），
+//! 经管理员句柄 `client.admin().task()` 调用时路径前缀为 `/api/admin/task`），
 //! 成功时响应 `data: null`，返回 `()`。
 //!
 //! # Version

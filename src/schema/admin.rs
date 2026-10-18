@@ -36,3 +36,6 @@ pub mod message;
 
 #[cfg(feature = "admin-session-schema")]
 pub mod session;
+
+#[cfg(feature = "admin-task-schema")]
+pub mod task;

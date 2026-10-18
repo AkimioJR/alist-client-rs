@@ -40,7 +40,7 @@ pub mod fs;
 #[cfg(feature = "public")]
 pub mod public;
 
-#[cfg(feature = "task")]
+#[cfg(any(feature = "task", feature = "admin-task"))]
 pub mod task;
 
 #[cfg(feature = "share")]
@@ -58,7 +58,8 @@ pub mod share;
     feature = "admin-label-file-binding",
     feature = "admin-index",
     feature = "admin-message",
-    feature = "admin-session"
+    feature = "admin-session",
+    feature = "admin-task"
 ))]
 pub mod admin;
 

@@ -45,6 +45,7 @@ pub mod share;
     feature = "admin-label-file-binding-schema",
     feature = "admin-index-schema",
     feature = "admin-message-schema",
-    feature = "admin-session-schema"
+    feature = "admin-session-schema",
+    feature = "admin-task-schema"
 ))]
 pub mod admin;

@@ -2,7 +2,7 @@
 //!
 //! 对应 `POST /api/task/{category}/{action}`（批量取消 `cancel_some`、
 //! 批量删除 `delete_some`、批量重试 `retry_some`；
-//! 经管理员句柄 [`crate::Client::admin_task`] 调用时路径前缀为 `/api/admin/task`），
+//! 经管理员句柄 `client.admin().task()` 调用时路径前缀为 `/api/admin/task`），
 //! 请求体为 JSON 数组字符串，响应数据反序列化为 [`BatchTaskResult`]。
 //!
 //! # Version

@@ -1,7 +1,7 @@
 //! 单个任务详情查询端点请求构建器。
 //!
 //! 对应 `POST /api/task/{category}/info?tid={tid}`（经管理员句柄
-//! [`crate::Client::admin_task`] 调用时路径前缀为 `/api/admin/task`），
+//! `client.admin().task()` 调用时路径前缀为 `/api/admin/task`），
 //! 响应数据反序列化为 [`TaskInfo`]。
 //!
 //! # Version

@@ -38,7 +38,16 @@ urlencoding = "2"
 
 [features]
 default = ["all"]
-all = ["stream", "into-stream", "auth", "fs", "public", "task", "share", "admin"]
+all = [
+    "stream",
+    "into-stream",
+    "auth",
+    "fs",
+    "public",
+    "task",
+    "share",
+    "admin",
+]
 
 # 特殊功能
 stream = ["dep:tokio-util"]
@@ -62,6 +71,7 @@ admin = [ # admin 聚合
     "admin-index",
     "admin-message",
     "admin-session",
+    "admin-task",
 ]
 admin-meta = ["admin-meta-schema"]
 admin-user = ["admin-user-schema"]
@@ -75,6 +85,7 @@ admin-index = ["admin-index-schema"]
 admin-message = ["admin-message-schema"]
 # 会话模型复用 auth 域 SessionResp（服务端同一结构体），故 schema feature 拉取 auth-schema
 admin-session = ["admin-session-schema"]
+admin-task = ["admin-task-schema"]
 
 # schema feature（由对应端点 feature 拉取）
 auth-schema = []
@@ -93,3 +104,4 @@ admin-label-file-binding-schema = []
 admin-index-schema = []
 admin-message-schema = []
 admin-session-schema = ["auth-schema"]
+admin-task-schema = ["task-schema"]
