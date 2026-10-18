@@ -7,7 +7,7 @@
 //! - **归档（archive）**：压缩包元信息、内部列表与解压（`/api/fs/archive/*`），
 //!   模型供归档端点代理直接复用；
 //! - **上传（upload）**：`PUT /api/fs/put` / `PUT /api/fs/form` 的响应模型
-//!   [`UploadResponse`]（上传请求载荷全部位于
+//!   [`UploadResult`]（上传请求载荷全部位于
 //!   HTTP 头与原始 body，无 JSON 请求模型）。
 //!
 //! ## 字段形状来源
@@ -73,7 +73,7 @@ where
 /// `id`/`path`/`virtual_path`/`hashinfo`/`hash_info`/`storage_class` 为新版服务端
 /// 新增字段，老版本服务端不返回对应字段时为 [`None`] 或空集合。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ObjResponse {
+pub struct FsObject {
     /// 对象 ID（对应 Go `ObjResponse.Id`）。
     ///
     /// 从 AList `v3.54.0` 起新增；老版本服务端不返回该字段时为 [`None`]。
@@ -156,7 +156,7 @@ pub struct ObjLabel {
 /// 即 `/api/fs/list` 响应 `content` 的元素类型；`label_list` 与新增的
 /// `id`/`path`/`virtual_path`/`storage_class` 在老版本服务端缺失时对应新字段为 [`None`] 或空集合。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ObjLabelResponse {
+pub struct LabeledFsObject {
     /// 对象 ID（对应 Go `ObjLabelResponse.Id`）。
     ///
     /// 从 AList `v3.54.0` 起新增；老版本服务端不返回该字段时为 [`None`]。
@@ -222,10 +222,10 @@ pub struct ObjLabelResponse {
 /// 注意 `per_page = -1`（请求全部条目）时服务端对任意页码都返回完整列表，
 /// 不适合配合自动翻页流使用。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct FsListResponse {
+pub struct DirContent {
     /// 当前页内容；目录为空时服务端可能返回 `null`，归约为空数组。
     #[serde(default, deserialize_with = "null_to_default")]
-    pub content: Vec<ObjLabelResponse>,
+    pub content: Vec<LabeledFsObject>,
     /// 过滤后的条目总数（角色过滤前）。
     pub total: i64,
     /// 角色过滤后的条目总数。
@@ -268,7 +268,7 @@ pub struct FsListResponse {
 /// 对应 AList 服务端 fsread 模块的 `DirResponse`，
 /// 即 `/api/fs/dirs` 响应数组的元素类型。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DirResponse {
+pub struct DirEntry {
     /// 文件夹名。
     pub name: String,
     /// 修改时间。
@@ -279,14 +279,14 @@ pub struct DirResponse {
 ///
 /// 对应 AList 服务端 fsread 模块的 `FsGetResponse`，
 /// 即 `/api/fs/get` 响应 `data`；Go 侧嵌入 `ObjResponse`（JSON 平铺），
-/// 此处以 `serde(flatten)` 复用 [`ObjResponse`]。
+/// 此处以 `serde(flatten)` 复用 [`FsObject`]。
 /// `web_proxy` 缺失时为 [`None`]；
 /// `related` 为同目录下同前缀的相关文件，无相关文件时服务端返回 `null`。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct FsGetResponse {
+pub struct FsDetail {
     /// 对象基础字段（Go 侧嵌入的 `ObjResponse`，JSON 平铺）。
     #[serde(flatten)]
-    pub obj: ObjResponse,
+    pub obj: FsObject,
     /// 直链原始 URL。
     ///
     /// 目录恒为空串。
@@ -306,7 +306,7 @@ pub struct FsGetResponse {
     ///
     /// 从 AList `v3.46.0` 起新增。
     #[serde(default, deserialize_with = "null_to_default")]
-    pub related: Vec<ObjLabelResponse>,
+    pub related: Vec<LabeledFsObject>,
 }
 
 /// 搜索结果条目。
@@ -316,7 +316,7 @@ pub struct FsGetResponse {
 /// 即 `/api/fs/search` 响应 `content` 的元素类型。
 /// `type` 为新版服务端附加字段，老版本缺失时为 [`None`]。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct SearchResponse {
+pub struct SearchItem {
     /// 结果所在父目录。
     pub parent: String,
     /// 文件/目录名。
@@ -488,9 +488,9 @@ impl AsRef<str> for DeletePolicy {
 /// 复制端点的响应数据。
 ///
 /// 对应 AList 服务端 fsmanage 模块中 `FsCopy` 返回的结构；跨存储复制会创建后台任务。
-/// 老版本服务端复制成功时 `data` 为 `null`，因此端点模型为 `Option<CopyResponse>`。
+/// 老版本服务端复制成功时 `data` 为 `null`，因此端点模型为 `Option<CopyResult>`。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct CopyResponse {
+pub struct CopyResult {
     /// 复制创建的后台任务列表（无后台任务时为空数组）。
     #[serde(default, deserialize_with = "null_to_default")]
     pub tasks: Vec<TaskInfo>,
@@ -502,7 +502,7 @@ pub struct CopyResponse {
 /// 返回的结构：每个 URL 至多产生一个后台任务；任务 ID 恒为字符串。
 /// 后台任务，响应为任务数组（而非单个任务对象），与 openapi 示例一致。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct OfflineDownloadResponse {
+pub struct OfflineDownloadResult {
     /// 离线下载创建的后台任务列表。
     #[serde(default, deserialize_with = "null_to_default")]
     pub tasks: Vec<TaskInfo>,
@@ -520,7 +520,7 @@ pub struct OfflineDownloadResponse {
 /// 内部字段显式忽略（不参与 JSON 序列化）；更早版本可能额外输出这些字段，
 /// 反序列化时直接忽略即可。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct LinkResponse {
+pub struct DownloadLink {
     /// 文件原始直链 URL（存储驱动返回的下载地址，或本站代理地址）。
     pub url: String,
     /// 访问直链所需携带的请求头（键为头名，值为头值列表）；
@@ -542,7 +542,7 @@ pub struct LinkResponse {
     /// 多线程分段下载的分段大小（对应 Go `model.Link.PartSize`，
     /// 供代理程序加速请求使用）；老版本服务端未提供时为 [`None`]。
     ///
-    /// 版本演进同 [`LinkResponse::concurrency`]：`v3.25.1` 引入大写键名
+    /// 版本演进同 [`DownloadLink::concurrency`]：`v3.25.1` 引入大写键名
     /// `PartSize`，`v3.26.0` 起为小写键名 `part_size`。
     #[serde(rename = "part_size", alias = "PartSize", default)]
     pub part_size: Option<i64>,
@@ -568,14 +568,14 @@ pub struct ArchiveSort {
 /// 即 `POST /api/fs/archive/meta` 响应 `data`。
 /// 压缩包为空或驱动未提供树形结构时 `content` 可能为 `null`，归约为空数组。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ArchiveMetaResponse {
+pub struct ArchiveMeta {
     /// 压缩包注释。
     pub comment: String,
     /// 压缩包内容是否加密（对应 Go `ArchiveMetaResponse.IsEncrypted`，JSON 键 `encrypted`）。
     pub encrypted: bool,
     /// 压缩包内文件的树形结构；为空时归约为空数组。
     #[serde(default, deserialize_with = "null_to_default")]
-    pub content: Vec<ArchiveContentResponse>,
+    pub content: Vec<ArchiveNode>,
     /// 驱动提供的排序设置；未提供时缺省（`omitempty`）。
     #[serde(default)]
     pub sort: Option<ArchiveSort>,
@@ -593,13 +593,13 @@ pub struct ArchiveMetaResponse {
 /// 嵌入 `ObjResponse`（JSON 平铺）并递归携带 `children`；
 /// 目录无子项时服务端返回 `null`，归约为空数组。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ArchiveContentResponse {
+pub struct ArchiveNode {
     /// 对象基础字段（Go 侧嵌入的 `ObjResponse`，JSON 平铺）。
     #[serde(flatten)]
-    pub obj: ObjResponse,
+    pub obj: FsObject,
     /// 子文件/子目录；为空时归约为空数组。
     #[serde(default, deserialize_with = "null_to_default")]
-    pub children: Vec<ArchiveContentResponse>,
+    pub children: Vec<ArchiveNode>,
 }
 
 /// 压缩包内部列表响应。
@@ -607,10 +607,10 @@ pub struct ArchiveContentResponse {
 /// 对应 AList 服务端 archive 模块的 `ArchiveListResponse`，
 /// 即 `POST /api/fs/archive/list` 响应 `data`。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ArchiveListResponse {
+pub struct ArchiveList {
     /// 当前页的压缩包内部条目；为空时归约为空数组。
     #[serde(default, deserialize_with = "null_to_default")]
-    pub content: Vec<ObjResponse>,
+    pub content: Vec<FsObject>,
     /// 条目总数。
     pub total: i64,
 }
@@ -621,7 +621,7 @@ pub struct ArchiveListResponse {
 /// 结构：JSON 键为单数 `task`，但值是任务数组（每个被解压的文件对应一个任务）。
 /// （每个解压目标一项）。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ArchiveDecompressResponse {
+pub struct DecompressResult {
     /// 解压创建的后台任务列表（无后台任务时为空数组）。
     #[serde(default, deserialize_with = "null_to_default")]
     pub task: Vec<TaskInfo>,
@@ -649,11 +649,11 @@ impl StringOrArray {
 /// 上传端点（`PUT /api/fs/put` 流式上传与 `PUT /api/fs/form` 表单上传）的响应数据。
 ///
 /// 即 AList 服务端上传处理模块以 `gin.H{"task": getTaskInfo(t)}` 返回的结构，复用共享模型
-/// [`UploadResponse`](crate::schema::common::UploadResponse)。
+/// [`UploadResult`](crate::schema::common::UploadResult)。
 /// 直传成功（未启用 `As-Task` 头）时端点 `data` 为 `null`，
-/// 因此端点模型为 `Option<UploadResponse>`；上传请求载荷全部位于 HTTP 头与原始 body，
+/// 因此端点模型为 `Option<UploadResult>`；上传请求载荷全部位于 HTTP 头与原始 body，
 /// 无 JSON 请求模型。
-pub type UploadResponse = crate::schema::common::UploadResponse;
+pub type UploadResult = crate::schema::common::UploadResult;
 
 #[cfg(test)]
 mod tests {
@@ -663,8 +663,8 @@ mod tests {
     /// （老版本形状：条目无 `id`/`path`/`virtual_path`/`label_list`，
     /// 响应无 `filtered_total` 等新增分页字段）。
     #[test]
-    fn fs_list_response_decodes_openapi_example() {
-        let resp: FsListResponse = serde_json::from_value(serde_json::json!({
+    fn dir_content_decodes_openapi_example() {
+        let resp: DirContent = serde_json::from_value(serde_json::json!({
             "content": [
                 {
                     "name": "Alist V3.md",
@@ -722,8 +722,8 @@ mod tests {
     /// 兼容钉扎：按 AList 服务端 fsread 模块的 `FsListResponse` 形状反序列化真实响应。
     /// `ObjLabelResponse` JSON tag 构造新版服务端形状（含新增字段与标签列表）。
     #[test]
-    fn fs_list_response_decodes_new_server_shape() {
-        let resp: FsListResponse = serde_json::from_value(serde_json::json!({
+    fn dir_content_decodes_new_server_shape() {
+        let resp: DirContent = serde_json::from_value(serde_json::json!({
             "content": [
                 {
                     "id": "local-1",
@@ -786,8 +786,8 @@ mod tests {
     /// 兼容钉扎：目录为空时服务端 `content` 为 `null`（Go `toObjsResp` 对空切片
     /// 返回 `nil`），应归约为空数组。
     #[test]
-    fn fs_list_response_tolerates_null_content() {
-        let resp: FsListResponse = serde_json::from_value(serde_json::json!({
+    fn dir_content_tolerates_null_content() {
+        let resp: DirContent = serde_json::from_value(serde_json::json!({
             "content": null,
             "total": 0,
             "readme": "",
@@ -803,8 +803,8 @@ mod tests {
     /// 正向钉扎：AList OpenAPI 规范的 `/api/fs/get` 返回示例（含 raw_url 与 provider 字段）。
     /// （`related: null`、无 `web_proxy` 字段的老版本形状）。
     #[test]
-    fn fs_get_response_decodes_openapi_example() {
-        let resp: FsGetResponse = serde_json::from_value(serde_json::json!({
+    fn fs_detail_decodes_openapi_example() {
+        let resp: FsDetail = serde_json::from_value(serde_json::json!({
             "name": "Alist V3.md",
             "size": 2618,
             "is_dir": false,
@@ -840,8 +840,8 @@ mod tests {
 
     /// 正向钉扎：AList OpenAPI 规范的 `/api/fs/dirs` 返回示例。
     #[test]
-    fn dir_response_decodes_openapi_example() {
-        let dirs: Vec<DirResponse> = serde_json::from_value(serde_json::json!([
+    fn dir_entry_decodes_openapi_example() {
+        let dirs: Vec<DirEntry> = serde_json::from_value(serde_json::json!([
             { "name": "a", "modified": "2023-07-19T09:48:13.695585868+08:00" }
         ]))
         .unwrap();
@@ -852,8 +852,8 @@ mod tests {
     /// 正向钉扎：AList OpenAPI 规范的 `/api/fs/search` 返回示例；
     /// 兼容老版本无 `type` 字段的形状。
     #[test]
-    fn search_response_decodes_openapi_example() {
-        let page: crate::schema::common::PageResponse<SearchResponse> = serde_json::from_value(
+    fn search_item_decodes_openapi_example() {
+        let page: crate::schema::common::PageResponse<SearchItem> = serde_json::from_value(
             serde_json::json!({
                 "content": [
                     { "parent": "/m", "name": "4305da1e", "is_dir": false, "size": 393090, "type": 0 }
@@ -867,7 +867,7 @@ mod tests {
         assert_eq!(page.content[0].r#type, Some(0));
 
         // 老版本服务端不返回 type 字段
-        let old: SearchResponse = serde_json::from_value(serde_json::json!({
+        let old: SearchItem = serde_json::from_value(serde_json::json!({
             "parent": "/m", "name": "a.txt", "is_dir": false, "size": 1
         }))
         .unwrap();
@@ -890,8 +890,8 @@ mod tests {
     /// 正向钉扎：AList OpenAPI 规范的 `/api/fs/add_offline_download` 返回示例；
     /// 返回示例；`/api/fs/copy` 响应同构（`gin.H{"tasks": ...}`）。
     #[test]
-    fn offline_download_response_decodes_openapi_example() {
-        let resp: OfflineDownloadResponse = serde_json::from_value(serde_json::json!({
+    fn offline_download_result_decodes_openapi_example() {
+        let resp: OfflineDownloadResult = serde_json::from_value(serde_json::json!({
             "tasks": [
                 {
                     "id": "jwy7BrfZRzbI2xWg7-y",
@@ -907,8 +907,7 @@ mod tests {
         assert_eq!(resp.tasks.len(), 1);
         assert_eq!(resp.tasks[0].id, "jwy7BrfZRzbI2xWg7-y");
 
-        let copy: CopyResponse =
-            serde_json::from_value(serde_json::json!({ "tasks": [] })).unwrap();
+        let copy: CopyResult = serde_json::from_value(serde_json::json!({ "tasks": [] })).unwrap();
         assert!(copy.tasks.is_empty());
     }
 
@@ -917,8 +916,8 @@ mod tests {
     /// 与 `concurrency`/`part_size`，Go `time.Duration` 以纳秒整数序列化；
     /// 该端点不在 OpenAPI 规范中，形状取自服务端结构体，URL 为示例占位）。
     #[test]
-    fn link_response_decodes_go_server_shape() {
-        let link: LinkResponse = serde_json::from_value(serde_json::json!({
+    fn download_link_decodes_go_server_shape() {
+        let link: DownloadLink = serde_json::from_value(serde_json::json!({
             "url": "https://example.com/d/file.mkv",
             "header": { "User-Agent": ["alist"], "Cookie": ["a=1", "b=2"] },
             "Expiration": 3600000000000i64,
@@ -951,8 +950,8 @@ mod tests {
     /// 兼容钉扎：AList `v3.25.1`（引入 `model.Link.Concurrency`/`PartSize`
     /// 时无 json tag）以 Go 字段名大写键名序列化，反序列化经别名兼容。
     #[test]
-    fn link_response_accepts_v3_25_1_uppercase_keys() {
-        let link: LinkResponse = serde_json::from_value(serde_json::json!({
+    fn download_link_accepts_v3_25_1_uppercase_keys() {
+        let link: DownloadLink = serde_json::from_value(serde_json::json!({
             "url": "https://example.com/d/file.mkv",
             "header": {},
             "Expiration": null,
@@ -968,8 +967,8 @@ mod tests {
     /// 其余键为 `url`/`header`/`concurrency`/`part_size`（小写 JSON tag）；
     /// 内部字段（范围读取器等）不出现在序列化输出中。
     #[test]
-    fn link_response_serializes_with_go_field_names() {
-        let link = LinkResponse {
+    fn download_link_serializes_with_go_field_names() {
+        let link = DownloadLink {
             url: "https://example.com/d/file.mkv".to_owned(),
             header: HashMap::new(),
             expiration: None,
@@ -994,8 +993,8 @@ mod tests {
     /// 兼容钉扎：本站仅本地代理的存储返回 `header: null` 与 `Expiration: null`；
     /// 老版本服务端缺失字段（以及 v3.26.0 之前额外输出的内部字段）同样兼容。
     #[test]
-    fn link_response_tolerates_null_and_missing_fields() {
-        let proxied: LinkResponse = serde_json::from_value(serde_json::json!({
+    fn download_link_tolerates_null_and_missing_fields() {
+        let proxied: DownloadLink = serde_json::from_value(serde_json::json!({
             "url": "http://127.0.0.1:5244/p/local/file.mkv?d&sign=x",
             "header": null,
             "Expiration": null
@@ -1004,7 +1003,7 @@ mod tests {
         assert!(proxied.header.is_empty(), "null 的 header 归约为空映射");
         assert_eq!(proxied.expiration, None);
 
-        let legacy: LinkResponse =
+        let legacy: DownloadLink =
             serde_json::from_value(serde_json::json!({ "url": "http://d/file" })).unwrap();
         assert!(legacy.header.is_empty(), "缺失的 header 归约为空映射");
         assert_eq!(legacy.expiration, None, "缺失的 Expiration 为 None");
@@ -1021,8 +1020,8 @@ mod tests {
     /// 钉扎：AList 服务端 archive 模块的 `ArchiveMetaResponse`/
     /// `ArchiveContentResponse` JSON 标签形状（树形 children、可选 sort）。
     #[test]
-    fn archive_meta_response_decodes_go_server_shape() {
-        let resp: ArchiveMetaResponse = serde_json::from_value(serde_json::json!({
+    fn archive_meta_decodes_go_server_shape() {
+        let resp: ArchiveMeta = serde_json::from_value(serde_json::json!({
             "comment": "demo",
             "encrypted": false,
             "content": [
@@ -1067,7 +1066,7 @@ mod tests {
         assert_eq!(sort.order_by, "name");
         assert_eq!(sort.order_direction, "asc");
         // 无 sort 字段时缺省
-        let no_sort: ArchiveMetaResponse = serde_json::from_value(serde_json::json!({
+        let no_sort: ArchiveMeta = serde_json::from_value(serde_json::json!({
             "comment": "", "encrypted": true, "content": null,
             "raw_url": "", "sign": ""
         }))
@@ -1078,8 +1077,8 @@ mod tests {
 
     /// 钉扎：AList 服务端 archive 模块的 `ArchiveListResponse` 形状。
     #[test]
-    fn archive_list_response_decodes_go_server_shape() {
-        let resp: ArchiveListResponse = serde_json::from_value(serde_json::json!({
+    fn archive_list_decodes_go_server_shape() {
+        let resp: ArchiveList = serde_json::from_value(serde_json::json!({
             "content": [
                 {
                     "name": "inner.txt",
@@ -1100,8 +1099,8 @@ mod tests {
 
     /// 钉扎：解压响应——键为单数 `task`、值为数组。
     #[test]
-    fn archive_decompress_response_decodes_task_array() {
-        let resp: ArchiveDecompressResponse = serde_json::from_value(serde_json::json!({
+    fn decompress_result_decodes_task_array() {
+        let resp: DecompressResult = serde_json::from_value(serde_json::json!({
             "task": [
                 { "id": "abc", "name": "decompress demo.zip[/a.txt]", "state": 0,
                   "status": "", "progress": 0, "error": "" }
@@ -1127,12 +1126,12 @@ mod tests {
         );
     }
 
-    /// 钉扎：上传响应复用 [`crate::schema::common::UploadResponse`]。
+    /// 钉扎：上传响应复用 [`crate::schema::common::UploadResult`]。
     #[test]
-    fn upload_response_alias_reuses_common_model() {
+    fn upload_result_alias_reuses_common_model() {
         use crate::schema::common::Response;
 
-        let resp: Response<UploadResponse> = serde_json::from_value(serde_json::json!({
+        let resp: Response<UploadResult> = serde_json::from_value(serde_json::json!({
             "code": 200,
             "message": "success",
             "data": {

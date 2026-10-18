@@ -86,7 +86,7 @@
 //!   列表端点在 `into-stream` feature 下还可调用 `.into_stream()` 得到自动翻页的条目流。
 //! - **数据模型**：[`schema`] 按 API 域分组（`src/schema/<域>.rs`），serde 驱动，
 //!   对老版本服务器的缺失/`null` 字段保持兼容；响应封装（[`Response`](crate::schema::common::Response)）、
-//!   分页（[`PageResponse`](crate::schema::common::PageResponse)）、任务（`TaskInfo`）、上传（[`UploadResponse`](crate::schema::common::UploadResponse)）等共享形状在 [`schema::common`]。
+//!   分页（[`PageResponse`](crate::schema::common::PageResponse)）、任务（`TaskInfo`）、上传（[`UploadResult`](crate::schema::common::UploadResult)）等共享形状在 [`schema::common`]。
 //! - **错误语义**：AList 多数错误以 HTTP 200 + 响应 `code` 非 200 返回，[`Client`]
 //!   统一转换为 [`Error::Api`]（状态码见 [`ApiStatusCode`]，内部错误分类见
 //!   [`InternalErrorKind`]）；HTTP 非 2xx 转换为 [`Error::HttpStatus`]。

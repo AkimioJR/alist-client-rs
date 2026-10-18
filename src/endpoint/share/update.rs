@@ -1,7 +1,7 @@
 //! share 分享管理端点：更新分享。
 //!
 //! 对应 `POST /api/share/update`；请求体携带目标分享 ID 与可选的修改项，
-//! 响应 `data` 反序列化为 [`ShareResponse`]。需要登录非访客用户的用户
+//! 响应 `data` 反序列化为 [`Share`]。需要登录非访客用户的用户
 //! token，且仅能更新本人创建的分享。
 //!
 //! # Version
@@ -10,7 +10,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::share::ShareResponse;
+use crate::schema::share::Share;
 
 /// 更新分享请求构建器。
 ///
@@ -18,7 +18,7 @@ use crate::schema::share::ShareResponse;
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = POST, path = "/api/share/update", model = ShareResponse)]
+#[endpoint(method = POST, path = "/api/share/update", model = Share)]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     #[endpoint(skip)]
@@ -79,7 +79,7 @@ impl<'a> super::Share<'a> {
     /// 更新分享。
     ///
     /// 对应 AList `POST /api/share/update`；响应 `data` 为更新后的
-    /// [`ShareResponse`]。需要登录非访客用户凭据（服务端路由组挂载认证与
+    /// [`Share`]。需要登录非访客用户凭据（服务端路由组挂载认证与
     /// 非访客校验中间件，且仅能更新本人创建的分享）。未设置的可选参数
     /// 不会出现在请求体中，服务端保持对应属性不变。数据来源：AList 服务端
     /// 分享管理模块（实现为 `UpdateShare`）与服务端路由定义。
@@ -91,7 +91,7 @@ impl<'a> super::Share<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`ShareResponse`]。
+    /// [`Share`]。
     ///
     /// # Errors
     ///

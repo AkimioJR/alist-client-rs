@@ -1,6 +1,6 @@
 //! auth 端点：获取当前用户的登录会话列表。
 //!
-//! 对应 `GET /api/me/sessions`；无需请求体，返回 [`Vec<SessionResponse>`]。
+//! 对应 `GET /api/me/sessions`；无需请求体，返回 [`Vec<Session>`]。
 //!
 //! # Version
 //!
@@ -8,7 +8,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::auth::SessionResponse;
+use crate::schema::auth::Session;
 
 /// 获取当前用户登录会话列表请求构建器。
 ///
@@ -16,7 +16,7 @@ use crate::schema::auth::SessionResponse;
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = GET, path = "/api/me/sessions", model = Vec<SessionResponse>)]
+#[endpoint(method = GET, path = "/api/me/sessions", model = Vec<Session>)]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     #[endpoint(skip)]
@@ -45,7 +45,7 @@ impl<'a> super::Auth<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`Vec<SessionResponse>`]。
+    /// [`Vec<Session>`]。
     ///
     /// # Errors
     ///

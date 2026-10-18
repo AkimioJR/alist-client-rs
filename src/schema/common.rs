@@ -134,9 +134,9 @@ pub struct TaskInfo {
 /// 对应 AList 服务端上传处理模块中流式或表单上传以
 /// `gin.H{"task": getTaskInfo(t)}` 返回的结构。
 /// 直传成功（未启用 `As-Task`）时端点 `data` 为 `null`，
-/// 因此调用方应以 `Option<UploadResponse>` 作为端点模型。
+/// 因此调用方应以 `Option<UploadResult>` 作为端点模型。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct UploadResponse {
+pub struct UploadResult {
     /// 后台上传任务详情。
     pub task: TaskInfo,
 }
@@ -260,8 +260,8 @@ mod tests {
     }
 
     #[test]
-    fn upload_response_decodes_fs_stream_task_example() {
-        let resp: Response<UploadResponse> = serde_json::from_value(serde_json::json!({
+    fn upload_result_decodes_fs_stream_task_example() {
+        let resp: Response<UploadResult> = serde_json::from_value(serde_json::json!({
             "code": 200,
             "message": "success",
             "data": {

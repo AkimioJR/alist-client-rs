@@ -1,7 +1,7 @@
 //! share 公开分享端点：分享密码换取访问令牌。
 //!
 //! 对应 `POST /api/public/share/auth`；请求体为 `{"share_id", "password"}`，
-//! 响应 `data` 反序列化为 [`PublicShareAuthResponse`]（`token` 字段）。
+//! 响应 `data` 反序列化为 [`PublicShareAuth`]（`token` 字段）。
 //! 无需用户认证；令牌有效期由服务端决定（缺省 24 小时，且不超过分享剩余有效时间）。
 //!
 //! # Version
@@ -10,7 +10,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::share::PublicShareAuthResponse;
+use crate::schema::share::PublicShareAuth;
 
 /// 分享密码鉴权请求构建器。
 ///
@@ -21,7 +21,7 @@ use crate::schema::share::PublicShareAuthResponse;
 #[endpoint(
     method = POST,
     path = "/api/public/share/auth",
-    model = PublicShareAuthResponse
+    model = PublicShareAuth
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -67,7 +67,7 @@ impl<'a> super::Public<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`PublicShareAuthResponse`]。
+    /// [`PublicShareAuth`]。
     ///
     /// # Errors
     ///

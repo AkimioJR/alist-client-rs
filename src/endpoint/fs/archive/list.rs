@@ -1,9 +1,7 @@
 //! fs 端点：列出压缩包内目录内容。
 //!
 //! 对应 `POST /api/fs/archive/list`；响应 `data` 为
-//! `{content: [...], total: N}` 分页形状（共享模型
-//! [`PageResponse`]，元素为
-//! [`ObjResponse`]）。该端点未收录于
+//! 压缩包内部子项列表 [`ArchiveList`]。该端点未收录于
 //! AList OpenAPI 规范，请求/响应形状以
 //! AList 服务端 `ArchiveListReq`/`ArchiveListResponse`
 //! 为准；分页字段与服务端 `PageRequest`（`page`/`per_page`）一致，随 JSON 请求体发送。
@@ -15,7 +13,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::{common::PageResponse, fs::ObjResponse};
+use crate::schema::fs::ArchiveList;
 
 /// 列出压缩包内目录内容请求构建器。
 ///
@@ -29,7 +27,7 @@ use crate::schema::{common::PageResponse, fs::ObjResponse};
 #[endpoint(
     method = POST,
     path = "/api/fs/archive/list",
-    model = PageResponse<ObjResponse>
+    model = ArchiveList
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -100,7 +98,7 @@ impl<'a> super::Archive<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`PageResponse<ObjResponse>`](crate::schema::common::PageResponse)。
+    /// [`ArchiveList`]。
     ///
     /// # Errors
     ///

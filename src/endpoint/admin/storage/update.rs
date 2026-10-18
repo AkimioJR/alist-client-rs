@@ -3,7 +3,7 @@
 //! 对应 `POST /api/admin/storage/update`；请求体为 `model.Storage` 形状
 //! （AList 服务端 handles.Storage 模块的 `UpdateStorage` 直接绑定），
 //! `id` 用于定位目标存储且驱动名不可变更；成功时服务端返回 `data: null`，
-//! AList OpenAPI 规范示例则记载 `{"id": N}`，故以 `Option<StorageCreateResponse>` 建模。
+//! AList OpenAPI 规范示例则记载 `{"id": N}`，故以 `Option<CreateStorageResult>` 建模。
 //!
 //! # Version
 //!
@@ -15,7 +15,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::admin::storage::StorageCreateResponse;
+use crate::schema::admin::storage::CreateStorageResult;
 pub use crate::schema::admin::storage::WebdavPolicy;
 
 /// 更新存储请求构建器。
@@ -25,7 +25,7 @@ pub use crate::schema::admin::storage::WebdavPolicy;
 /// 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = POST, path = "/api/admin/storage/update", model = Option<StorageCreateResponse>)]
+#[endpoint(method = POST, path = "/api/admin/storage/update", model = Option<CreateStorageResult>)]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     #[endpoint(skip)]
@@ -137,7 +137,7 @@ impl<'a> super::Storage<'a> {
     /// AList 服务端 handles.Storage 模块（实现为 `UpdateStorage`）。
     /// 注意：成功响应的 `data` 两种服务端行为不同——服务端实现
     /// （`UpdateStorage` 内 `common.SuccessResp(c)`）返回 `null`，AList OpenAPI 规范示例
-    /// 返回 `{ "id": N }`，故模型为 `Option<StorageCreateResponse>`。
+    /// 返回 `{ "id": N }`，故模型为 `Option<CreateStorageResult>`。
     ///
     /// # Arguments
     ///
@@ -149,7 +149,7 @@ impl<'a> super::Storage<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// `Option<StorageCreateResponse>`：`data: null` 时为 [`None`]（当前 Go 实现），
+    /// `Option<CreateStorageResult>`：`data: null` 时为 [`None`]（当前 Go 实现），
     /// `data: {"id": N}` 时为 [`Some`]（openapi 记载的行为）。
     ///
     /// # Errors
@@ -276,7 +276,7 @@ mod tests {
             .send()
             .await
             .unwrap();
-        assert_eq!(resp, Some(StorageCreateResponse { id: 7 }));
+        assert_eq!(resp, Some(CreateStorageResult { id: 7 }));
 
         mock.assert_async().await;
     }

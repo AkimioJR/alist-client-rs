@@ -1,6 +1,6 @@
 //! auth 端点：获取当前用户信息。
 //!
-//! 对应 `GET /api/me`；无需请求体，返回 [`MeResponse`]
+//! 对应 `GET /api/me`；无需请求体，返回 [`CurrentUser`]（类型别名，同 [`User`](crate::schema::auth::User)）
 //! （AList 服务端 auth 模块的 `CurrentUser`）。
 //! token 缺失时服务端返回游客信息。
 //!
@@ -15,7 +15,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::auth::MeResponse;
+use crate::schema::auth::CurrentUser;
 
 /// 获取当前用户信息请求构建器。
 ///
@@ -23,7 +23,7 @@ use crate::schema::auth::MeResponse;
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = GET, path = "/api/me", model = MeResponse)]
+#[endpoint(method = GET, path = "/api/me", model = CurrentUser)]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     #[endpoint(skip)]
@@ -43,7 +43,7 @@ impl<'a> super::Auth<'a> {
     /// 获取当前用户信息。
     ///
     /// 对应 AList `GET /api/me`（数据来源：AList OpenAPI 规范的
-    /// `/api/me` 与 AList 服务端 auth 模块的 `CurrentUser`）。成功时返回 [`MeResponse`]：用户 ID、用户名、
+    /// `/api/me` 与 AList 服务端 auth 模块的 `CurrentUser`）。成功时返回 [`CurrentUser`]（类型别名，同 [`User`](crate::schema::auth::User)）：用户 ID、用户名、
     /// 根目录、角色 ID 列表、聚合权限位掩码、是否启用 2FA，以及
     /// `role_names`/`permissions` 字段。
     /// 响应中的 `password` 字段恒为空字符串（服务端 handler 置空）。
@@ -55,7 +55,7 @@ impl<'a> super::Auth<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`MeResponse`]。
+    /// [`CurrentUser`]。
     ///
     /// # Errors
     ///
@@ -109,7 +109,7 @@ mod tests {
     /// 收发路径：mock 服务器返回规范 `/api/me` 示例（老服务器单值 role 形状），
     /// 断言 GET 方法、认证头注入与 schema 兼容解码。
     #[tokio::test]
-    async fn send_gets_me_and_decodes_user_response() {
+    async fn send_gets_me_and_decodes_current_user() {
         let mut server = mockito::Server::new_async().await;
         let mock = server
             .mock("GET", "/api/me")

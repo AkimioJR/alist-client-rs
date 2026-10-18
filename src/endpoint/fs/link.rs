@@ -3,7 +3,7 @@
 //! 对应 `POST /api/fs/link`（AList OpenAPI 规范未收录该端点；路由位于
 //! 管理员中间件之后，仅管理员可用——直链可能携带 Cookie 等敏感请求头，
 //! 供代理程序使用）。响应 `data` 为
-//! [`LinkResponse`]，形状由 AList 服务端
+//! [`DownloadLink`]，形状由 AList 服务端
 //! fsmanage 模块 `Link` 处理器与 `model.Link` 决定；目标路径直接以传入的
 //! 完整路径定位存储（不做用户主目录拼接）。
 //!
@@ -19,7 +19,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::fs::LinkResponse;
+use crate::schema::fs::DownloadLink;
 
 /// 获取文件原始直链请求构建器。
 ///
@@ -27,7 +27,7 @@ use crate::schema::fs::LinkResponse;
 /// 或 [`.send().await`](Request::send) / [`.send_raw::<T>().await`](Request::send_raw)
 /// 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = POST, path = "/api/fs/link", model = LinkResponse)]
+#[endpoint(method = POST, path = "/api/fs/link", model = DownloadLink)]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     #[endpoint(skip)]
@@ -55,7 +55,7 @@ impl<'a> super::Fs<'a> {
     /// 获取文件原始直链（管理员）。
     ///
     /// 对应 AList `POST /api/fs/link`；仅管理员可用。响应 `data` 为
-    /// [`LinkResponse`]，包含直链 URL、访问所需请求头与服务端缓存有效期；
+    /// [`DownloadLink`]，包含直链 URL、访问所需请求头与服务端缓存有效期；
     /// 仅本地代理的存储返回本站代理地址（此时无附加请求头与有效期）。
     /// 数据来源：AList 服务端路由定义与 fsmanage 模块的 `Link` 处理器
     /// （该端点不在 AList OpenAPI 规范中，以 AList 服务端实现为准）。
@@ -67,7 +67,7 @@ impl<'a> super::Fs<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`LinkResponse`]。
+    /// [`DownloadLink`]。
     ///
     /// # Errors
     ///

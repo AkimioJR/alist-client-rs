@@ -2,7 +2,7 @@
 //!
 //! 对应 `POST /api/public/share/list`；请求体为分享 ID、分享内相对路径、
 //! 分享访问令牌与分页参数（`page`/`per_page` 均为 JSON 请求体字段，
-//! 非查询串），响应 `data` 反序列化为 [`PublicShareListResponse`]。
+//! 非查询串），响应 `data` 反序列化为 [`PublicShareList`]。
 //! 无需用户认证；受密码保护的分享必须携带有效分享令牌。
 //!
 //! # Version
@@ -13,7 +13,9 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::share::PublicShareListResponse;
+use crate::schema::share::PublicShareList;
+#[cfg(feature = "into-stream")]
+use crate::schema::share::PublicShareObject;
 
 /// 浏览分享内目录列表请求构建器。
 ///
@@ -26,11 +28,11 @@ use crate::schema::share::PublicShareListResponse;
 #[endpoint(
     method = POST,
     path = "/api/public/share/list",
-    model = PublicShareListResponse
+    model = PublicShareList
 )]
 #[cfg_attr(
     feature = "into-stream",
-    endpoint(into_stream = true, stream_item = crate::schema::share::PublicShareObjResponse)
+    endpoint(into_stream = true, stream_item = PublicShareObject)
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -80,7 +82,7 @@ impl<'a> super::Public<'a> {
     /// 浏览分享内目录列表。
     ///
     /// 对应 AList `POST /api/public/share/list`；无需用户认证，
-    /// 响应 `data` 为 [`PublicShareListResponse`]（内容、总数、页码、
+    /// 响应 `data` 为 [`PublicShareList`]（内容、总数、页码、
     /// `has_more` 与总页数）。受密码保护的分享必须通过
     /// [`.token()`](Request::token) 携带有效分享访问令牌。
     /// 数据来源：AList 服务端公开分享处理模块（实现为 `ListPublicShare`）
@@ -93,7 +95,7 @@ impl<'a> super::Public<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`PublicShareListResponse`]。
+    /// [`PublicShareList`]。
     ///
     /// # Errors
     ///

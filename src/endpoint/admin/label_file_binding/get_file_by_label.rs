@@ -1,7 +1,7 @@
 //! admin-label-file-binding 端点：按标签查询文件。
 //!
 //! 对应 `GET /api/label_file_binding/get_file_by_label`；响应 `data` 为带标签的
-//! 文件条目数组（无结果时为 `null`），因此以 `Option<Vec<ObjLabelResponse>>` 作为端点模型。
+//! 文件条目数组，以 [`Vec<LabeledFsObject>`] 作为端点模型。
 //! 该分组未收录进 AList OpenAPI 规范；路由见 AList 服务端路由定义
 //! （挂载在用户认证路由组下，非 `/api/admin` 前缀），
 //! 处理逻辑见 AList 服务端 label_file_binding 模块
@@ -14,7 +14,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::admin::label_file_binding::ObjLabelResponse;
+use crate::schema::admin::label_file_binding::LabeledFsObject;
 
 /// 按标签查询文件请求构建器。
 ///
@@ -25,7 +25,7 @@ use crate::schema::admin::label_file_binding::ObjLabelResponse;
 #[endpoint(
     method = GET,
     path = "/api/label_file_binding/get_file_by_label",
-    model = Option<Vec<ObjLabelResponse>>
+    model = Vec<LabeledFsObject>
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -54,8 +54,7 @@ impl<'a> super::LabelFileBinding<'a> {
     /// 按标签查询绑定的文件。
     ///
     /// 对应 AList `GET /api/label_file_binding/get_file_by_label`；成功时响应 `data`
-    /// 为 [`ObjLabelResponse`] 数组，
-    /// 无结果时为 `null`（解码为 `None`）。
+    /// 为 [`LabeledFsObject`] 数组。
     /// 数据来源：AList 服务端路由定义（路由注册）与
     /// AList 服务端 label_file_binding 模块
     /// （实现为 `handles.GetFileByLabel`）。
@@ -67,7 +66,7 @@ impl<'a> super::LabelFileBinding<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回带标签列表的文件条目
-    /// 数组（无结果时为 `None`）。
+    /// 数组（[`Vec<LabeledFsObject>`]）。
     ///
     /// # Errors
     ///
@@ -87,15 +86,13 @@ impl<'a> super::LabelFileBinding<'a> {
     /// # async fn example() -> alist_client::Result<()> {
     /// let client = Client::new("https://alist.example.com")?
     ///     .with_authentication(Authentication::token("TOKEN".to_owned()));
-    /// if let Some(files) = client
+    /// let files = client
     ///     .admin()
     ///     .label_file_binding()
     ///     .get_file_by_label("1,2") // 支持逗号分隔多个标签
-    ///     .await?
-    /// {
-    ///     for file in files {
-    ///         println!("{} ({} 个标签)", file.name, file.label_list.len());
-    ///     }
+    ///     .await?;
+    /// for file in files {
+    ///     println!("{} ({} 个标签)", file.name, file.label_list.len());
     /// }
     /// # Ok(())
     /// # }
@@ -152,7 +149,6 @@ mod tests {
             .with_authentication(crate::Authentication::Token("token-1".to_owned()));
 
         let files = Request::new(&client, "1,2").send().await.unwrap();
-        let files = files.expect("预设响应包含一个文件条目");
         assert_eq!(files.len(), 1);
         assert_eq!(files[0].name, "movie.mp4");
         assert_eq!(files[0].id, "obj-1");
@@ -161,22 +157,22 @@ mod tests {
         mock.assert_async().await;
     }
 
-    /// `data: null` 兼容：无结果时解码为 `None`。
+    /// 空列表断言：无结果时解码为空数组。
     #[tokio::test]
-    async fn send_decodes_null_data_as_none() {
+    async fn send_decodes_empty_data() {
         let mut server = mockito::Server::new_async().await;
         let mock = server
             .mock("GET", "/api/label_file_binding/get_file_by_label")
             .match_query(mockito::Matcher::UrlEncoded("label_id".into(), "7".into()))
             .with_status(200)
             .with_header("content-type", "application/json")
-            .with_body(r#"{"code":200,"message":"success","data":null}"#)
+            .with_body(r#"{"code":200,"message":"success","data":[]}"#)
             .create_async()
             .await;
         let client = crate::Client::new(server.url()).unwrap();
 
         let files = Request::new(&client, "7").await.unwrap();
-        assert_eq!(files, None);
+        assert_eq!(files, Vec::<LabeledFsObject>::new());
 
         mock.assert_async().await;
     }

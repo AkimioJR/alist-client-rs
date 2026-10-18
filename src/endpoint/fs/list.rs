@@ -16,7 +16,9 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::fs::FsListResponse;
+use crate::schema::fs::DirContent;
+#[cfg(feature = "into-stream")]
+use crate::schema::fs::LabeledFsObject;
 
 /// 列出目录内容请求构建器。
 ///
@@ -24,12 +26,12 @@ use crate::schema::fs::FsListResponse;
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = POST, path = "/api/fs/list", model = FsListResponse)]
+#[endpoint(method = POST, path = "/api/fs/list", model = DirContent)]
 #[cfg_attr(
     feature = "into-stream",
     endpoint(
         into_stream = true,
-        stream_item = crate::schema::fs::ObjLabelResponse
+        stream_item = LabeledFsObject
     )
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
@@ -85,7 +87,7 @@ impl<'a> super::Fs<'a> {
     ///
     /// 对应 AList `POST /api/fs/list`；返回目录下的文件/目录条目、分页总数、
     /// 元信息（readme/header）、写权限与存储驱动名
-    /// （[`FsListResponse`]）。
+    /// （[`DirContent`]）。
     /// 数据来源：AList OpenAPI 规范的 `/api/fs/list` 与
     /// AList 服务端 `handles.FsList`（请求结构 `ListReq`，响应结构 `FsListResponse`）。
     ///
@@ -96,7 +98,7 @@ impl<'a> super::Fs<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`FsListResponse`]。
+    /// [`DirContent`]。
     ///
     /// 可选参数（链式 setter）：`password`（目录密码）、`page`（页码，从 1 开始）、
     /// `per_page`（每页条数，`-1` 表示全部）、`refresh`（强制刷新）。

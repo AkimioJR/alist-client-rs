@@ -4,7 +4,7 @@
 //! `skip_existing`（对应 AList 服务端 `MoveCopyReq`，`skip_existing` 仅对复制
 //! 生效）。成功时 `data` 为 `{"tasks": [...]}` 后台任务信息或 `null`
 //! （随服务端版本而异，见下方 `# Version`），因此端点模型为
-//! `Option<CopyResponse>`。
+//! `Option<CopyResult>`。
 //! API 路径以 AList OpenAPI 规范与 AList 服务端路由定义为准。
 //!
 //! # Version
@@ -22,7 +22,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::fs::CopyResponse;
+use crate::schema::fs::CopyResult;
 
 /// 复制文件请求构建器。
 ///
@@ -30,7 +30,7 @@ use crate::schema::fs::CopyResponse;
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = POST, path = "/api/fs/copy", model = Option<CopyResponse>)]
+#[endpoint(method = POST, path = "/api/fs/copy", model = Option<CopyResult>)]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     #[endpoint(skip)]
@@ -84,7 +84,7 @@ impl<'a> super::Fs<'a> {
     /// 对应 AList `POST /api/fs/copy`；将 `src_dir` 下的 `names` 复制到
     /// `dst_dir`。服务端为每个需要后台处理的条目创建复制任务，响应 `data`
     /// 为 `{"tasks": [TaskInfo]}` 或 `null`（随服务端版本而异，见 `# Version`），
-    /// 因此端点模型为 `Option<CopyResponse>`。
+    /// 因此端点模型为 `Option<CopyResult>`。
     /// 数据来源：AList 服务端路由定义中的 `/api/fs/copy` 与
     /// AList 服务端 `handles.FsCopy`（请求结构 `MoveCopyReq`）。
     ///
@@ -97,7 +97,7 @@ impl<'a> super::Fs<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// `Option<`[`CopyResponse`]`>`：
+    /// `Option<`[`CopyResult`]`>`：
     /// `Some` 携带后台复制任务列表（同步完成时任务列表为空），`None` 表示
     /// `data` 为 `null`（仅老版本服务端，见 `# Version`）。
     ///
@@ -193,7 +193,7 @@ mod tests {
         );
     }
 
-    /// 3) 收发路径断言：新版服务端返回 `{"tasks": [...]}`，解码为 `Some(CopyResponse)`。
+    /// 3) 收发路径断言：新版服务端返回 `{"tasks": [...]}`，解码为 `Some(CopyResult)`。
     #[tokio::test]
     async fn send_decodes_copy_tasks() {
         let mut server = mockito::Server::new_async().await;

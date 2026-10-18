@@ -2,10 +2,10 @@
 //!
 //! 覆盖分享管理端点（`/api/share/create|update|disable|list|delete`）与
 //! 公开分享端点（`/api/public/share/info|auth|list|get`）的响应数据：
-//! 分享管理实体 [`ShareResponse`]、公开分享元信息 [`PublicShareInfoResponse`]、
-//! 公开分享内对象 [`PublicShareObjResponse`]、公开分享目录列表
-//! [`PublicShareListResponse`]、公开分享对象详情 [`PublicShareGetResponse`]
-//! 与分享令牌应答 [`PublicShareAuthResponse`]。
+//! 分享管理实体 [`Share`]、公开分享元信息 [`PublicShareInfo`]、
+//! 公开分享内对象 [`PublicShareObject`]、公开分享目录列表
+//! [`PublicShareList`]、公开分享对象详情 [`PublicShareDetail`]
+//! 与分享令牌应答 [`PublicShareAuth`]。
 //!
 //! ## 字段形状来源
 //!
@@ -41,7 +41,7 @@ where
 /// （`GET /api/share/list`）的内容元素。
 /// 底层对应 AList 服务端 model.Share 数据模型。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ShareResponse {
+pub struct Share {
     /// 分享记录的数据库 ID（对应 Go `ShareResp.ID`）。
     pub id: u64,
     /// 分享 ID（对应 Go `ShareResp.ShareID`，链接中 `/s/{share_id}` 段）。
@@ -95,7 +95,7 @@ pub struct ShareResponse {
 /// 由 `GET /api/public/share/info` 返回；无需认证即可获取，
 /// 用于判断分享是否需要密码以及当前令牌是否已通过校验。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct PublicShareInfoResponse {
+pub struct PublicShareInfo {
     /// 分享 ID。
     pub share_id: String,
     /// 分享名称。
@@ -134,7 +134,7 @@ pub struct PublicShareInfoResponse {
 /// 对应 AList 服务端公开分享处理模块的 `PublicShareObjResp`，
 /// 出现在公开分享目录列表的 `content` 与公开分享对象详情的 `item` 中。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct PublicShareObjResponse {
+pub struct PublicShareObject {
     /// 对象名。
     pub name: String,
     /// 大小（字节）。
@@ -174,10 +174,10 @@ pub struct PublicShareObjResponse {
 /// 由 `POST /api/public/share/list` 返回；与通用分页响应不同，
 /// 额外携带页码、每页条数、`has_more` 与总页数元信息。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct PublicShareListResponse {
+pub struct PublicShareList {
     /// 当前页内容；服务端返回 `null` 时归约为空集合。
     #[serde(default, deserialize_with = "null_to_default")]
-    pub content: Vec<PublicShareObjResponse>,
+    pub content: Vec<PublicShareObject>,
     /// 分享内该目录的条目总数。
     pub total: i64,
     /// 当前页码。
@@ -195,9 +195,9 @@ pub struct PublicShareListResponse {
 /// 对应 AList 服务端公开分享处理模块的 `PublicShareGetResp`，
 /// 由 `POST /api/public/share/get` 返回。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct PublicShareGetResponse {
+pub struct PublicShareDetail {
     /// 对象详情。
-    pub item: PublicShareObjResponse,
+    pub item: PublicShareObject,
     /// 对象所在存储的驱动标识（如 `Local`、`S3`）；存储不可知时为 `"unknown"`。
     pub provider: String,
 }
@@ -207,7 +207,7 @@ pub struct PublicShareGetResponse {
 /// 对应 AList 服务端公开分享处理模块 `AuthPublicShare` 以
 /// `gin.H{"token": ...}` 返回的结构，由 `POST /api/public/share/auth` 返回。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct PublicShareAuthResponse {
+pub struct PublicShareAuth {
     /// 分享访问令牌。
     ///
     /// 有效期由服务端决定（缺省 24 小时，且不超过分享剩余有效时间）；
@@ -222,8 +222,8 @@ mod tests {
     /// 示例 JSON 取自 AList 服务端公开分享处理模块 `GetPublicShareInfo`
     /// 返回的 `PublicShareInfoResp` 形状（各字段均为服务端必返字段）。
     #[test]
-    fn public_share_info_response_decodes_handler_shape() {
-        let info: PublicShareInfoResponse = serde_json::from_value(serde_json::json!({
+    fn public_share_info_decodes_handler_shape() {
+        let info: PublicShareInfo = serde_json::from_value(serde_json::json!({
             "share_id": "aBcD1234",
             "name": "docs",
             "is_dir": true,
@@ -262,8 +262,8 @@ mod tests {
 
     /// 老版本形状钉扎：可空时间字段缺失（而非显式 `null`）时归约为 `None`。
     #[test]
-    fn public_share_info_response_tolerates_missing_nullable_fields() {
-        let info: PublicShareInfoResponse = serde_json::from_value(serde_json::json!({
+    fn public_share_info_tolerates_missing_nullable_fields() {
+        let info: PublicShareInfo = serde_json::from_value(serde_json::json!({
             "share_id": "aBcD1234",
             "name": "file.txt",
             "is_dir": false,
@@ -288,9 +288,9 @@ mod tests {
     /// 返回的 `PublicShareObjResp` 形状；`omitempty` 字段省略时为 `None`，
     /// 显式 `null` 时归约为 `None`。
     #[test]
-    fn public_share_obj_response_decodes_with_and_without_omitempty_fields() {
+    fn public_share_object_decodes_with_and_without_omitempty_fields() {
         // 文件对象：允许下载与预览时携带直链
-        let file: PublicShareObjResponse = serde_json::from_value(serde_json::json!({
+        let file: PublicShareObject = serde_json::from_value(serde_json::json!({
             "name": "demo.txt",
             "size": 1024,
             "is_dir": false,
@@ -314,7 +314,7 @@ mod tests {
         assert!(file.preview_url.is_some());
 
         // 目录对象：omitempty 字段缺失，`type` 为目录枚举值
-        let dir: PublicShareObjResponse = serde_json::from_value(serde_json::json!({
+        let dir: PublicShareObject = serde_json::from_value(serde_json::json!({
             "name": "sub",
             "size": 0,
             "is_dir": true,
@@ -332,7 +332,7 @@ mod tests {
         assert_eq!(dir.preview_url, None);
 
         // 显式 `null` 的 omitempty 字段归约为 `None`
-        let null_obj: PublicShareObjResponse = serde_json::from_value(serde_json::json!({
+        let null_obj: PublicShareObject = serde_json::from_value(serde_json::json!({
             "name": "x.bin",
             "size": 1,
             "is_dir": false,
@@ -355,8 +355,8 @@ mod tests {
     /// 返回的 `PublicShareListResp` 形状；同时钉住空目录返回
     /// （`content` 为空数组、`pages_total` 为 0）与 `null` 容错。
     #[test]
-    fn public_share_list_response_decodes_handler_shape() {
-        let list: PublicShareListResponse = serde_json::from_value(serde_json::json!({
+    fn public_share_list_decodes_handler_shape() {
+        let list: PublicShareList = serde_json::from_value(serde_json::json!({
             "content": [{
                 "name": "demo.txt",
                 "size": 1024,
@@ -382,7 +382,7 @@ mod tests {
         assert_eq!(list.content.len(), 1);
         assert_eq!(list.content[0].name, "demo.txt");
 
-        let empty: PublicShareListResponse = serde_json::from_value(serde_json::json!({
+        let empty: PublicShareList = serde_json::from_value(serde_json::json!({
             "content": [],
             "total": 0,
             "page": 1,
@@ -394,7 +394,7 @@ mod tests {
         assert!(empty.content.is_empty());
         assert_eq!(empty.pages_total, 0);
 
-        let null_content: PublicShareListResponse = serde_json::from_value(serde_json::json!({
+        let null_content: PublicShareList = serde_json::from_value(serde_json::json!({
             "content": null,
             "total": 0,
             "page": 1,
@@ -409,8 +409,8 @@ mod tests {
     /// 示例 JSON 取自 AList 服务端公开分享处理模块 `GetPublicShare`
     /// 返回的 `PublicShareGetResp` 形状。
     #[test]
-    fn public_share_get_response_decodes_handler_shape() {
-        let get: PublicShareGetResponse = serde_json::from_value(serde_json::json!({
+    fn public_share_detail_decodes_handler_shape() {
+        let get: PublicShareDetail = serde_json::from_value(serde_json::json!({
             "item": {
                 "name": "demo.txt",
                 "size": 2048,
@@ -434,14 +434,14 @@ mod tests {
     /// 示例 JSON 取自 AList 服务端公开分享处理模块 `AuthPublicShare`
     /// 以 `gin.H{"token": ...}` 返回的结构；无密码分享 `token` 为空串。
     #[test]
-    fn public_share_auth_response_decodes_handler_shape() {
-        let authed: PublicShareAuthResponse = serde_json::from_value(serde_json::json!({
+    fn public_share_auth_decodes_handler_shape() {
+        let authed: PublicShareAuth = serde_json::from_value(serde_json::json!({
             "token": "eyJhbGciOiJIUzI1NiJ9.payload.sig"
         }))
         .unwrap();
         assert_eq!(authed.token, "eyJhbGciOiJIUzI1NiJ9.payload.sig");
 
-        let no_password: PublicShareAuthResponse =
+        let no_password: PublicShareAuth =
             serde_json::from_value(serde_json::json!({ "token": "" })).unwrap();
         assert_eq!(no_password.token, "");
     }
@@ -449,8 +449,8 @@ mod tests {
     /// 示例 JSON 取自 AList 服务端分享管理模块 `toShareResp`
     /// 返回的 `ShareResp` 形状（创建/更新响应与列表元素同形）。
     #[test]
-    fn share_response_decodes_handler_shape() {
-        let share: ShareResponse = serde_json::from_value(serde_json::json!({
+    fn share_decodes_handler_shape() {
+        let share: Share = serde_json::from_value(serde_json::json!({
             "id": 1,
             "share_id": "aBcD1234",
             "name": "docs",
@@ -494,8 +494,8 @@ mod tests {
 
     /// 老版本形状钉扎：可空时间字段缺失时归约为 `None`（其余必返字段齐全）。
     #[test]
-    fn share_response_tolerates_missing_nullable_fields() {
-        let share: ShareResponse = serde_json::from_value(serde_json::json!({
+    fn share_tolerates_missing_nullable_fields() {
+        let share: Share = serde_json::from_value(serde_json::json!({
             "id": 2,
             "share_id": "xYzW8765",
             "name": "file.txt",
@@ -526,7 +526,7 @@ mod tests {
     /// `GET /api/share/list` 响应外层为通用分页结构，元素为分享实体。
     #[test]
     fn share_list_page_response_wraps_share_elements() {
-        let page: crate::schema::common::PageResponse<ShareResponse> =
+        let page: crate::schema::common::PageResponse<Share> =
             serde_json::from_value(serde_json::json!({
                 "content": [{
                     "id": 1,
@@ -555,11 +555,11 @@ mod tests {
         assert_eq!(page.content[0].share_id, "aBcD1234");
     }
 
-    /// 序列化键名钉扎：`ShareResponse` 经 `serde_json::to_value` 的键集合
+    /// 序列化键名钉扎：`Share` 经 `serde_json::to_value` 的键集合
     /// 与 AList 服务端 `ShareResp` 的 JSON 字段名逐一对应。
     #[test]
-    fn share_response_serializes_with_api_field_names() {
-        let share = ShareResponse {
+    fn share_serializes_with_api_field_names() {
+        let share = Share {
             id: 1,
             share_id: "aBcD1234".to_owned(),
             name: "docs".to_owned(),
@@ -617,11 +617,11 @@ mod tests {
         assert!(value["expires_at"].is_null());
     }
 
-    /// 序列化键名钉扎：`PublicShareInfoResponse` 的键集合与
+    /// 序列化键名钉扎：`PublicShareInfo` 的键集合与
     /// AList 服务端 `PublicShareInfoResp` 的 JSON 字段名逐一对应。
     #[test]
-    fn public_share_info_response_serializes_with_api_field_names() {
-        let info = PublicShareInfoResponse {
+    fn public_share_info_serializes_with_api_field_names() {
+        let info = PublicShareInfo {
             share_id: "aBcD1234".to_owned(),
             name: "docs".to_owned(),
             is_dir: true,
@@ -661,13 +661,13 @@ mod tests {
         );
     }
 
-    /// 序列化键名钉扎：`PublicShareObjResponse` 的键集合与
+    /// 序列化键名钉扎：`PublicShareObject` 的键集合与
     /// AList 服务端 `PublicShareObjResp` 的 JSON 字段名逐一对应；
     /// 特别钉住保留字键 `type`（Rust 字段为 `r#type`，无 rename）与
     /// `omitempty` 字段为 [`None`] 时序列化为显式 `null`。
     #[test]
-    fn public_share_obj_response_serializes_with_api_field_names() {
-        let obj = PublicShareObjResponse {
+    fn public_share_object_serializes_with_api_field_names() {
+        let obj = PublicShareObject {
             name: "demo.txt".to_owned(),
             size: 1024,
             is_dir: false,
@@ -703,13 +703,13 @@ mod tests {
         assert!(value["storage_class"].is_null());
     }
 
-    /// 序列化键名钉扎：`PublicShareListResponse`、`PublicShareGetResponse`
-    /// 与 `PublicShareAuthResponse` 的键集合与 AList 服务端
+    /// 序列化键名钉扎：`PublicShareList`、`PublicShareDetail`
+    /// 与 `PublicShareAuth` 的键集合与 AList 服务端
     /// `PublicShareListResp`、`PublicShareGetResp` 及 `gin.H{"token": ...}`
     /// 的 JSON 字段名逐一对应。
     #[test]
-    fn public_share_list_get_auth_serializes_with_api_field_names() {
-        let list = PublicShareListResponse {
+    fn public_share_list_detail_auth_serializes_with_api_field_names() {
+        let list = PublicShareList {
             content: Vec::new(),
             total: 0,
             page: 1,
@@ -737,8 +737,8 @@ mod tests {
             ]
         );
 
-        let get = PublicShareGetResponse {
-            item: PublicShareObjResponse {
+        let get = PublicShareDetail {
+            item: PublicShareObject {
                 name: "demo.txt".to_owned(),
                 size: 0,
                 is_dir: false,
@@ -763,7 +763,7 @@ mod tests {
         keys.sort();
         assert_eq!(keys, vec!["item", "provider"]);
 
-        let auth = PublicShareAuthResponse {
+        let auth = PublicShareAuth {
             token: "share-token".to_owned(),
         };
         assert_eq!(

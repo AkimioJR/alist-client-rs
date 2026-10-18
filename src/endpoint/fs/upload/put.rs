@@ -15,7 +15,7 @@
 //! | `X-File-Md5` / `X-File-Sha1` / `X-File-Sha256` | 可选哈希校验 |
 //!
 //! 直传成功时响应 `data` 为 `null`，转后台任务时为 `{"task": ...}`，
-//! 因此端点模型为 `Option<UploadResponse>`。本端点**手写**请求构建器
+//! 因此端点模型为 `Option<UploadResult>`。本端点**手写**请求构建器
 //! （不走 [`EndpointRequest`](alist_client_derive::EndpointRequest) 派生宏，
 //! 采用消费式请求体），支持直接 `.await` 或调用
 //! [`send_upload`](Request::send_upload)。
@@ -36,7 +36,7 @@ use reqwest::{
     header::{CONTENT_LENGTH, CONTENT_TYPE},
 };
 
-use crate::schema::common::UploadResponse;
+use crate::schema::common::UploadResult;
 
 /// 上传请求的数据载荷形态。
 pub(crate) enum Payload {
@@ -300,7 +300,7 @@ impl<'a> Request<'a> {
     /// 附加上传头与原始字节请求体并发送。
     ///
     /// 直传成功（未启用 `as_task(true)`）时响应 `data` 为 `null`，返回 `None`；
-    /// 转后台任务时返回 [`UploadResponse`]。
+    /// 转后台任务时返回 [`UploadResult`]。
     ///
     /// # Errors
     ///
@@ -309,19 +309,19 @@ impl<'a> Request<'a> {
     /// 返回 [`crate::Error`]。注意：内存字节请求体可克隆，401/403 自动重登
     /// 重试可用；`stream` feature 的流式请求体无法克隆，401/403 自动重试
     /// 不可用，将直接返回原始错误。
-    pub async fn send_upload(self) -> crate::Result<Option<UploadResponse>> {
+    pub async fn send_upload(self) -> crate::Result<Option<UploadResult>> {
         self.client.execute(self.into_builder().await?).await
     }
 
     /// 发送上传请求（[`send_upload`](Self::send_upload) 的别名，与其他端点的 `send` 保持一致）。
     #[inline]
-    pub async fn send(self) -> crate::Result<Option<UploadResponse>> {
+    pub async fn send(self) -> crate::Result<Option<UploadResult>> {
         self.send_upload().await
     }
 }
 
 impl<'a> core::future::IntoFuture for Request<'a> {
-    type Output = crate::Result<Option<UploadResponse>>;
+    type Output = crate::Result<Option<UploadResult>>;
     type IntoFuture =
         core::pin::Pin<Box<dyn core::future::Future<Output = Self::Output> + Send + 'a>>;
 

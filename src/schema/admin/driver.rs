@@ -1,8 +1,8 @@
 //! admin-driver 驱动域数据模型。
 //!
 //! 覆盖 `/api/admin/driver` 下的三个端点：
-//! - `GET /api/admin/driver/list`：全部驱动配置模板映射 [`DriverListResponse`]（宽松原始 JSON 模型）；
-//! - `GET /api/admin/driver/names`：驱动名列表 [`DriverNamesResponse`]；
+//! - `GET /api/admin/driver/list`：全部驱动配置模板映射 [`DriverList`]（宽松原始 JSON 模型）；
+//! - `GET /api/admin/driver/names`：驱动名列表 [`DriverNames`]；
 //! - `GET /api/admin/driver/info`：单个驱动配置模板 [`DriverInfo`]。
 //!
 //! ## 字段形状来源
@@ -28,10 +28,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// 宽松模型（`HashMap<String, serde_json::Value>`）：值为驱动模板的原始 JSON，
 /// 形状与 [`DriverInfo`] 一致，可用 `serde_json::from_value` 按需转为强类型。
-pub type DriverListResponse = HashMap<String, serde_json::Value>;
+pub type DriverList = HashMap<String, serde_json::Value>;
 
 /// `GET /api/admin/driver/names` 的 `data`：已注册驱动的名称列表。
-pub type DriverNamesResponse = Vec<String>;
+pub type DriverNames = Vec<String>;
 
 /// 单个驱动的配置模板，`GET /api/admin/driver/info` 的 `data`。
 ///
@@ -258,11 +258,11 @@ mod tests {
         assert!(value.get("value_type").is_none(), "不应出现重命名后的键");
     }
 
-    /// 宽松模型钉扎：查询所有驱动配置模板列表示例可解为 [`DriverListResponse`]，
+    /// 宽松模型钉扎：查询所有驱动配置模板列表示例可解为 [`DriverList`]，
     /// 且单个条目可按需转换为强类型 [`DriverInfo`]。
     #[test]
     fn driver_list_response_decodes_openapi_example_and_bridges_to_driver_info() {
-        let list: DriverListResponse = serde_json::from_value(serde_json::json!({
+        let list: DriverList = serde_json::from_value(serde_json::json!({
             "115 Cloud": {
                 "common": [
                     {
@@ -310,7 +310,7 @@ mod tests {
     /// 正向钉扎：`GET /api/admin/driver/names` 返回示例（节选）。
     #[test]
     fn driver_names_response_decodes_openapi_example() {
-        let names: DriverNamesResponse =
+        let names: DriverNames =
             serde_json::from_value(serde_json::json!(["Local", "115 Cloud", "AliyundriveOpen"]))
                 .unwrap();
         assert_eq!(

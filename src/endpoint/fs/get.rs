@@ -15,7 +15,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::fs::FsGetResponse;
+use crate::schema::fs::FsDetail;
 
 /// 获取单个文件/目录信息请求构建器。
 ///
@@ -23,7 +23,7 @@ use crate::schema::fs::FsGetResponse;
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = POST, path = "/api/fs/get", model = FsGetResponse)]
+#[endpoint(method = POST, path = "/api/fs/get", model = FsDetail)]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     #[endpoint(skip)]
@@ -55,7 +55,7 @@ impl<'a> super::Fs<'a> {
     /// 获取单个文件/目录信息。
     ///
     /// 对应 AList `POST /api/fs/get`；返回对象详情
-    /// （[`FsGetResponse`]）：名称、大小、时间、类型、
+    /// （[`FsDetail`]）：名称、大小、时间、类型、
     /// 签名与哈希信息等基础字段（`obj`），外加直链 `raw_url`（目录恒为空串）、
     /// 元信息 `readme`/`header`、存储驱动 `provider`、是否 Web 代理 `web_proxy`
     /// 以及同目录同前缀的相关文件 `related`。
@@ -69,7 +69,7 @@ impl<'a> super::Fs<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`FsGetResponse`]。
+    /// [`FsDetail`]。
     ///
     /// # Errors
     ///

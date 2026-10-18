@@ -11,12 +11,12 @@
 
 /// 管理员会话列表条目。
 ///
-/// 与 auth 域 [`SessionResponse`](crate::schema::auth::SessionResponse) 为同一 JSON 形状
+/// 与 auth 域 [`Session`](crate::schema::auth::Session) 为同一 JSON 形状
 /// （服务端 session 处理模块的同一 `SessionResp` 结构体，从 AList `v3.52.0` 起新增），
 /// 此处以类型别名引入；字段语义、`user_id` 的省略语义与版本说明见 auth 域文档。
 /// 管理员列表（`GET /api/admin/session/list`）由服务端填入 `user_id`，
 /// 当前用户接口则省略该字段——两种形状均由 auth 域模型的 [`Option<u64>`] 建模覆盖。
-pub type SessionResponse = crate::schema::auth::SessionResponse;
+pub type Session = crate::schema::auth::Session;
 
 #[cfg(test)]
 mod tests {
@@ -24,10 +24,10 @@ mod tests {
 
     /// 正向钉扎：管理员会话列表条目形状（服务端总会填入 `user_id`）。
     #[test]
-    fn admin_session_response_decodes_admin_list_shape() {
+    fn admin_session_decodes_admin_list_shape() {
         // 形状来源：AList 服务端 session 处理模块的管理员会话列表处理器
         // （实现为 `ListSessions`，元素为服务端 `SessionResp`）
-        let session: SessionResponse = serde_json::from_value(serde_json::json!({
+        let session: Session = serde_json::from_value(serde_json::json!({
             "session_id": "device-admin-1",
             "user_id": 1,
             "last_active": 1710000000,
@@ -50,8 +50,8 @@ mod tests {
     /// 兼容钉扎：条目缺失或显式 `null` 的 `user_id` 时解码为 [`None`]，
     /// 复用 auth 域模型的跨版本兼容语义。
     #[test]
-    fn admin_session_response_tolerates_missing_or_null_user_id() {
-        let missing: SessionResponse = serde_json::from_value(serde_json::json!({
+    fn admin_session_tolerates_missing_or_null_user_id() {
+        let missing: Session = serde_json::from_value(serde_json::json!({
             "session_id": "device-no-user",
             "last_active": 1710000000,
             "status": 1,
@@ -61,7 +61,7 @@ mod tests {
         .unwrap();
         assert_eq!(missing.user_id, None);
 
-        let null_user_id: SessionResponse = serde_json::from_value(serde_json::json!({
+        let null_user_id: Session = serde_json::from_value(serde_json::json!({
             "session_id": "device-null-user",
             "user_id": null,
             "last_active": 1710000000,

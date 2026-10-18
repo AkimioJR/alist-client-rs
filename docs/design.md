@@ -222,6 +222,37 @@ impl<'a> super::Fs<'a> {
 
 ## 5. Schema 约定（`src/schema/<域>.rs`）
 
+### 5.1 数据模型（Schema）三阶命名分类规范（Type Taxonomy）
+
+为了遵循 Rust 惯用命名习惯并消除“网络响应 DTO 泄露为业务实体”的异味，数据模型严格遵守以下三阶分类法则：
+
+1. **核心业务实体 (Core Entity)**：
+   - 具有独立持久化身份或代表系统核心业务资源；
+   - **命名规则**：纯单数名词（`PascalCase`），严禁使用 `*Response`、`*Model`、`*DTO` 后缀；
+   - **典型范例**：`User`、`FsObject`、`Storage`、`Session`、`Role`、`Share`、`DriverItem`、`Meta`、`Label`。
+2. **实体变体 / 投影视图 (Entity Variant / View)**：
+   - 实体的特定投影或扩展视图；
+   - **命名规则**：`修饰词 + 核心实体名`，严禁使用 `*Response`；
+   - **典型范例**：`LabeledFsObject`（带标签属性的文件对象）、`PublicShareObject`、`CurrentUser`。
+3. **复合操作结果 / 上下文 (Composite Result / Context)**：
+   - 包含多字段、列表及控制元信息的查询上下文产物；
+   - **命名规则**：`名词 + Content / Detail / List`；
+   - **典型范例**：`DirContent`（目录上下文与条目内容）、`FsDetail`（文件完整详情）、`PublicShareList`、`ArchiveMeta`、`ArchiveList`。
+4. **动作回执 / 凭证 (Action Receipt / Credential)**：
+   - 瞬时操作的执行结果、权限确认或非实体凭据；
+   - **命名规则**：`动作/名词 + Result` 或业务专有凭证名词；
+   - **典型范例**：`LoginResult`（登录凭据）、`TwoFactorSecret`（2FA 密钥与二维码）、`DownloadLink`（直链凭据）、`CopyResult`（复制任务列表）、`OfflineDownloadResult`、`DecompressResult`、`UploadResult`、`CreateLabelResult`、`CreateStorageResult`。
+5. **条目 / 命中项 (Item / Hit)**：
+   - 列表或搜索中的单个匹配项；
+   - **命名规则**：`名词 + Entry / Item / Hit`；
+   - **典型范例**：`DirEntry`（子目录项）、`SearchItem`（搜索命中项）、`ArchiveNode`（压缩包树节点）。
+6. **协议传输外壳 (Wire Envelope)**：
+   - 仅限底层的通用通信协议信封；
+   - **命名规则**：通用技术名词 + 泛型；
+   - **保留类型**：`Response<T>`、`PageResponse<T>`。
+
+### 5.2 建模与演进准则
+
 1. 所有模型 derive 至少 `Debug, Clone, PartialEq, Serialize, Deserialize`（响应模型可省 Serialize）。
 2. **跨版本标量字段必须使用 `Option<T>`**：
    - 随 AList 版本演进新增或废弃的标量元数据、标识符或计数统计（如 `has_more`、`page`、`per_page`、`filtered_total`、`pages_total`、`virtual_path`、`disable_index`、`header`、`index` 等），**必须严格区分「字段未提供 / 老版本不支持（`None`）」与「字段存在且值为有效零值（`Some(0)` / `Some(false)` / `Some("")`）」**；
@@ -238,7 +269,7 @@ impl<'a> super::Fs<'a> {
 6. **示例 JSON 钉扎测试**：
    - 每个 schema 文件在 `#[cfg(test)] mod tests` 中必须对新版本完整字段以及老版本缺失字段分别建立钉扎测试断言（老版本缺失断言为 `None`，新版本断言为 `Some(...)`），键名序列化用 `serde_json::to_value` 钉住。
 7. **复用共享模型**：
-   - 分页响应用 `crate::schema::common::PageResponse<T>`，任务体用 `TaskInfo`，上传响应复用 `UploadResponse`。
+   - 分页响应用 `crate::schema::common::PageResponse<T>`，任务体用 `TaskInfo`，上传回执复用 `UploadResult`。
 8. **文件头部**：中文模块文档 + 数据来源说明；不写 pub use 之外的实现逻辑。
 
 ## 6. 错误与响应包装（envelope）语义（已实现，端点代理需理解）
@@ -251,7 +282,7 @@ impl<'a> super::Fs<'a> {
 - **`data: null` 直接用 `model = ()` 或 `model = Option<T>` 解码**，不要在端点里特殊处理。
 - 401/403（响应包装或 HTTP）且配置了 `Authentication::UsernamePassword` 时自动重新登录并重试一次；
   `Authentication::Token` 不触发。
-  - **登录端点与模型复用**：登录端点（`login` / `login_hash`）及对应模型在内部常驻编译（`#[cfg(not(feature = "auth"))] pub(crate) mod auth`），由 `Client::refresh_token` 直接复用 `login::Request::new(...).build_request()` 构建请求并反序列化为 `LoginResponse`；
+  - **登录端点与模型复用**：登录端点（`login` / `login_hash`）及对应模型在内部常驻编译（`#[cfg(not(feature = "auth"))] pub(crate) mod auth`），由 `Client::refresh_token` 直接复用 `login::Request::new(...).build_request()` 构建请求并反序列化为 `LoginResult`；
   - **底层非认证通道与防死循环**：刷新过程走底层的非认证通道（`authenticated = false`），既避免了手写重复的请求体/响应体，又避免了递归重登死循环；
   - **按需对外暴露**：当启用 `auth` feature 时，通过 `pub mod auth` 将这些结构体与句柄直接重导出给调用方。
 - 端点只管「构建 + 发送 + 解码」，**不要**在端点层重复检查状态码。

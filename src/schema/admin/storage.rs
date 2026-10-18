@@ -2,7 +2,7 @@
 //!
 //! 覆盖 `/api/admin/storage/*` 端点的数据模型：存储驱动实例 [`Storage`]
 //! （`list`/`get` 响应，同时也是创建/更新端点的请求体形状）与
-//! 创建操作返回的 [`StorageCreateResponse`]。
+//! 创建操作返回的 [`CreateStorageResult`]。
 //! ## 字段形状来源
 //!
 //! 字段形状以 AList 服务端 model.Storage 数据模型（内嵌 `Sort`/`Proxy` 两结构体已平铺）
@@ -125,14 +125,14 @@ pub struct Storage {
     pub down_proxy_sign: Option<bool>,
 }
 
-/// 存储创建/更新操作的响应数据。
+/// 存储创建操作的结果数据。
 ///
 /// 对应 AList 服务端存储处理模块中创建存储以
 /// `gin.H{"id": id}` 返回的结构；更新端点成功时服务端实现
 /// 返回 `data: null`，而 OpenAPI 规范的示例记载
-/// `{ "id": N }`，因此更新端点以 `Option<StorageCreateResponse>` 建模，两种形状均可解码。
+/// `{ "id": N }`，因此更新端点以 `Option<CreateStorageResult>` 建模，两种形状均可解码。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct StorageCreateResponse {
+pub struct CreateStorageResult {
     /// 创建成功时由服务端分配的存储 ID。
     pub id: u64,
 }
@@ -270,7 +270,7 @@ mod tests {
     #[test]
     fn create_response_decodes_and_serializes_api_shape() {
         // 示例来源：AList OpenAPI 规范 /api/admin/storage/create 200 响应示例（data: {"id": 7}）
-        let resp: StorageCreateResponse =
+        let resp: CreateStorageResult =
             serde_json::from_value(serde_json::json!({ "id": 7 })).unwrap();
         assert_eq!(resp.id, 7);
         assert_eq!(

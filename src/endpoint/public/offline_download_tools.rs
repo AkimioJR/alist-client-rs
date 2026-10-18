@@ -2,7 +2,7 @@
 //!
 //! 对应 `GET /api/public/offline_download_tools`（服务端路由注册为 `g.Any`，
 //! 读端点按 GET 处理）；响应 `data` 为就绪离线下载工具名的字符串数组
-//! [`OfflineDownloadToolsResponse`]（服务端已按字典序排序）。
+//! [`OfflineDownloadTools`]（服务端已按字典序排序）。
 //! 该端点未被 AList v3 OpenAPI 规范收录，API 形状以 AList 服务端实现为准。
 //! OpenList v4 服务端额外接受可选的 `path` 查询参数（把目标存储的原生
 //! 离线下载工具并入结果），AList 服务端不读取任何查询参数；本客户端按
@@ -14,7 +14,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::public::OfflineDownloadToolsResponse;
+use crate::schema::public::OfflineDownloadTools;
 
 /// 查询离线下载工具请求构建器。
 ///
@@ -25,7 +25,7 @@ use crate::schema::public::OfflineDownloadToolsResponse;
 #[endpoint(
     method = GET,
     path = "/api/public/offline_download_tools",
-    model = OfflineDownloadToolsResponse
+    model = OfflineDownloadTools
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -62,7 +62,7 @@ impl<'a> super::Public<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`OfflineDownloadToolsResponse`]（就绪工具名列表）。
+    /// [`OfflineDownloadTools`]（就绪工具名列表）。
     ///
     /// # Errors
     ///
@@ -132,7 +132,7 @@ mod tests {
 
         let client = crate::Client::new(server.url()).unwrap();
 
-        let tools: OfflineDownloadToolsResponse = Request::new(&client).send().await.unwrap();
+        let tools: OfflineDownloadTools = Request::new(&client).send().await.unwrap();
         assert_eq!(
             tools,
             vec![

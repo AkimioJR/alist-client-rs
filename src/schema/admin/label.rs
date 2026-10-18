@@ -2,7 +2,7 @@
 //!
 //! 覆盖 `/api/label/list`、`/api/label/get`（读取）与
 //! `/api/admin/label/create`、`/api/admin/label/update`、`/api/admin/label/delete`（写入）
-//! 涉及的数据形状：标签条目 [`Label`] 与创建响应 [`CreateLabelResponse`]。
+//! 涉及的数据形状：标签条目 [`Label`] 与创建操作回执 [`CreateLabelResult`]。
 //!
 //! ## 字段形状来源
 //!
@@ -50,11 +50,11 @@ pub struct Label {
     pub create_time: DateTime<Utc>,
 }
 
-/// 创建标签的响应数据。
+/// 创建标签的操作回执。
 ///
 /// 对应 AList 服务端标签创建处理函数：成功时以 `gin.H{"id": id}` 返回新建标签的数据库 ID。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub struct CreateLabelResponse {
+pub struct CreateLabelResult {
     /// 新建标签的 ID。
     pub id: u64,
 }
@@ -166,10 +166,10 @@ mod tests {
         assert!(value["create_time"].is_string(), "{value}");
     }
 
-    /// 创建响应钉扎：服务端标签创建成功时返回 `gin.H{"id": id}`。
+    /// 创建回执钉扎：服务端标签创建成功时返回 `gin.H{"id": id}`。
     #[test]
-    fn create_label_response_decodes_handler_shape() {
-        let resp: crate::schema::common::Response<CreateLabelResponse> =
+    fn create_label_result_decodes_handler_shape() {
+        let resp: crate::schema::common::Response<CreateLabelResult> =
             serde_json::from_value(serde_json::json!({
                 "code": 200,
                 "message": "success",

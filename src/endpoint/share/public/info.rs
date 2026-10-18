@@ -1,7 +1,7 @@
 //! share 公开分享端点：获取分享公开元信息。
 //!
 //! 对应 `GET /api/public/share/info`；响应 `data` 反序列化为
-//! [`PublicShareInfoResponse`]。无需用户认证；受密码保护的分享
+//! [`PublicShareInfo`]。无需用户认证；受密码保护的分享
 //! 可通过查询参数 `auth` 携带分享访问令牌，使响应 `authed` 为 `true`。
 //!
 //! # Version
@@ -10,7 +10,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::share::PublicShareInfoResponse;
+use crate::schema::share::PublicShareInfo;
 
 /// 获取分享公开元信息请求构建器。
 ///
@@ -21,7 +21,7 @@ use crate::schema::share::PublicShareInfoResponse;
 #[endpoint(
     method = GET,
     path = "/api/public/share/info",
-    model = PublicShareInfoResponse
+    model = PublicShareInfo
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -59,7 +59,7 @@ impl<'a> super::Public<'a> {
     /// 获取分享公开元信息。
     ///
     /// 对应 AList `GET /api/public/share/info`；无需用户认证，
-    /// 响应 `data` 为 [`PublicShareInfoResponse`]（是否需要密码、是否已耗尽、
+    /// 响应 `data` 为 [`PublicShareInfo`]（是否需要密码、是否已耗尽、
     /// 当前令牌是否通过校验等）。数据来源：AList 服务端公开分享处理模块
     /// （实现为 `GetPublicShareInfo`）与服务端路由定义。
     ///
@@ -70,7 +70,7 @@ impl<'a> super::Public<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`PublicShareInfoResponse`]。
+    /// [`PublicShareInfo`]。
     ///
     /// # Errors
     ///

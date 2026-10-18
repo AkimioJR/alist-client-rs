@@ -11,7 +11,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::{common::PageResponse, share::ShareResponse};
+use crate::schema::{common::PageResponse, share::Share};
 
 /// 列出当前用户分享请求构建器。
 ///
@@ -21,10 +21,10 @@ use crate::schema::{common::PageResponse, share::ShareResponse};
 /// `into-stream` feature 下还可调用 [`.into_stream()`](Request::into_stream)
 /// 得到自动翻页的条目流。
 #[derive(EndpointRequest)]
-#[endpoint(method = GET, path = "/api/share/list", model = PageResponse<ShareResponse>)]
+#[endpoint(method = GET, path = "/api/share/list", model = PageResponse<Share>)]
 #[cfg_attr(
     feature = "into-stream",
-    endpoint(into_stream = true, stream_item = ShareResponse)
+    endpoint(into_stream = true, stream_item = Share)
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -59,7 +59,7 @@ impl<'a> super::Share<'a> {
     /// 列出当前用户创建的分享（分页）。
     ///
     /// 对应 AList `GET /api/share/list`；响应 `data` 为
-    /// `{ "content": [ShareResponse...], "total": 总数 }` 分页结构。
+    /// `{ "content": [Share...], "total": 总数 }` 分页结构。
     /// 需要登录非访客用户凭据（服务端路由组挂载认证与非访客校验中间件），
     /// 仅返回当前用户本人创建的分享。数据来源：AList 服务端分享管理模块
     /// （实现为 `ListShares`）与服务端路由定义。
@@ -67,7 +67,7 @@ impl<'a> super::Share<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`PageResponse`]`<`[`ShareResponse`]`>`。
+    /// [`PageResponse`]`<`[`Share`]`>`。
     ///
     /// # Errors
     ///

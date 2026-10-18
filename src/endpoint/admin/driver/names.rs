@@ -1,7 +1,7 @@
 //! admin-driver 端点：列出驱动名称。
 //!
 //! 对应 `GET /api/admin/driver/names`；`data` 为已注册驱动的名称数组
-//! [`DriverNamesResponse`]
+//! [`DriverNames`]
 //! （`Vec<String>`）。
 //!
 //! # Version
@@ -10,7 +10,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::admin::driver::DriverNamesResponse;
+use crate::schema::admin::driver::DriverNames;
 
 /// 列出驱动名称请求构建器。
 ///
@@ -21,7 +21,7 @@ use crate::schema::admin::driver::DriverNamesResponse;
 #[endpoint(
     method = GET,
     path = "/api/admin/driver/names",
-    model = DriverNamesResponse
+    model = DriverNames
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -53,7 +53,7 @@ impl<'a> super::Driver<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`DriverNamesResponse`]（驱动名列表）。
+    /// [`DriverNames`]（驱动名列表）。
     ///
     /// # Errors
     ///
@@ -123,7 +123,7 @@ mod tests {
             .await;
         let client = crate::Client::new(server.url()).unwrap();
 
-        let names: DriverNamesResponse = Request::new(&client).send().await.unwrap();
+        let names: DriverNames = Request::new(&client).send().await.unwrap();
         assert_eq!(
             names,
             vec!["Local".to_owned(), "115 Cloud".to_owned(), "UC".to_owned()]

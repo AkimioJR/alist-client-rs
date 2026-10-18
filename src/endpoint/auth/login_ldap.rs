@@ -11,7 +11,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::auth::LoginResponse;
+use crate::schema::auth::LoginResult;
 
 /// LDAP 登录请求构建器。
 ///
@@ -19,7 +19,7 @@ use crate::schema::auth::LoginResponse;
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = POST, path = "/api/auth/login/ldap", model = LoginResponse)]
+#[endpoint(method = POST, path = "/api/auth/login/ldap", model = LoginResult)]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     #[endpoint(skip)]
@@ -55,7 +55,7 @@ impl<'a> super::Auth<'a> {
     /// 对应 AList `POST /api/auth/login/ldap`（数据来源：AList 服务端路由定义与
     /// AList 服务端 LDAP 登录处理模块的 `LoginLdap`；该端点不在 AList OpenAPI 规范中）。
     /// 请求体与常规登录同形（用户名与密码，无两步验证码），成功时返回
-    /// [`LoginResponse`]（含 token；从 AList `v3.52.0` 起新增 `device_key`）。
+    /// [`LoginResult`]（含 token；从 AList `v3.52.0` 起新增 `device_key`）。
     /// 站点未启用 LDAP 登录时返回响应 403（`ldap is not enabled`）。
     ///
     /// # Arguments
@@ -66,7 +66,7 @@ impl<'a> super::Auth<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`LoginResponse`]。
+    /// [`LoginResult`]。
     ///
     /// # Errors
     ///
@@ -133,7 +133,7 @@ mod tests {
 
     /// 收发路径：mock 服务器返回 token，断言请求原文与响应解码。
     #[tokio::test]
-    async fn send_posts_expected_request_and_decodes_login_response() {
+    async fn send_posts_expected_request_and_decodes_login_result() {
         let mut server = mockito::Server::new_async().await;
         let mock = server
             .mock("POST", "/api/auth/login/ldap")

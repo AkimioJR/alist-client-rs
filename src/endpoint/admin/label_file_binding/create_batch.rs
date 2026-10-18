@@ -4,7 +4,7 @@
 //! `{"items":[...]}`（每项形状见
 //! [`CreateItem`]），
 //! 响应 `data` 为 `{"total":...,"succeed":...,"failed":...,"results":[...]}`，
-//! 以 [`CreateBatchResponse`]
+//! 以 [`CreateBatchBindingResult`]
 //! 作为端点模型。该分组未收录进 AList OpenAPI 规范；路由见
 //! AList 服务端路由定义，处理逻辑见
 //! AList 服务端 label_file_binding 模块
@@ -16,7 +16,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::admin::label_file_binding::{CreateBatchResponse, CreateItem};
+use crate::schema::admin::label_file_binding::{CreateBatchBindingResult, CreateItem};
 
 /// 批量创建标签绑定请求构建器。
 ///
@@ -27,7 +27,7 @@ use crate::schema::admin::label_file_binding::{CreateBatchResponse, CreateItem};
 #[endpoint(
     method = POST,
     path = "/api/admin/label_file_binding/create_batch",
-    model = CreateBatchResponse
+    model = CreateBatchBindingResult
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -36,7 +36,7 @@ pub struct Request<'a> {
     /// 批量创建项（必选参数）。
     ///
     /// 服务端要求 `items` 非空。单项处理为逐条尽力而为：某项失败（如为目录创建绑定）
-    /// 不会中断其余项，结果以 [`CreateBatchResponse::results`](crate::schema::admin::label_file_binding::CreateBatchResponse)
+    /// 不会中断其余项，结果以 [`CreateBatchBindingResult::results`](crate::schema::admin::label_file_binding::CreateBatchBindingResult)
     /// 逐项给出。
     items: Vec<CreateItem>,
 }
@@ -55,7 +55,7 @@ impl<'a> super::LabelFileBinding<'a> {
     ///
     /// 对应 AList `POST /api/admin/label_file_binding/create_batch`；成功时响应
     /// `data` 为总数/成功数/失败数与逐项结果
-    /// （[`CreateBatchResponse`]）。
+    /// （[`CreateBatchBindingResult`]）。
     /// 数据来源：AList 服务端路由定义（路由注册）与
     /// AList 服务端 label_file_binding 模块
     /// （实现为 `handles.CreateLabelFileBinDingBatch`）。
@@ -67,7 +67,7 @@ impl<'a> super::LabelFileBinding<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`CreateBatchResponse`]。
+    /// [`CreateBatchBindingResult`]。
     ///
     /// # Errors
     ///

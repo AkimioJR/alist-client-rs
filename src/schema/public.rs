@@ -9,7 +9,7 @@
 //! `/api/public/settings` 响应已记录键的具名辅助结构。
 //! `GET /api/public/offline_download_tools` 与
 //! `GET /api/public/archive_extensions` 返回的字符串数组分别建模为
-//! [`OfflineDownloadToolsResponse`] 与 [`ArchiveExtensionsResponse`]。
+//! [`OfflineDownloadTools`] 与 [`ArchiveExtensions`]。
 //! 字段形状以 AList OpenAPI 规范与服务端源码为准。
 
 use std::collections::HashMap;
@@ -129,7 +129,7 @@ pub struct KnownPublicSettings {
 /// 仅包含服务端判定就绪（已完成初始化）的工具，且已按字典序排序，
 /// 如 `115 Cloud`、`aria2`、`qBittorrent`、`Transmission`、`PikPak` 等；
 /// 工具集合随服务端编译内置与配置状态变化，全部未就绪时为空数组。
-pub type OfflineDownloadToolsResponse = Vec<String>;
+pub type OfflineDownloadTools = Vec<String>;
 
 /// [`/api/public/archive_extensions`](crate::endpoint::public::Public::archive_extensions)
 /// 返回的压缩包扩展名列表（响应 `data`）。
@@ -137,7 +137,7 @@ pub type OfflineDownloadToolsResponse = Vec<String>;
 /// 对应服务端 archive 工具注册表的键集合 `[]string`：即已注册解压驱动
 /// 支持的扩展名，自带前导点号（如 `.7z`、`.iso`、`.rar`、`.tar`）；
 /// 集合由服务端编译内置的解压驱动决定，且无序（Go map 遍历顺序不固定）。
-pub type ArchiveExtensionsResponse = Vec<String>;
+pub type ArchiveExtensions = Vec<String>;
 
 #[cfg(test)]
 mod tests {
@@ -264,14 +264,13 @@ mod tests {
     /// 示例形状取自 AList 服务端 offline download 工具管理器的实际返回
     /// （按字典序排序的就绪工具名；`115 Cloud` 等含空格的原生工具名按原样返回）。
     #[test]
-    fn offline_download_tools_response_decodes_envelope() {
-        let resp: Response<OfflineDownloadToolsResponse> =
-            serde_json::from_value(serde_json::json!({
-                "code": 200,
-                "message": "success",
-                "data": ["115 Cloud", "aria2", "qBittorrent"]
-            }))
-            .unwrap();
+    fn offline_download_tools_decodes_envelope() {
+        let resp: Response<OfflineDownloadTools> = serde_json::from_value(serde_json::json!({
+            "code": 200,
+            "message": "success",
+            "data": ["115 Cloud", "aria2", "qBittorrent"]
+        }))
+        .unwrap();
 
         assert_eq!(resp.code, 200);
         assert_eq!(
@@ -289,14 +288,13 @@ mod tests {
     /// （本端点 `data` 为裸数组、无可选字段；引入前的老版本服务端无此路由，
     /// 请求将得到 404 错误而非缺字段响应。）
     #[test]
-    fn offline_download_tools_response_decodes_empty_list() {
-        let resp: Response<OfflineDownloadToolsResponse> =
-            serde_json::from_value(serde_json::json!({
-                "code": 200,
-                "message": "success",
-                "data": []
-            }))
-            .unwrap();
+    fn offline_download_tools_decodes_empty_list() {
+        let resp: Response<OfflineDownloadTools> = serde_json::from_value(serde_json::json!({
+            "code": 200,
+            "message": "success",
+            "data": []
+        }))
+        .unwrap();
 
         assert!(resp.data.is_empty());
     }
@@ -306,8 +304,8 @@ mod tests {
     /// 示例集合取自 AList 服务端内置解压驱动注册的扩展名（sevenzip 的 `.7z`、
     /// iso9660 的 `.iso`、archives 驱动的 `.tar` 等），元素自带前导点号。
     #[test]
-    fn archive_extensions_response_decodes_envelope() {
-        let resp: Response<ArchiveExtensionsResponse> = serde_json::from_value(serde_json::json!({
+    fn archive_extensions_decodes_envelope() {
+        let resp: Response<ArchiveExtensions> = serde_json::from_value(serde_json::json!({
             "code": 200,
             "message": "success",
             "data": [".7z", ".iso", ".rar", ".tar"]
@@ -333,8 +331,8 @@ mod tests {
     /// 服务端内置解压驱动均在启动时经 init() 注册，注册表恒非空。
     /// 本测试仅钉住空数组形状的解码行为。
     #[test]
-    fn archive_extensions_response_decodes_empty_list() {
-        let resp: Response<ArchiveExtensionsResponse> = serde_json::from_value(serde_json::json!({
+    fn archive_extensions_decodes_empty_list() {
+        let resp: Response<ArchiveExtensions> = serde_json::from_value(serde_json::json!({
             "code": 200,
             "message": "success",
             "data": []

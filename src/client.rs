@@ -331,7 +331,7 @@ impl Client {
         };
         let context = RequestContext::from_builder(&builder);
         let (data, response_body) = self.send_response(builder, &context, None).await?;
-        let login: crate::schema::auth::LoginResponse =
+        let login: crate::schema::auth::LoginResult =
             serde_json::from_value(data).map_err(|source| Error::Json {
                 source,
                 method: context.method.clone(),

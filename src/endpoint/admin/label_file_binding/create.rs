@@ -2,7 +2,7 @@
 //!
 //! 对应 `POST /api/admin/label_file_binding/create`；成功时响应 `data` 为
 //! `{"msg":"添加成功！"}`，以
-//! [`CreateResponse`] 作为端点模型。
+//! [`CreateBindingResult`] 作为端点模型。
 //! 该分组未收录进 AList OpenAPI 规范；路由见 AList 服务端路由定义，
 //! 处理逻辑见 AList 服务端 label_file_binding 模块
 //! （实现为 `handles.CreateLabelFileBinDing`，请求体为
@@ -16,7 +16,7 @@
 use alist_client_derive::EndpointRequest;
 use chrono::{DateTime, Utc};
 
-use crate::schema::admin::label_file_binding::CreateResponse;
+use crate::schema::admin::label_file_binding::CreateBindingResult;
 
 /// 创建标签绑定请求构建器。
 ///
@@ -28,7 +28,7 @@ use crate::schema::admin::label_file_binding::CreateResponse;
 #[endpoint(
     method = POST,
     path = "/api/admin/label_file_binding/create",
-    model = CreateResponse
+    model = CreateBindingResult
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -118,7 +118,7 @@ impl<'a> super::LabelFileBinding<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`CreateResponse`]。
+    /// [`CreateBindingResult`]。
     ///
     /// # Errors
     ///

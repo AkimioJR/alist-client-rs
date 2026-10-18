@@ -14,7 +14,7 @@
 use alist_client_derive::EndpointRequest;
 
 use super::login_hash;
-use crate::schema::auth::LoginResponse;
+use crate::schema::auth::LoginResult;
 
 /// 登录请求构建器。
 ///
@@ -22,7 +22,7 @@ use crate::schema::auth::LoginResponse;
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = POST, path = "/api/auth/login", model = LoginResponse)]
+#[endpoint(method = POST, path = "/api/auth/login", model = LoginResult)]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     #[endpoint(skip)]
@@ -102,7 +102,7 @@ impl<'a> super::Auth<'a> {
     /// 对应 AList `POST /api/auth/login`；密码以明文发送，由服务端做静态盐
     /// SHA-256 哈希（数据来源：AList OpenAPI 规范的 `auth/login`
     /// 与 AList 服务端 auth 模块的 `Login`）。
-    /// 成功时返回 [`LoginResponse`]（含 token）。
+    /// 成功时返回 [`LoginResult`]（含 token）。
     /// 该端点是 [`Client`](crate::Client) 内部自动刷新 token 所用登录的公开入口。
     /// 预哈希密码的变体见 [`login_hash`](super::Auth::login_hash)。
     ///
@@ -114,7 +114,7 @@ impl<'a> super::Auth<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`LoginResponse`]。
+    /// [`LoginResult`]。
     ///
     /// # Errors
     ///
@@ -193,7 +193,7 @@ mod tests {
 
     /// 收发路径：mock 服务器 + 记录请求原文，解码登录响应。
     #[tokio::test]
-    async fn send_posts_expected_request_and_decodes_login_response() {
+    async fn send_posts_expected_request_and_decodes_login_result() {
         let mut server = mockito::Server::new_async().await;
         let mock = server
             .mock("POST", "/api/auth/login")

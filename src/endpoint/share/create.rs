@@ -2,7 +2,7 @@
 //!
 //! 对应 `POST /api/share/create`；请求体携带分享目标路径与可选的分享 ID、
 //! 名称、密码、有效期、访问上限与预览/下载开关，响应 `data` 反序列化为
-//! [`ShareResponse`]。需要登录非访客用户的用户 token。
+//! [`Share`]。需要登录非访客用户的用户 token。
 //!
 //! # Version
 //!
@@ -10,7 +10,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::share::ShareResponse;
+use crate::schema::share::Share;
 
 /// 创建分享请求构建器。
 ///
@@ -18,7 +18,7 @@ use crate::schema::share::ShareResponse;
 /// 直接 `.await` 执行强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = POST, path = "/api/share/create", model = ShareResponse)]
+#[endpoint(method = POST, path = "/api/share/create", model = Share)]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     #[endpoint(skip)]
@@ -88,7 +88,7 @@ impl<'a> super::Share<'a> {
     /// 创建分享。
     ///
     /// 对应 AList `POST /api/share/create`；响应 `data` 为
-    /// [`ShareResponse`]（含服务端生成的分享 ID 与完整分享链接 `url`）。
+    /// [`Share`]（含服务端生成的分享 ID 与完整分享链接 `url`）。
     /// 需要登录非访客用户凭据（服务端路由组挂载认证与非访客校验中间件，
     /// 且校验对目标路径的读取权限）。数据来源：AList 服务端分享管理模块
     /// （实现为 `CreateShare`）与服务端路由定义。
@@ -100,7 +100,7 @@ impl<'a> super::Share<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`ShareResponse`]。
+    /// [`Share`]。
     ///
     /// # Errors
     ///

@@ -16,7 +16,7 @@
 //! 文件 mimetype 取自文件分部的 `Content-Type`，缺省由
 //! 服务端按扩展名推断。`Content-Length` 由 reqwest 按表单总长度自动携带。
 //! 直传成功时响应 `data` 为 `null`，转后台任务时为 `{"task": ...}`，
-//! 因此端点模型为 `Option<UploadResponse>`。本端点**手写**请求构建器
+//! 因此端点模型为 `Option<UploadResult>`。本端点**手写**请求构建器
 //! （不走 [`EndpointRequest`](alist_client_derive::EndpointRequest) 派生宏，
 //! 采用消费式请求体），支持直接 `.await` 或调用
 //! [`send_upload`](Request::send_upload)。
@@ -33,7 +33,7 @@
 use bytes::Bytes;
 use reqwest::Method;
 
-use crate::schema::common::UploadResponse;
+use crate::schema::common::UploadResult;
 
 /// 表单上传请求构建器。
 ///
@@ -254,7 +254,7 @@ impl<'a> Request<'a> {
     /// multipart 文件字段名为 `file`；`Content-Length` 由 reqwest 按表单总长度
     /// 自动携带。直传成功（未启用 `as_task(true)`）时响应 `data` 为 `null`，
     /// 返回 `None`；转后台任务时返回
-    /// [`UploadResponse`]。
+    /// [`UploadResult`]。
     ///
     /// # Errors
     ///
@@ -262,19 +262,19 @@ impl<'a> Request<'a> {
     /// AList 返回非成功状态码（HTTP 非 2xx 或响应 `code` 非 200）时，
     /// 返回 [`crate::Error`]。注意：multipart 请求体无法克隆，401/403 自动
     /// 重登重试不可用，将直接返回原始错误。
-    pub async fn send_upload(self) -> crate::Result<Option<UploadResponse>> {
+    pub async fn send_upload(self) -> crate::Result<Option<UploadResult>> {
         self.client.execute(self.into_builder()?).await
     }
 
     /// 发送上传请求（[`send_upload`](Self::send_upload) 的别名，与其他端点的 `send` 保持一致）。
     #[inline]
-    pub async fn send(self) -> crate::Result<Option<UploadResponse>> {
+    pub async fn send(self) -> crate::Result<Option<UploadResult>> {
         self.send_upload().await
     }
 }
 
 impl<'a> core::future::IntoFuture for Request<'a> {
-    type Output = crate::Result<Option<UploadResponse>>;
+    type Output = crate::Result<Option<UploadResult>>;
     type IntoFuture =
         core::pin::Pin<Box<dyn core::future::Future<Output = Self::Output> + Send + 'a>>;
 

@@ -2,7 +2,7 @@
 //!
 //! 对应 `GET /api/public/archive_extensions`（服务端路由注册为 `g.Any`，
 //! 读端点按 GET 处理）；响应 `data` 为已注册解压驱动支持的压缩包扩展名
-//! 字符串数组 [`ArchiveExtensionsResponse`]（自带前导点号，如 `.7z`、`.iso`；
+//! 字符串数组 [`ArchiveExtensions`]（自带前导点号，如 `.7z`、`.iso`；
 //! 集合由服务端编译内置的解压驱动决定，且无序——服务端遍历 Go map，
 //! 返回顺序不固定）。
 //! 该端点未被 AList v3 OpenAPI 规范收录，API 形状以 AList 服务端实现为准。
@@ -13,7 +13,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::public::ArchiveExtensionsResponse;
+use crate::schema::public::ArchiveExtensions;
 
 /// 查询压缩包扩展名请求构建器。
 ///
@@ -24,7 +24,7 @@ use crate::schema::public::ArchiveExtensionsResponse;
 #[endpoint(
     method = GET,
     path = "/api/public/archive_extensions",
-    model = ArchiveExtensionsResponse
+    model = ArchiveExtensions
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -59,7 +59,7 @@ impl<'a> super::Public<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`ArchiveExtensionsResponse`]（压缩包扩展名列表）。
+    /// [`ArchiveExtensions`]（压缩包扩展名列表）。
     ///
     /// # Errors
     ///
@@ -128,7 +128,7 @@ mod tests {
 
         let client = crate::Client::new(server.url()).unwrap();
 
-        let extensions: ArchiveExtensionsResponse = Request::new(&client).send().await.unwrap();
+        let extensions: ArchiveExtensions = Request::new(&client).send().await.unwrap();
         assert_eq!(
             extensions,
             vec![

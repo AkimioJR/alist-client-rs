@@ -15,7 +15,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::admin::storage::StorageCreateResponse;
+use crate::schema::admin::storage::CreateStorageResult;
 pub use crate::schema::admin::storage::WebdavPolicy;
 
 /// 创建存储请求构建器。
@@ -25,7 +25,7 @@ pub use crate::schema::admin::storage::WebdavPolicy;
 /// 强类型解码，或 [`.send().await`](Request::send) /
 /// [`.send_raw::<T>().await`](Request::send_raw) 自定义解码类型。
 #[derive(EndpointRequest)]
-#[endpoint(method = POST, path = "/api/admin/storage/create", model = StorageCreateResponse)]
+#[endpoint(method = POST, path = "/api/admin/storage/create", model = CreateStorageResult)]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
     #[endpoint(skip)]
@@ -149,7 +149,7 @@ impl<'a> super::Storage<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`StorageCreateResponse`]
+    /// [`CreateStorageResult`]
     /// （新存储的 ID）。
     ///
     /// # Errors

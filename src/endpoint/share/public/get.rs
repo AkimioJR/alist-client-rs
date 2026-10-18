@@ -1,7 +1,7 @@
 //! share 公开分享端点：获取分享内对象详情。
 //!
 //! 对应 `POST /api/public/share/get`；请求体为分享 ID、分享内相对路径与
-//! 分享访问令牌，响应 `data` 反序列化为 [`PublicShareGetResponse`]
+//! 分享访问令牌，响应 `data` 反序列化为 [`PublicShareDetail`]
 //! （对象详情与所在存储驱动标识）。无需用户认证；受密码保护的分享
 //! 必须携带有效分享令牌。
 //!
@@ -11,7 +11,7 @@
 
 use alist_client_derive::EndpointRequest;
 
-use crate::schema::share::PublicShareGetResponse;
+use crate::schema::share::PublicShareDetail;
 
 /// 获取分享内对象详情请求构建器。
 ///
@@ -22,7 +22,7 @@ use crate::schema::share::PublicShareGetResponse;
 #[endpoint(
     method = POST,
     path = "/api/public/share/get",
-    model = PublicShareGetResponse
+    model = PublicShareDetail
 )]
 #[must_use = "请求构建器不会自动发送请求，请调用 `.await` 或 `.send().await`"]
 pub struct Request<'a> {
@@ -61,7 +61,7 @@ impl<'a> super::Public<'a> {
     /// 获取分享内对象详情。
     ///
     /// 对应 AList `POST /api/public/share/get`；无需用户认证，
-    /// 响应 `data` 为 [`PublicShareGetResponse`]（对象详情 `item` 与
+    /// 响应 `data` 为 [`PublicShareDetail`]（对象详情 `item` 与
     /// 所在存储驱动标识 `provider`）。受密码保护的分享必须通过
     /// [`.token()`](Request::token) 携带有效分享访问令牌。
     /// 数据来源：AList 服务端公开分享处理模块（实现为 `GetPublicShare`）
@@ -74,7 +74,7 @@ impl<'a> super::Public<'a> {
     /// # Returns
     ///
     /// 返回 [`Request`] 请求构建器；可直接 `.await`，成功时返回
-    /// [`PublicShareGetResponse`]。
+    /// [`PublicShareDetail`]。
     ///
     /// # Errors
     ///
