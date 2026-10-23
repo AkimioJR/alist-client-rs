@@ -124,7 +124,7 @@ mod tests {
 
         let label = Request::new(&client, 1).send().await.unwrap();
         assert_eq!(label.id, 1);
-        assert_eq!(label.label_type, 2);
+        assert_eq!(label.r#type, 2);
         assert_eq!(label.name, "电影");
         assert_eq!(label.bg_color.as_deref(), Some("#FF0000"));
 

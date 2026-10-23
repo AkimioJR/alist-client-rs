@@ -272,6 +272,22 @@ impl<'a> super::Fs<'a> {
    - 分页响应用 `crate::schema::common::PageResponse<T>`，任务体用 `TaskInfo`，上传回执复用 `UploadResult`。
 8. **文件头部**：中文模块文档 + 数据来源说明；不写 pub use 之外的实现逻辑。
 
+### 5.3 保留字字段命名规范（`r#type` 原生标识符）
+
+在 AList 服务端协议中，`type`（如文件类型、驱动项类型、设置项值类型、标签类型、消息类型等）是极其高频出现的 JSON 键。由于 `type` 是 Rust 语言核心保留关键字，本 crate 严格遵循以下设计与工程纪律：
+
+1. **统一采用 Raw Identifier（`r#type`）**：
+   - 所有对应服务端 JSON 键为 `"type"` 的数据模型字段，**全库统一命名为 `pub r#type: T`**；
+   - **严禁**使用领域特化别名（如 `label_type`、`value_type`、`item_type`）进行重命名，以消除多模型间命名碎片化，确保调用方心智模型与 AList 官方 API 及 Go 源码 1:1 绝对一致。
+2. **免除冗余 `#[serde(rename = "type")]` 标注**：
+   - Serde 宏在 AST 解析阶段内置了 `unraw()` 机制，提取字段名时会自动剥离前缀 `r#`；
+   - 当服务端的 JSON 键为全小写 `"type"` 时，定义 `pub r#type: T` 会天然正确反序列化与序列化为 `"type"`，无需额外增加 `#[serde(rename = "type")]` 属性，保持模型定义干净清爽；
+   - 仅当服务端 JSON 键非标准全小写（如大驼峰 `"Type"`）时才显式标注 `#[serde(rename = "Type")]`。
+3. **钉扎测试必须覆盖序列化键名**：
+   - 在各 schema 文件的单元测试中，必须通过 `serde_json::to_value` 钉住该字段序列化出的 JSON 键确为 `"type"`，并断言不存在 `r#type` 等泄漏键名。
+4. **rustdoc 内部文档链接书写规范**：
+   - 在 intra-doc links 引用结构体的 `r#type` 字段时，使用 `[`r#type`](Struct::type)`（如 `[`Setting::r#type`](Setting::type)`），以保证 rustdoc 链接解析器与 HTML 渲染能够精准命中该字段而无死链告警。
+
 ## 6. 错误与响应包装（envelope）语义（已实现，端点代理需理解）
 
 - AList 多数错误以 **HTTP 200 + 响应 `code` 非 200** 返回；`Client::execute` 统一处理：

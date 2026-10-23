@@ -154,7 +154,7 @@ mod tests {
             key: "frp.server_addr".to_owned(),
             value: "frp.example.com".to_owned(),
             help: String::new(),
-            value_type: "string".to_owned(),
+            r#type: "string".to_owned(),
             options: String::new(),
             group: SettingGroup::Frp,
             flag: SettingFlag::Private,

@@ -152,13 +152,13 @@ mod tests {
         assert_eq!(settings.len(), 2);
         assert_eq!(settings[0].key, "site_title");
         assert_eq!(settings[0].value, "AList");
-        assert_eq!(settings[0].value_type, "string");
+        assert_eq!(settings[0].r#type, "string");
         use crate::schema::admin::setting::{SettingFlag, SettingGroup};
         assert_eq!(settings[0].group, SettingGroup::Site);
         assert_eq!(settings[0].flag, SettingFlag::Public);
         assert_eq!(settings[0].index, Some(3));
         assert_eq!(settings[1].key, "announcements");
-        assert_eq!(settings[1].value_type, "text");
+        assert_eq!(settings[1].r#type, "text");
         assert_eq!(settings[1].index, Some(4));
 
         mock.assert_async().await;

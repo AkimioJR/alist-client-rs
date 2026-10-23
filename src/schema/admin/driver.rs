@@ -59,16 +59,15 @@ pub struct DriverInfo {
 ///
 /// 对应 AList 服务端驱动域数据模型的 `driver.Item`；
 /// [`default`](DriverItem::default)/[`options`](DriverItem::options) 等均为
-/// 字符串形式，由前端按 [`value_type`](DriverItem::value_type) 解释。
+/// 字符串形式，由前端按 [`r#type`](DriverItem::type) 解释。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DriverItem {
     /// 配置项名，如 `mount_path`、`root_folder_id`（对应 Go `Item.Name`）。
     pub name: String,
     /// 值类型：`string`/`number`/`bool`/`text`/`select` 等。
     ///
-    /// JSON 键为保留字 `type`（对应 Go `Item.Type`），故重命名为 `value_type`。
-    #[serde(rename = "type")]
-    pub value_type: String,
+    /// 对应 Go `Item.Type`，JSON 键为保留字 `type`。
+    pub r#type: String,
     /// 默认值（字符串形式，如 `"30"`、`"302_redirect"`）。
     #[serde(default)]
     pub default: String,
@@ -184,13 +183,13 @@ mod tests {
         }))
         .unwrap();
         assert_eq!(info.common[0].name, "mount_path");
-        assert_eq!(info.common[0].value_type, "string");
+        assert_eq!(info.common[0].r#type, "string");
         assert!(info.common[0].required);
         assert_eq!(
             info.common[0].help,
             "The path you want to mount to, it is unique and cannot be repeated"
         );
-        assert_eq!(info.common[1].value_type, "select");
+        assert_eq!(info.common[1].r#type, "select");
         assert_eq!(info.common[1].options, "use_proxy_url,native_proxy");
         assert_eq!(info.additional[0].name, "root_folder_id");
         assert_eq!(info.additional[0].default, "0");
@@ -240,12 +239,12 @@ mod tests {
         assert_eq!(item.show_when.as_deref(), Some("auth_mode=token"));
     }
 
-    /// 序列化键名钉扎：`type` 为保留字，序列化必须还原为 JSON 键 `type`。
+    /// 序列化键名钉扎：`type` 为保留字（Rust 字段为 `r#type`，无 rename），序列化必须还原为 JSON 键 `type`。
     #[test]
     fn driver_item_serializes_with_api_field_names() {
         let item = DriverItem {
             name: "webdav_policy".to_owned(),
-            value_type: "select".to_owned(),
+            r#type: "select".to_owned(),
             default: "302_redirect".to_owned(),
             options: "302_redirect,use_proxy_url,native_proxy".to_owned(),
             required: true,
@@ -255,7 +254,7 @@ mod tests {
         let value = serde_json::to_value(&item).unwrap();
         assert_eq!(value["name"], "webdav_policy");
         assert_eq!(value["type"], "select");
-        assert!(value.get("value_type").is_none(), "不应出现重命名后的键");
+        assert!(value.get("r#type").is_none(), "r# 标识符不应带入 JSON 键");
     }
 
     /// 宽松模型钉扎：查询所有驱动配置模板列表示例可解为 [`DriverList`]，

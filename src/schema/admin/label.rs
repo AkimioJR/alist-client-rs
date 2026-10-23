@@ -27,9 +27,8 @@ pub struct Label {
     pub id: u64,
     /// 标签类型。
     ///
-    /// JSON 键为保留字 `type`，在 Rust 中重命名为 `label_type`。
-    #[serde(rename = "type")]
-    pub label_type: i32,
+    /// 对应 Go `model.Label.Type`，JSON 键为保留字 `type`。
+    pub r#type: i32,
     /// 标签名称。
     ///
     /// 服务端按名称查重，创建时必填。
@@ -78,7 +77,7 @@ mod tests {
         }))
         .unwrap();
         assert_eq!(label.id, 1);
-        assert_eq!(label.label_type, 2);
+        assert_eq!(label.r#type, 2);
         assert_eq!(label.name, "电影");
         assert_eq!(label.description.as_deref(), Some("电影相关文件"));
         assert_eq!(label.bg_color.as_deref(), Some("#FF0000"));
@@ -145,13 +144,13 @@ mod tests {
         assert_eq!(page.content[0].name, "学习");
     }
 
-    /// 序列化键名钉扎：`type` 为 JSON 保留字，`rename` 后必须以
-    /// `type` 而非 `label_type` 落盘（对应 Go `model.Label.Type` 的 JSON tag）。
+    /// 序列化键名钉扎：`type` 为保留字（Rust 字段为 `r#type`，无 rename），必须以
+    /// `type` 落盘（对应 Go `model.Label.Type` 的 JSON tag）。
     #[test]
     fn label_serializes_with_go_field_names() {
         let label = Label {
             id: 1,
-            label_type: 2,
+            r#type: 2,
             name: "电影".to_owned(),
             description: Some("电影相关文件".to_owned()),
             bg_color: Some("#FF0000".to_owned()),
@@ -159,7 +158,7 @@ mod tests {
         };
         let value = serde_json::to_value(&label).unwrap();
         assert_eq!(value["type"], 2, "JSON 键应为 type: {value}");
-        assert!(value.get("label_type").is_none(), "{value}");
+        assert!(value.get("r#type").is_none(), "{value}");
         assert_eq!(value["id"], 1);
         assert_eq!(value["name"], "电影");
         assert_eq!(value["bg_color"], "#FF0000");

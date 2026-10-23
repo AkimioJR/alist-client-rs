@@ -433,7 +433,7 @@ impl<S: AsRef<str>> From<Vec<S>> for SettingKeys {
 /// 对应 AList 服务端 model.Setting 数据模型中的 `SettingItem`：
 /// `GET /api/admin/setting/list`、`GET /api/admin/setting/get` 的响应元素，
 /// 同时是 `POST /api/admin/setting/save` 的请求体元素。
-/// 设置值统一为字符串承载，实际类型由 [`Setting::value_type`] 描述。
+/// 设置值统一为字符串承载，实际类型由 [`Setting::r#type`](Setting::type) 描述。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Setting {
     /// 设置键（唯一标识），例如 `site_title`、`token`。
@@ -446,9 +446,8 @@ pub struct Setting {
     pub help: String,
     /// 值类型：`string` / `number` / `bool` / `select`。
     ///
-    /// 对应 JSON 键为 `type`，Rust 字段名因此改名。
-    #[serde(rename = "type")]
-    pub value_type: String,
+    /// 对应 Go `model.SettingItem.Type`，JSON 键为保留字 `type`。
+    pub r#type: String,
     /// `select` 类型的候选项（逗号分隔）。
     pub options: String,
     /// 前端分组。
@@ -592,14 +591,14 @@ mod tests {
         let aria2 = &resp.data[0];
         assert_eq!(aria2.key, "aria2_uri");
         assert_eq!(aria2.value, "http://localhost:6800/jsonrpc");
-        assert_eq!(aria2.value_type, "string");
+        assert_eq!(aria2.r#type, "string");
         assert_eq!(aria2.group, SettingGroup::OfflineDownload);
         assert_eq!(aria2.flag, SettingFlag::Private);
         // openapi 示例未含 index 字段 → serde(default) 解析为 None（老版本服务端兼容）
         assert_eq!(aria2.index, None);
 
         let progress = &resp.data[1];
-        assert_eq!(progress.value_type, "text");
+        assert_eq!(progress.r#type, "text");
         assert!(progress.value.contains("\"is_done\":true"));
     }
 
@@ -623,7 +622,7 @@ mod tests {
         .unwrap();
         assert_eq!(resp.data.key, "hide_files");
         assert_eq!(resp.data.value, "/\\/README.md/i");
-        assert_eq!(resp.data.value_type, "text");
+        assert_eq!(resp.data.r#type, "text");
         assert_eq!(resp.data.group, SettingGroup::Global);
         assert_eq!(resp.data.flag, SettingFlag::Public);
     }
@@ -658,7 +657,7 @@ mod tests {
         assert_eq!(without_index.index, None);
     }
 
-    /// 序列化键名钉扎：`type` 键经 `#[serde(rename)]` 保留，`index` 一并序列化
+    /// 序列化键名钉扎：`type` 为保留字（Rust 字段为 `r#type`，无 rename），`index` 一并序列化
     /// （服务端 `ShouldBind` 对缺失字段的绑定结果与显式 `0` 等价）。
     #[test]
     fn setting_serializes_with_api_field_names() {
@@ -666,7 +665,7 @@ mod tests {
             key: "site_title".to_owned(),
             value: "AList".to_owned(),
             help: String::new(),
-            value_type: "string".to_owned(),
+            r#type: "string".to_owned(),
             options: String::new(),
             group: SettingGroup::Site,
             flag: SettingFlag::Public,

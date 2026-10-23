@@ -162,7 +162,7 @@ mod tests {
         let page = Request::new(&client).per_page(50).send().await.unwrap();
         assert_eq!(page.total, 1);
         assert_eq!(page.content[0].id, 1);
-        assert_eq!(page.content[0].label_type, 2);
+        assert_eq!(page.content[0].r#type, 2);
         assert_eq!(page.content[0].name, "电影");
 
         mock.assert_async().await;

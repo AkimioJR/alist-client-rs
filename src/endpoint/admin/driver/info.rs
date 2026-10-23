@@ -90,7 +90,7 @@ impl<'a> super::Driver<'a> {
     ///     .with_authentication(Authentication::token("ADMIN_TOKEN".to_owned()));
     /// let info = client.admin().driver().info("Local").await?;
     /// for item in &info.additional {
-    ///     println!("{} ({}) 默认值: {}", item.name, item.value_type, item.default);
+    ///     println!("{} ({}) 默认值: {}", item.name, item.r#type, item.default);
     /// }
     /// # Ok(())
     /// # }
@@ -160,7 +160,7 @@ mod tests {
         let info: DriverInfo = Request::new(&client, "Local").send().await.unwrap();
         assert_eq!(info.config.name, "Local");
         assert_eq!(info.common[0].name, "mount_path");
-        assert_eq!(info.common[0].value_type, "string");
+        assert_eq!(info.common[0].r#type, "string");
 
         mock.assert_async().await;
     }

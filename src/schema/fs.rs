@@ -136,8 +136,7 @@ pub struct ObjLabel {
     /// 标签 ID（对应 Go `model.Label.ID`，gorm 主键 `uint`）。
     pub id: u64,
     /// 标签类型（对应 Go `model.Label.Type`，JSON 键为保留字 `type`）。
-    #[serde(rename = "type")]
-    pub label_type: i32,
+    pub r#type: i32,
     /// 标签名称。
     pub name: String,
     /// 标签描述；缺失或 `null` 时归约为空串。
@@ -775,6 +774,7 @@ mod tests {
         );
         assert_eq!(obj.label_list.len(), 1);
         assert_eq!(obj.label_list[0].name, "文档");
+        assert_eq!(obj.label_list[0].r#type, 2);
         assert_eq!(obj.storage_class.as_deref(), Some("STANDARD"));
         assert_eq!(resp.filtered_total, Some(1));
         assert_eq!(resp.page, Some(1));

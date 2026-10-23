@@ -169,7 +169,7 @@ mod tests {
         assert_eq!(settings.len(), 1);
         assert_eq!(settings[0].key, "token");
         assert_eq!(settings[0].value, "alist-2a");
-        assert_eq!(settings[0].value_type, "string");
+        assert_eq!(settings[0].r#type, "string");
         use crate::schema::admin::setting::{SettingFlag, SettingGroup};
         assert_eq!(settings[0].group, SettingGroup::Single);
         assert_eq!(settings[0].flag, SettingFlag::Private);

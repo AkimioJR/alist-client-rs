@@ -135,7 +135,7 @@ mod tests {
         let setting = Request::new(&client, "hide_files").send().await.unwrap();
         assert_eq!(setting.key, "hide_files");
         assert_eq!(setting.value, "/\\/README.md/i");
-        assert_eq!(setting.value_type, "text");
+        assert_eq!(setting.r#type, "text");
         use crate::schema::admin::setting::{SettingFlag, SettingGroup};
         assert_eq!(setting.group, SettingGroup::Global);
         assert_eq!(setting.flag, SettingFlag::Public);
