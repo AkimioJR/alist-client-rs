@@ -15,19 +15,21 @@ AList 与 OpenList OpenAPI 文档自动抓取与更新工具。
 
 import argparse
 import json
+import logging
 import os
 import re
 import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
-
+from typing import Any
 
 import yaml
 
-# 终端彩色输出
+# 终端彩色输出辅助（仅当 stdout 为终端且未设置 NO_COLOR 时启用）
 USE_COLOR = sys.stdout.isatty() and os.environ.get("NO_COLOR") is None
+
+logger = logging.getLogger(__name__)
 
 
 def colorize(text: str, color_code: str) -> str:
@@ -61,7 +63,7 @@ def dim(text: str) -> str:
 
 
 # 站点配置定义
-PROJECTS_CONFIG = {
+PROJECTS_CONFIG: dict[str, dict[str, Any]] = {
     "alist": {
         "display_name": "AList",
         "site_url": "https://alist-public.apifox.cn/",
@@ -100,7 +102,7 @@ def find_workspace_root() -> Path:
     return Path.cwd()
 
 
-def extract_project_id_from_site(site_url: str) -> Optional[int]:
+def extract_project_id_from_site(site_url: str) -> int | None:
     """尝试从 Apifox 前端 HTML 中动态提取项目 ID。"""
     try:
         req = urllib.request.Request(
@@ -118,20 +120,24 @@ def extract_project_id_from_site(site_url: str) -> Optional[int]:
             matches = re.findall(r'"id":\s*(\d{6,10})', html)
             if matches:
                 return int(matches[0])
-    except Exception:
-        pass
+    except (urllib.error.URLError, OSError, ValueError) as e:
+        logger.debug("从站点 %s 动态提取项目 ID 失败: %s", site_url, e)
     return None
 
 
-def fetch_openapi_data(project_id: int, api_hosts: List[str], spec_version: str = "openapi31") -> Dict[str, Any]:
+def fetch_openapi_data(
+    project_id: int, api_hosts: list[str], spec_version: str = "openapi31"
+) -> dict[str, Any]:
     """向 Apifox 后端接口请求导出 OpenAPI 数据。"""
-    body_data = json.dumps({
-        "type": "openapi",
-        "version": spec_version,
-        "id": str(project_id),
-    }).encode("utf-8")
+    body_data = json.dumps(
+        {
+            "type": "openapi",
+            "version": spec_version,
+            "id": str(project_id),
+        }
+    ).encode("utf-8")
 
-    last_error = None
+    last_error: Exception | None = None
     for host in api_hosts:
         endpoint = f"{host.rstrip('/')}/api/v1/projects/{project_id}/published-projects/export-data"
         try:
@@ -147,24 +153,27 @@ def fetch_openapi_data(project_id: int, api_hosts: List[str], spec_version: str 
             with urllib.request.urlopen(req, timeout=12) as resp:
                 if resp.status == 200:
                     raw_bytes = resp.read()
-                    data = json.loads(raw_bytes.decode("utf-8"))
+                    data: dict[str, Any] = json.loads(raw_bytes.decode("utf-8"))
                     return data
-        except Exception as e:
+        except (urllib.error.URLError, OSError, json.JSONDecodeError, ValueError) as e:
             last_error = e
+            logger.debug("节点 %s 导出失败，尝试下一个节点: %s", host, e)
             continue
 
     raise RuntimeError(f"从所有可用节点导出数据均失败: {last_error}")
 
 
-def save_as_json(data: Dict[str, Any], target_path: Path) -> None:
+def save_as_json(data: dict[str, Any], target_path: Path) -> None:
     target_path.parent.mkdir(parents=True, exist_ok=True)
     with open(target_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-def save_as_yaml(data: Dict[str, Any], target_path: Path) -> None:
+def save_as_yaml(data: dict[str, Any], target_path: Path) -> None:
     if yaml is None:
-        raise RuntimeError("缺少 pyyaml 模块，无法输出 yaml 格式，请使用 uv run 运行该脚本。")
+        raise RuntimeError(
+            "缺少 pyyaml 模块，无法输出 yaml 格式，请使用 uv run 运行该脚本。"
+        )
 
     target_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -172,7 +181,7 @@ def save_as_yaml(data: Dict[str, Any], target_path: Path) -> None:
         pass
 
     # 保持中文正常显示，不转义为 \uXXXX
-    def represent_str(dumper, value):
+    def represent_str(dumper: yaml.SafeDumper, value: str) -> yaml.ScalarNode:
         if "\n" in value:
             return dumper.represent_scalar("tag:yaml.org,2002:str", value, style="|")
         return dumper.represent_scalar("tag:yaml.org,2002:str", value)
@@ -194,76 +203,100 @@ def save_as_yaml(data: Dict[str, Any], target_path: Path) -> None:
 def format_size(bytes_len: int) -> str:
     if bytes_len < 1024:
         return f"{bytes_len} B"
-    elif bytes_len < 1024 * 1024:
+    if bytes_len < 1024 * 1024:
         return f"{bytes_len / 1024:.1f} KB"
-    else:
-        return f"{bytes_len / (1024 * 1024):.2f} MB"
+    return f"{bytes_len / (1024 * 1024):.2f} MB"
 
 
-def update_target(target_key: str, cfg: Dict[str, Any], root: Path, args: argparse.Namespace) -> bool:
+def update_target(
+    _target_key: str, cfg: dict[str, Any], root: Path, args: argparse.Namespace
+) -> str | None:
+    """同步单个目标组件的 OpenAPI 文档，返回最终结果摘要文本；失败时返回 None。"""
     name = cfg["display_name"]
-    print(f"\n{bold(cyan(f'=== 正在同步 {name} OpenAPI 文档 ==='))}")
-    print(f"  来源站点: {dim(cfg['site_url'])}")
+    logger.info("正在同步 %s OpenAPI 文档 (来源站点: %s)...", name, cfg["site_url"])
 
     # 1. 获取项目 ID
-    pid = None
+    pid: int | None = None
     if not args.fixed_id:
         pid = extract_project_id_from_site(cfg["site_url"])
     if not pid:
         pid = cfg["default_project_id"]
-    print(f"  项目 ID  : {bold(str(pid))}")
+    logger.info("[%s] 项目 ID: %s", name, pid)
 
     # 2. 拉取 OpenAPI 数据
-    print(f"  正在请求导出 OpenAPI 数据 (版本: {args.version})...")
+    logger.info("[%s] 正在请求导出 OpenAPI 数据 (版本: %s)...", name, args.version)
     spec_ver_code = "openapi31" if args.version == "3.1" else "openapi30"
     try:
         data = fetch_openapi_data(pid, cfg["api_hosts"], spec_ver_code)
-    except Exception as e:
-        print(red(f"  [!] 数据导出失败: {e}"))
-        return False
+    except (RuntimeError, OSError, ValueError) as e:
+        logger.error("[%s] 数据导出失败: %s", name, e)
+        return None
 
     spec_title = data.get("info", {}).get("title", "未命名")
     paths_count = len(data.get("paths", {}))
     schemas_count = len(data.get("components", {}).get("schemas", {}))
     openapi_ver = data.get("openapi", "未知")
 
-    print(green(f"  [✓] 成功拉取 OpenAPI {openapi_ver} 数据！"))
-    print(f"      - 标题: {spec_title}")
-    print(f"      - 接口数量: {bold(str(paths_count))} 个路径")
-    print(f"      - 数据模型: {bold(str(schemas_count))} 个 Schema 定义")
+    logger.info(
+        "[%s] 成功拉取 OpenAPI %s 数据 (接口: %d, 模型: %d)",
+        name,
+        openapi_ver,
+        paths_count,
+        schemas_count,
+    )
+
+    result_lines: list[str] = [
+        f"[{bold(cyan(name))}] OpenAPI {green(str(openapi_ver))} - {spec_title}",
+        f"  接口数量: {bold(str(paths_count))} 个路径 | 数据模型: {bold(str(schemas_count))} 个 Schema 定义",
+    ]
 
     if args.dry_run:
-        print(yellow("  [提示] --dry-run 模式已开启，跳过写入本地文件。"))
-        return True
+        logger.info("[%s] --dry-run 模式已开启，跳过写入本地文件。", name)
+        result_lines.append(f"  输出状态: {yellow('dry-run (未写入本地文件)')}")
+        return "\n".join(result_lines)
 
     # 3. 保存文件
     yaml_path = root / cfg["output_yaml"]
     json_path = root / cfg["output_json"]
 
     if args.format in ["yaml", "both"]:
-        print(f"  正在写入 YAML: {dim(str(yaml_path.relative_to(root)))}...")
+        rel_yaml = yaml_path.relative_to(root)
+        logger.info("[%s] 正在写入 YAML: %s...", name, rel_yaml)
         try:
             save_as_yaml(data, yaml_path)
             size = yaml_path.stat().st_size
-            print(green(f"  [✓] YAML 文件已保存 ({format_size(size)})"))
-        except Exception as e:
-            print(red(f"  [!] 写入 YAML 失败: {e}"))
-            return False
+            logger.info("[%s] YAML 文件已保存 (%s)", name, format_size(size))
+            result_lines.append(
+                f"  YAML 文件: {green(str(rel_yaml))} ({dim(format_size(size))})"
+            )
+        except (OSError, RuntimeError, yaml.YAMLError) as e:
+            logger.error("[%s] 写入 YAML 失败: %s", name, e)
+            return None
 
     if args.format in ["json", "both"]:
-        print(f"  正在写入 JSON: {dim(str(json_path.relative_to(root)))}...")
+        rel_json = json_path.relative_to(root)
+        logger.info("[%s] 正在写入 JSON: %s...", name, rel_json)
         try:
             save_as_json(data, json_path)
             size = json_path.stat().st_size
-            print(green(f"  [✓] JSON 文件已保存 ({format_size(size)})"))
-        except Exception as e:
-            print(red(f"  [!] 写入 JSON 失败: {e}"))
-            return False
+            logger.info("[%s] JSON 文件已保存 (%s)", name, format_size(size))
+            result_lines.append(
+                f"  JSON 文件: {green(str(rel_json))} ({dim(format_size(size))})"
+            )
+        except (OSError, TypeError, ValueError) as e:
+            logger.error("[%s] 写入 JSON 失败: %s", name, e)
+            return None
 
-    return True
+    return "\n".join(result_lines)
 
 
 def main() -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[%(levelname)s] %(message)s",
+        stream=sys.stderr,
+    )
+
     parser = argparse.ArgumentParser(
         prog="update-openapi",
         description="从 Apifox 在线文档站点自动抓取并更新 AList 与 OpenList 的 OpenAPI 规范文档。",
@@ -322,17 +355,28 @@ def main() -> None:
 
     targets = list(PROJECTS_CONFIG.keys()) if args.target == "all" else [args.target]
 
-    print(bold("=== OpenAPI 文档同步任务开始 ==="))
-    success_count = 0
-    for t in targets:
-        if update_target(t, PROJECTS_CONFIG[t], root, args):
-            success_count += 1
+    logger.info("OpenAPI 文档同步任务开始 (目标: %s)", ", ".join(targets))
+    output_blocks: list[str] = [bold("=== OpenAPI 文档同步结果 ===")]
+    failed_targets: list[str] = []
 
-    print("\n" + bold("=== 同步任务结束 ==="))
-    if success_count == len(targets):
-        print(green(f"[✓] 全部 {success_count} 个文档同步成功！"))
-    else:
-        print(yellow(f"[!] 完成: {success_count}/{len(targets)} 成功。"))
+    for t in targets:
+        summary = update_target(t, PROJECTS_CONFIG[t], root, args)
+        if summary is not None:
+            output_blocks.append(summary)
+        else:
+            failed_targets.append(t)
+
+    if failed_targets:
+        logger.error(
+            "同步任务存在失败项 (%d/%d 失败): %s",
+            len(failed_targets),
+            len(targets),
+            ", ".join(failed_targets),
+        )
+        sys.exit(1)
+
+    logger.info("全部 %d 个 OpenAPI 文档同步成功！", len(targets))
+    print("\n\n".join(output_blocks))
 
 
 if __name__ == "__main__":
