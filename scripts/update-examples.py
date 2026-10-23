@@ -13,11 +13,9 @@ AList 与 OpenList 源码版本管理与更新工具。
 import argparse
 import os
 import re
-import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 # 终端彩色输出辅助
 USE_COLOR = sys.stdout.isatty() and os.environ.get("NO_COLOR") is None
@@ -92,7 +90,9 @@ def get_repo_dir(workspace_root: Path, repo_key: str) -> Path:
     return examples_dir / config["default_dir"]
 
 
-def run_git(args: List[str], cwd: Path, capture: bool = True) -> subprocess.CompletedProcess:
+def run_git(
+    args: list[str], cwd: Path, capture: bool = True, log_error: bool = True
+) -> subprocess.CompletedProcess:
     try:
         return subprocess.run(
             ["git", *args],
@@ -102,7 +102,7 @@ def run_git(args: List[str], cwd: Path, capture: bool = True) -> subprocess.Comp
             check=True,
         )
     except subprocess.CalledProcessError as e:
-        if capture and e.stderr:
+        if capture and e.stderr and log_error:
             sys.stderr.write(f"Git 错误: {e.stderr.strip()}\n")
         raise
 
@@ -118,7 +118,11 @@ def ensure_repo_cloned(workspace_root: Path, repo_key: str) -> Path:
     if is_git_repo(repo_dir):
         return repo_dir
 
-    print(yellow(f"[*] 检测到 {config['display_name']} 尚未克隆，正在从 {config['url']} 克隆..."))
+    print(
+        yellow(
+            f"[*] 检测到 {config['display_name']} 尚未克隆，正在从 {config['url']} 克隆..."
+        )
+    )
     repo_dir.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(
         ["git", "clone", "--depth", "50", "--tags", config["url"], str(repo_dir)],
@@ -128,25 +132,36 @@ def ensure_repo_cloned(workspace_root: Path, repo_key: str) -> Path:
     return repo_dir
 
 
-def get_repo_status(repo_dir: Path) -> Dict[str, str]:
+def get_repo_status(
+    repo_dir: Path, semver_pattern: re.Pattern | None = None
+) -> dict[str, str]:
     if not is_git_repo(repo_dir):
         return {"exists": False}
 
-    # 获取当前精确 Tag
+    # 获取当前精确 Tag（若多个 Tag 指向同一 Commit，优先挑选符合语义规则的稳定版本 Tag）
     exact_tag = ""
     try:
-        proc = run_git(["describe", "--tags", "--exact-match"], cwd=repo_dir)
-        exact_tag = proc.stdout.strip()
-    except Exception:
+        proc = run_git(["tag", "--points-at", "HEAD"], cwd=repo_dir, log_error=False)
+        tags_at_head = [t.strip() for t in proc.stdout.splitlines() if t.strip()]
+        if tags_at_head:
+            pattern = semver_pattern or re.compile(r"^v?\d+\.\d+(?:\.\d+)?")
+            stable = [t for t in tags_at_head if is_stable_release(t, pattern)]
+            exact_tag = stable[0] if stable else tags_at_head[0]
+    except (subprocess.CalledProcessError, OSError):
         exact_tag = ""
 
     # 获取当前分支
     branch = ""
     try:
-        proc = run_git(["rev-parse", "--abbrev-ref", "HEAD"], cwd=repo_dir, capture=True, log_error=False)
+        proc = run_git(
+            ["rev-parse", "--abbrev-ref", "HEAD"],
+            cwd=repo_dir,
+            capture=True,
+            log_error=False,
+        )
         out = proc.stdout.strip()
         branch = "detached HEAD" if out == "HEAD" else out
-    except Exception:
+    except (subprocess.CalledProcessError, OSError):
         branch = "detached HEAD"
 
     # 获取当前 commit
@@ -154,11 +169,13 @@ def get_repo_status(repo_dir: Path) -> Dict[str, str]:
     commit_date = ""
     commit_msg = ""
     try:
-        proc = run_git(["log", "-1", "--format=%h|%cd|%s", "--date=short"], cwd=repo_dir)
+        proc = run_git(
+            ["log", "-1", "--format=%h|%cd|%s", "--date=short"], cwd=repo_dir
+        )
         parts = proc.stdout.strip().split("|", 2)
         if len(parts) >= 3:
             commit_sha, commit_date, commit_msg = parts[0], parts[1], parts[2]
-    except Exception:
+    except (subprocess.CalledProcessError, OSError, ValueError):
         pass
 
     # 工作树状态
@@ -166,7 +183,7 @@ def get_repo_status(repo_dir: Path) -> Dict[str, str]:
     try:
         proc = run_git(["status", "--porcelain"], cwd=repo_dir)
         dirty = bool(proc.stdout.strip())
-    except Exception:
+    except (subprocess.CalledProcessError, OSError):
         pass
 
     return {
@@ -186,7 +203,16 @@ def fetch_tags(repo_dir: Path, verbose: bool = True) -> bool:
         print(cyan(f"[*] 正在获取最新远程 Tags: {repo_dir.name}..."))
     try:
         subprocess.run(
-            ["git", "-C", str(repo_dir), "fetch", "origin", "--tags", "--prune"],
+            [
+                "git",
+                "-C",
+                str(repo_dir),
+                "fetch",
+                "origin",
+                "--tags",
+                "--force",
+                "--prune",
+            ],
             check=True,
             capture_output=not verbose,
         )
@@ -196,11 +222,16 @@ def fetch_tags(repo_dir: Path, verbose: bool = True) -> bool:
         return False
 
 
-def get_all_tags(repo_dir: Path) -> List[Tuple[str, str, str]]:
+def get_all_tags(repo_dir: Path) -> list[tuple[str, str, str]]:
     """获取所有 tags 及其提交日期与 SHA，按版本号语义逆序排列。"""
     try:
         proc = run_git(
-            ["tag", "-l", "--sort=-v:refname", "--format=%(refname:short)|%(creatordate:short)|%(objectname:short)"],
+            [
+                "tag",
+                "-l",
+                "--sort=-v:refname",
+                "--format=%(refname:short)|%(creatordate:short)|%(objectname:short)",
+            ],
             cwd=repo_dir,
         )
         tags = []
@@ -214,7 +245,7 @@ def get_all_tags(repo_dir: Path) -> List[Tuple[str, str, str]]:
             sha = parts[2] if len(parts) > 2 else ""
             tags.append((tag_name, date, sha))
         return tags
-    except Exception:
+    except (subprocess.CalledProcessError, OSError):
         return []
 
 
@@ -230,6 +261,7 @@ def is_stable_release(tag: str, pattern: re.Pattern) -> bool:
 # 命令实现
 # ---------------------------------------------------------------------------
 
+
 def cmd_status(args: argparse.Namespace) -> None:
     root = find_workspace_root()
     print(bold("=== @examples/ 依赖源码状态 ==="))
@@ -238,7 +270,9 @@ def cmd_status(args: argparse.Namespace) -> None:
         repo_dir = get_repo_dir(root, key)
         status = get_repo_status(repo_dir)
 
-        print(f"\n[{bold(cyan(cfg['display_name']))}] ({dim(str(repo_dir.relative_to(root)))})")
+        print(
+            f"\n[{bold(cyan(cfg['display_name']))}] ({dim(str(repo_dir.relative_to(root)))})"
+        )
         if not status.get("exists"):
             print(yellow("  状态: 尚未克隆或目录不存在"))
             continue
@@ -257,13 +291,17 @@ def cmd_status(args: argparse.Namespace) -> None:
 
         # 尝试查找最新的稳定 Tag
         tags = get_all_tags(repo_dir)
-        stable_tags = [t[0] for t in tags if is_stable_release(t[0], cfg["semver_pattern"])]
+        stable_tags = [
+            t[0] for t in tags if is_stable_release(t[0], cfg["semver_pattern"])
+        ]
         if stable_tags:
             latest_stable = stable_tags[0]
             if status["exact_tag"] == latest_stable:
                 print(f"  稳定版本: {green(latest_stable)} (当前已是最新稳定 Tag)")
             else:
-                print(f"  最新稳定: {yellow(latest_stable)} (可运行: update {key} --latest)")
+                print(
+                    f"  最新稳定: {yellow(latest_stable)} (可运行: update {key} --latest)"
+                )
 
 
 def cmd_list(args: argparse.Namespace) -> None:
@@ -277,11 +315,12 @@ def cmd_list(args: argparse.Namespace) -> None:
         if args.remote:
             fetch_tags(repo_dir)
 
-        status = get_repo_status(repo_dir)
+        status = get_repo_status(repo_dir, cfg.get("semver_pattern"))
         current_tag = status.get("exact_tag", "")
         all_tags = get_all_tags(repo_dir)
 
-        print(f"\n{bold(cyan(f'=== {cfg["display_name"]} 可用版本列表 ==='))}")
+        display_name = cfg["display_name"]
+        print(f"\n{bold(cyan(f'=== {display_name} 可用版本列表 ==='))}")
         if not all_tags:
             print(yellow("  暂无可用 Tag。"))
             continue
@@ -291,7 +330,9 @@ def cmd_list(args: argparse.Namespace) -> None:
         if args.all_tags:
             display_tags = all_tags
         else:
-            display_tags = [t for t in all_tags if is_stable_release(t[0], cfg["semver_pattern"])]
+            display_tags = [
+                t for t in all_tags if is_stable_release(t[0], cfg["semver_pattern"])
+            ]
             if not display_tags:
                 display_tags = all_tags  # 若无匹配则回退展示全部
 
@@ -300,7 +341,7 @@ def cmd_list(args: argparse.Namespace) -> None:
         sliced_tags = display_tags[:limit] if limit else display_tags
 
         for tag_name, date, sha in sliced_tags:
-            is_current = (tag_name == current_tag)
+            is_current = tag_name == current_tag
             marker = green(" * (当前)") if is_current else "   "
             tag_label = bold(green(tag_name)) if is_current else cyan(tag_name)
             date_str = dim(f"[{date}]") if date else ""
@@ -308,7 +349,11 @@ def cmd_list(args: argparse.Namespace) -> None:
             print(f"{marker} {tag_label:<14} {date_str:<12} {sha_str}")
 
         if limit and total_count > limit:
-            print(dim(f"  ... 其余 {total_count - limit} 个历史版本已省略，使用 --all 显示全部版本。"))
+            print(
+                dim(
+                    f"  ... 其余 {total_count - limit} 个历史版本已省略，使用 --all 显示全部版本。"
+                )
+            )
 
 
 def cmd_update(args: argparse.Namespace) -> None:
@@ -328,24 +373,36 @@ def cmd_update(args: argparse.Namespace) -> None:
 
         # 2. 解析目标版本/分支
         if args.latest:
-            stable_tags = [t[0] for t in tags if is_stable_release(t[0], cfg["semver_pattern"])]
+            stable_tags = [
+                t[0] for t in tags if is_stable_release(t[0], cfg["semver_pattern"])
+            ]
             if not stable_tags:
-                print(red(f"[!] {cfg['display_name']} 未找到符合规则的稳定 Release Tag！"))
+                print(
+                    red(f"[!] {cfg['display_name']} 未找到符合规则的稳定 Release Tag！")
+                )
                 continue
             target_ref = stable_tags[0]
         elif args.main:
             target_ref = "origin/main"
         elif not target_ref:
             # 未指定具体版本时，默认展示提示
-            print(yellow(f"[*] 请为 {cfg['display_name']} 指定要更新的版本 (例如: update {key} v3.64.0)，或使用 --latest / --main 参数。"))
+            print(
+                yellow(
+                    f"[*] 请为 {cfg['display_name']} 指定要更新的版本 (例如: update {key} v3.64.0)，或使用 --latest / --main 参数。"
+                )
+            )
             continue
 
         print(cyan(f"[*] 正在将 {cfg['display_name']} 切换至: {bold(target_ref)}..."))
 
         # 3. 检查是否有未提交修改
-        status = get_repo_status(repo_dir)
+        status = get_repo_status(repo_dir, cfg.get("semver_pattern"))
         if status.get("dirty") and not args.force:
-            print(red(f"[!] {cfg['display_name']} 存在未提交修改，为防止丢失代码已停止切换。使用 -f / --force 强制覆盖。"))
+            print(
+                red(
+                    f"[!] {cfg['display_name']} 存在未提交修改，为防止丢失代码已停止切换。使用 -f / --force 强制覆盖。"
+                )
+            )
             continue
 
         # 4. 执行切换
@@ -355,15 +412,17 @@ def cmd_update(args: argparse.Namespace) -> None:
             run_git(["checkout", target_ref], cwd=repo_dir, capture=False)
 
             # 如果检出的是本地分支并且追踪远端，做一次 pull
-            cur_status = get_repo_status(repo_dir)
+            cur_status = get_repo_status(repo_dir, cfg.get("semver_pattern"))
             if cur_status["branch"] not in ["", "detached HEAD"] and not args.version:
                 try:
                     run_git(["pull", "--ff-only"], cwd=repo_dir, capture=False)
-                except Exception:
+                except (subprocess.CalledProcessError, OSError):
                     pass
 
-            print(green(f"[✓] {cfg['display_name']} 已成功更新至: {bold(target_ref)}！\n"))
-        except Exception as e:
+            print(
+                green(f"[✓] {cfg['display_name']} 已成功更新至: {bold(target_ref)}！\n")
+            )
+        except (subprocess.CalledProcessError, OSError) as e:
             print(red(f"[!] 更新 {cfg['display_name']} 失败: {e}\n"))
 
 
@@ -408,18 +467,21 @@ def main() -> None:
         help="目标组件 (可选: alist / openlist，缺省列出两者)",
     )
     list_parser.add_argument(
-        "-r", "--remote",
+        "-r",
+        "--remote",
         action="store_true",
         help="在列出前先 fetch 远端以获取最新 Tags",
     )
     list_parser.add_argument(
-        "-n", "--limit",
+        "-n",
+        "--limit",
         type=int,
         default=15,
         help="限制显示的最新版本数量 (默认 15 条)",
     )
     list_parser.add_argument(
-        "-a", "--all",
+        "-a",
+        "--all",
         action="store_true",
         help="显示全部版本列表，不限制条数",
     )
@@ -458,7 +520,8 @@ def main() -> None:
         help="切换前不从远端 fetch (仅使用本地已下载的 Tags/Commits)",
     )
     update_parser.add_argument(
-        "-f", "--force",
+        "-f",
+        "--force",
         action="store_true",
         help="强制切换并丢弃工作区可能存在的修改",
     )
@@ -466,9 +529,7 @@ def main() -> None:
     args = parser.parse_args()
 
     # 缺省无子命令时，默认运行 status
-    if not args.command:
-        cmd_status(args)
-    elif args.command == "status":
+    if not args.command or args.command == "status":
         cmd_status(args)
     elif args.command == "list":
         cmd_list(args)
